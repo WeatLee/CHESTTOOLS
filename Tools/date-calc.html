@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>日期計算工具箱</title>
+  <style>
+    :root {
+      --bg: #0b1020; --card: #121a2f; --muted: #98a2b3; --text: #e6e9ef; --accent: #8bb3ff;
+      --ok: #22c55e; --bad: #ef4444; --highlight: #ff9f43;
+    }
+    * { box-sizing: border-box; }
+    body { 
+      margin: 0; font-family: ui-sans-serif, system-ui, sans-serif; 
+      background: var(--bg); color: var(--text); padding: 20px;
+    }
+    .wrap { max-width: 550px; margin: 20px auto; }
+    
+    .back-link {
+        display: inline-block; padding: 8px 16px; margin-bottom: 20px;
+        background-color: rgba(255, 255, 255, 0.05); color: var(--accent);
+        text-decoration: none; border-radius: 8px; font-size: 0.9rem;
+        border: 1px solid rgba(139, 179, 255, 0.3);
+    }
+
+    .card { 
+      background: var(--card); border: 1px solid rgba(255,255,255,0.08); 
+      border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      margin-bottom: 30px;
+    }
+
+    h1 { font-size: 20px; margin: 0 0 15px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+    .hint { font-size: 12px; color: var(--muted); margin-bottom: 15px; }
+
+    label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 6px; }
+    input[type="text"] {
+      width: 100%; background: #0e1529; border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text); padding: 12px; border-radius: 10px; font-size: 18px; outline: none;
+      margin-bottom: 15px;
+    }
+    input[type="text"]:focus { border-color: var(--accent); }
+
+    .days-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+    .day-option { position: relative; }
+    .day-option input { position: absolute; opacity: 0; }
+    .day-btn {
+      display: block; text-align: center; padding: 10px; background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; cursor: pointer; font-size: 13px;
+    }
+    .day-option input:checked + .day-btn { background: var(--accent); color: #0b1020; font-weight: bold; }
+
+    .result-box {
+      background: rgba(139, 179, 255, 0.05); border: 1px dashed var(--accent);
+      padding: 15px; border-radius: 12px; text-align: center;
+    }
+    .result-val { font-size: 24px; font-weight: bold; color: var(--ok); }
+    .diff-val { font-size: 32px; font-weight: bold; color: var(--highlight); }
+    
+    hr { border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0; }
+  </style>
+</head>
+<body>
+
+  <div class="wrap">
+    <a href="../index.html" class="back-link">← 回到工具選單</a>
+
+    <!-- 功能一：加天數 -->
+    <div class="card">
+      <h1>📅 預約追蹤推算 (＋N天)</h1>
+      <label>起始日期</label>
+      <input type="text" id="add_date" placeholder="1150504 或 2026/5/4">
+
+      <label>增加天數</label>
+      <div class="days-grid">
+        <label class="day-option"><input type="radio" name="n_days" value="28"><span class="day-btn">28天</span></label>
+        <label class="day-option"><input type="radio" name="n_days" value="56"><span class="day-btn">56天</span></label>
+        <label class="day-option"><input type="radio" name="n_days" value="84"><span class="day-btn">84天</span></label>
+        <label class="day-option"><input type="radio" name="n_days" value="90" checked><span class="day-btn">90天</span></label>
+      </div>
+
+      <div class="result-box">
+        <div id="add_result" class="result-val">---</div>
+      </div>
+    </div>
+
+    <!-- 功能二：算差距 -->
+    <div class="card">
+      <h1>測量日期差距 (A － B)</h1>
+      <label>日期 A (較晚，預設今日)</label>
+      <input type="text" id="diff_date_a" placeholder="結束日期">
+
+      <label>日期 B (較早)</label>
+      <input type="text" id="diff_date_b" placeholder="例如：生日或入院日">
+
+      <div class="result-box">
+        <div style="font-size: 14px; color: var(--muted);">兩者相差</div>
+        <div id="diff_result" class="diff-val">0</div>
+        <div style="font-size: 14px; color: var(--muted);">天</div>
+      </div>
+    </div>
+
+    <p class="hint" style="text-align: center;">提示：支援民國年(如1150504)或西元年(20260504)</p>
+  </div>
+
+  <script>
+    const now = new Date();
+    const todayStr = `${now.getFullYear() - 1911}/${now.getMonth() + 1}/${now.getDate()}`;
+
+    // 初始化輸入框
+    document.getElementById('add_date').value = todayStr;
+    document.getElementById('diff_date_a').value = todayStr;
+
+    // --- 大腦：解析日期字串 ---
+    function parseFlexibleDate(str) {
+      let s = str.trim();
+      if (!s) return null;
+      let year, month, day;
+      const hasSeparator = /[/.-]/.test(s);
+
+      if (hasSeparator) {
+        const parts = s.split(/[/.-]/);
+        if (parts.length !== 3) return null;
+        year = parseInt(parts[0]);
+        month = parseInt(parts[1]) - 1;
+        day = parseInt(parts[2]);
+      } else {
+        if (s.length === 8) {
+          year = parseInt(s.substring(0, 4));
+          month = parseInt(s.substring(4, 6)) - 1;
+          day = parseInt(s.substring(6, 8));
+        } else if (s.length === 7) {
+          year = parseInt(s.substring(0, 3)) + 1911;
+          month = parseInt(s.substring(3, 5)) - 1;
+          day = parseInt(s.substring(5, 7));
+        } else return null;
+      }
+      if (year < 200) year += 1911;
+      const d = new Date(year, month, day);
+      return (d.getFullYear() === year && d.getMonth() === month && d.getDate() === day) ? d : null;
+    }
+
+    // --- 功能一邏輯：推算日期 ---
+    function calcAdd() {
+      const start = parseFlexibleDate(document.getElementById('add_date').value);
+      const resEl = document.getElementById('add_result');
+      if (!start) { resEl.textContent = "---"; return; }
+
+      let n = 90;
+      document.getElementsByName('n_days').forEach(r => { if(r.checked) n = parseInt(r.value); });
+
+      const target = new Date(start);
+      target.setDate(start.getDate() + n);
+
+      const y = target.getFullYear();
+      const m = String(target.getMonth() + 1).padStart(2, '0');
+      const d = String(target.getDate()).padStart(2, '0');
+      const week = ["日", "一", "二", "三", "四", "五", "六"][target.getDay()];
+
+      resEl.innerHTML = `<span style="font-size:14px; color:var(--muted)">${y-1911}/${m}/${d}</span><br>${y}/${m}/${d} (${week})`;
+    }
+
+    // --- 功能二邏輯：計算差距 ---
+    function calcDiff() {
+      const dateA = parseFlexibleDate(document.getElementById('diff_date_a').value);
+      const dateB = parseFlexibleDate(document.getElementById('diff_date_b').value);
+      const resEl = document.getElementById('diff_result');
+
+      if (!dateA || !dateB) { resEl.textContent = "---"; return; }
+
+      // 計算毫秒差並轉為天數
+      const diffTime = dateA.getTime() - dateB.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      resEl.textContent = diffDays;
+    }
+
+    // 監聽器
+    document.getElementById('add_date').addEventListener('input', calcAdd);
+    document.getElementsByName('n_days').forEach(r => r.addEventListener('change', calcAdd));
+    document.getElementById('diff_date_a').addEventListener('input', calcDiff);
+    document.getElementById('diff_date_b').addEventListener('input', calcDiff);
+
+    // 初始計算
+    calcAdd();
+    calcDiff();
+  </script>
+</body>
+</html>

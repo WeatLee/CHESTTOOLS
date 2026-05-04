@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>肺結核藥物劑量</title>
+  <style>
+    :root {
+      --bg: #0b1020; --card: #121a2f; --muted: #98a2b3; --text: #e6e9ef; --accent: #8bb3ff; --grid: rgba(255,255,255,0.06);
+      --ok: #22c55e; --warn: #f59e0b; --bad: #ef4444;
+    }
+    * { box-sizing: border-box; }
+ 
+    body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans TC", Helvetica, Arial; background: radial-gradient(1200px 800px at 20% -10%, #1a2647 0, transparent 60%), var(--bg); color: var(--text); }
+
+    .wrap { max-width: 1100px; margin: 32px auto; padding: 0 16px; }
+    
+    /* --- 回首頁按鈕樣式 --- */
+    .back-link {
+        display: inline-block;
+        padding: 8px 16px;
+        margin-bottom: 20px;
+        background-color: rgba(255, 255, 255, 0.05); /* 改為半透明深色 */
+        color: var(--accent); /* 使用原本定義的藍色 */
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: bold;
+        border: 1px solid rgba(139, 179, 255, 0.3);
+        transition: 0.2s;
+    }
+
+    .back-link:hover {
+        background-color: rgba(139, 179, 255, 0.1);
+        border-color: var(--accent);
+    }
+
+    .card { background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); overflow: hidden; }
+    .hdr { padding: 20px 20px 8px; }
+    h1 { font-size: 22px; margin: 0 0 6px; letter-spacing: 0.2px; }
+    p.sub { margin: 0 0 8px; color: var(--muted); }
+    .err { margin: 6px 20px 0; color: #fff; background: #7f1d1d; border: 1px solid #ef4444; padding: 8px 12px; border-radius: 8px; display:none; white-space: pre-wrap; }
+
+    .controls { display: grid; grid-template-columns: 1fr; gap: 12px; padding: 6px 20px 18px; }
+    .control { display: grid; grid-template-columns: 140px 1fr; gap: 10px; align-items: center; }
+    label { font-size: 13px; color: var(--muted); }
+    input[type="number"]{ background: #0e1529; border: 1px solid rgba(255,255,255,0.12); color: var(--text); padding: 10px 12px; border-radius: 10px; font-size: 16px; outline: none; min-width: 180px; }
+    input[type="number"]:focus{ border-color: var(--accent); box-shadow: 0 0 0 4px rgba(139,179,255,0.15); }
+
+    .chipset { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.03); font-size: 13px; }
+    .chip input { transform: translateY(1px); }
+    .btnrow { display:flex; gap:10px; padding: 0 20px 14px; }
+    button { background: #1e2a4a; color: var(--text); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 14px; font-size: 14px; cursor: pointer; }
+    button:hover { background: #223056; }
+
+    .tblwrap { overflow-x: auto; border-top: 1px solid rgba(255,255,255,0.06); background: repeating-linear-gradient(0deg, transparent, transparent 38px, var(--grid) 38px, var(--grid) 39px); display:none; }
+    table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+    thead th { position: sticky; top: 0; backdrop-filter: blur(8px); background: rgba(9,14,30,0.85); }
+    th, td { padding: 10px 10px; border-bottom: 1px solid rgba(255,255,255,0.06); text-align: right; }
+    th:first-child, td:first-child { text-align: left; }
+    thead th { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: 0.3px; }
+
+    .delta.ok { color: var(--ok); }
+    .delta.warn { color: var(--warn); }
+    .mgkg.ok { color: var(--ok); }
+    .mgkg.warn { color: var(--warn); }
+    .pill { font-size: 11px; padding: 2px 6px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); margin-left: 6px; opacity: 0.9; }
+    .pill.bad { color: var(--bad); border-color: rgba(239,68,68,.5); }
+
+    .foot { padding: 14px 20px 20px; color: var(--muted); font-size: 13px; display: grid; gap: 6px; }
+
+    details { padding: 12px 20px 20px; }
+    .testlog { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px; white-space: pre-wrap; }
+    @media (max-width: 640px){ .control{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    
+    <!-- 1. 在這裡加入回首頁連結 -->
+    <a href="../index.html" class="back-link">← 回到工具選單</a>
+
+    <div class="card">
+      <div class="hdr">
+        <h1>肺結核藥物劑量</h1>
+        <p class="sub">兩步驟：①輸入體重、選擇要調整的藥物 → ②按「建立分析表格」後，顯示下方分析與建議顆數。</p>
+        <div id="err" class="err"></div>
+      </div>
+
+      <div class="controls">
+        <div class="control">
+          <label for="weight">體重 (kg)</label>
+          <input id="weight" type="number" step="0.1" min="0" placeholder="例如 60" value="60" />
+        </div>
+        <div class="control">
+          <label>選擇藥物</label>
+          <div>
+            <div style="margin:6px 0 6px; color:var(--muted); font-size:12px;">單方</div>
+            <div class="chipset">
+              <label class="chip"><input type="checkbox" id="opt-INH" checked> INH</label>
+              <label class="chip"><input type="checkbox" id="opt-RMP" checked> RMP</label>
+              <label class="chip"><input type="checkbox" id="opt-EMB" checked> EMB</label>
+              <label class="chip"><input type="checkbox" id="opt-PZA" checked> PZA</label>
+            </div>
+            <div style="margin:12px 0 6px; color:var(--muted); font-size:12px;">復方（依仿單體重帶，顆數一致）</div>
+            <div class="chipset">
+              <label class="chip"><input type="checkbox" id="opt-AK3"> AKURIT-3（INH/RMP/EMB）</label>
+              <label class="chip"><input type="checkbox" id="opt-TRAC4"> Trac 4（INH/RMP/EMB/PZA）</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btnrow">
+        <button id="buildBtn">建立分析表格</button>
+        <button id="clearBtn">清除表格</button>
+      </div>
+
+      <div id="resultWrap" class="tblwrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 20%">藥品</th>
+              <th style="width: 12%">建議 (mg/kg)</th>
+              <th style="width: 10%">單顆 (mg)</th>
+              <th style="width: 14%">目標下限 (mg)</th>
+              <th style="width: 12%">顆數 (0.5)</th>
+              <th style="width: 12%">實際給予 (mg)</th>
+              <th style="width: 12%">實得 mg/kg</th>
+              <th style="width: 8%">差值</th>
+              <th style="width: 20%">仿單建議（供醫師判斷）</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="foot">
+        <div>演算法：單方藥物以 <code>目標下限 = 體重 × 建議下限 mg/kg</code> 計算，顆數取 <b>向上進位到 0.5 顆</b>，若超過最大日劑量則<b>下修</b>到不超上限的最大 0.5 顆。復方（AKURIT-3 / Trac 4）之顆數固定依仿單體重帶，三/四成分顆數一致。</div>
+        <div>EMB 仿單建議：40–55 kg → 2# QD；56–75 kg → 3# QD；≥76 kg → 4# QD。PZA 建議：15–30 mg/kg（區間），若需體重段建議可再加。</div>
+      </div>
+
+      <details>
+        <summary>內建測試（點開可查看）</summary>
+        <div style="margin:10px 20px 8px; display:flex; gap:8px; align-items:center;">
+          <button id="runTests">執行測試</button>
+          <span class="muted" style="color:var(--muted); font-size:12px;">（不會影響上方計算）</span>
+        </div>
+        <div id="testlog" class="testlog"></div>
+      </details>
+    </div>
+  </div>
+
+<script>
+// (保持原本的 Script 內容不變)
+(function(){
+  function showError(e){
+    var el = document.getElementById('err');
+    if(!el) return;
+    el.style.display = 'block';
+    el.textContent = (e && e.stack) ? e.stack : (e && e.message ? e.message : String(e));
+  }
+
+  try{
+    const tbody = document.getElementById('tbody');
+    const resultWrap = document.getElementById('resultWrap');
+    const weightEl = document.getElementById('weight');
+    const buildBtn = document.getElementById('buildBtn');
+    const clearBtn = document.getElementById('clearBtn');
+
+    const optINH = document.getElementById('opt-INH');
+    const optRMP = document.getElementById('opt-RMP');
+    const optEMB = document.getElementById('opt-EMB');
+    const optPZA = document.getElementById('opt-PZA');
+    const optAK3 = document.getElementById('opt-AK3');
+    const optTRAC4 = document.getElementById('opt-TRAC4');
+
+    const DRUGS = [
+      { name: 'INH (Isoniazid)',    mgkgMin: 5,  mgkgMax: 5,  tabletMg: 100, maxMg: 300, tag: 'BASE', key:'INH' },
+      { name: 'RMP (Rifampin)',     mgkgMin: 10, mgkgMax: 10, tabletMg: 150, maxMg: 600, tag: 'BASE', key:'RMP' },
+      { name: 'EMB (Ethambutol)',   mgkgMin: 15, mgkgMax: 20, tabletMg: 400, maxMg: 1600, tag: 'BASE', key:'EMB' },
+      { name: 'PZA (Pyrazinamide)', mgkgMin: 15, mgkgMax: 30, tabletMg: 500, maxMg: 2000, tag: 'BASE', key:'PZA' },
+      { name: 'AKURIT-3 · INH',     mgkgMin: 5,  mgkgMax: 5,  tabletMg: 75,  maxMg: 300, tag: 'AK3', comp: 'INH' },
+      { name: 'AKURIT-3 · RMP',     mgkgMin: 10, mgkgMax: 10, tabletMg: 150, maxMg: 600, tag: 'AK3', comp: 'RMP' },
+      { name: 'AKURIT-3 · EMB',     mgkgMin: 15, mgkgMax: 20, tabletMg: 275, maxMg: 1600, tag: 'AK3', comp: 'EMB' },
+      { name: 'Trac 4 · INH',        mgkgMin: 5,  mgkgMax: 5,  tabletMg: 75,  maxMg: 300, tag: 'TRAC4', comp: 'INH' },
+      { name: 'Trac 4 · RMP',        mgkgMin: 10, mgkgMax: 10, tabletMg: 150, maxMg: 600, tag: 'TRAC4', comp: 'RMP' },
+      { name: 'Trac 4 · EMB',        mgkgMin: 15, mgkgMax: 20, tabletMg: 275, maxMg: 1600, tag: 'TRAC4', comp: 'EMB' },
+      { name: 'Trac 4 · PZA',        mgkgMin: 15, mgkgMax: 30, tabletMg: 400, maxMg: 2000, tag: 'TRAC4', comp: 'PZA' },
+    ];
+
+    function akurit3TabletsByWeight(w){
+      if (w >= 71) return 5; if (w >= 55) return 4; if (w >= 38) return 3; if (w >= 30) return 2; return 0;
+    }
+    function trac4TabletsByWeight(w){ return akurit3TabletsByWeight(w); }
+
+    function embLabel(w){ if (w >= 76) return '4# QD'; if (w >= 56) return '3# QD'; if (w >= 40) return '2# QD'; return '—'; }
+    function pzaLabel(w){ if (w >= 76) return '4# QD'; if (w >= 56) return '3# QD'; if (w >= 40) return '2# QD'; return '—'; }
+
+    function fmtRange(min,max){ return (min===max) ? String(min) : (min + '–' + max); }
+    function roundHalfUp(x){ return Math.ceil((x + Number.EPSILON) * 2) / 2; }
+    function halfFloor(x){ return Math.floor((x + Number.EPSILON) * 2) / 2; }
+    function fmtTablets(x){ return isFinite(x) ? (Math.round(x*2)/2).toFixed(1) : '—'; }
+    function fmtMg(x){ return isFinite(x) ? Math.round(x).toLocaleString() : '—'; }
+
+    function pickTablets(weight, mgkgMin, strength, maxMg){
+      if (!weight || weight<=0 || !strength || strength<=0) return 0;
+      const targetMin = weight * mgkgMin;
+      let t = roundHalfUp(targetMin / strength);
+      let mg = t * strength;
+      if (maxMg && mg > maxMg){ t = halfFloor(maxMg/strength); mg = t * strength; }
+      if (t < 0) t = 0;
+      return t;
+    }
+
+    function suggestionText(row, w){
+      if (row.tag === 'AK3'){ const n = akurit3TabletsByWeight(w); return n ? ('AKURIT-3：' + n + '# QD（仿單）') : 'AKURIT-3：—'; }
+      if (row.tag === 'TRAC4'){ const n = trac4TabletsByWeight(w); return n ? ('Trac 4：' + n + '# QD（仿單）') : 'Trac 4：—'; }
+      if (row.name.indexOf('EMB')===0) return embLabel(w);
+      if (row.name.indexOf('PZA')===0) return pzaLabel(w);
+      return '—';
+    }
+
+    let selectedKeys = [];
+
+    function buildSelection(){
+      selectedKeys = [];
+      if (optINH.checked) selectedKeys.push('INH');
+      if (optRMP.checked) selectedKeys.push('RMP');
+      if (optEMB.checked) selectedKeys.push('EMB');
+      if (optPZA.checked) selectedKeys.push('PZA');
+      if (optAK3.checked) selectedKeys.push('AK3');
+      if (optTRAC4.checked) selectedKeys.push('TRAC4');
+    }
+
+    function rowsForSelection(){
+      const rows = [];
+      const byTag = (tag)=> DRUGS.filter(d=>d.tag===tag);
+      const byKey = (key)=> DRUGS.find(d=>d.key===key && d.tag==='BASE');
+      selectedKeys.forEach(k=>{
+        if (k==='AK3' || k==='TRAC4') rows.push(...byTag(k));
+        else {
+          const r = byKey(k); if (r) rows.push(r);
+        }
+      });
+      return rows;
+    }
+
+    function render(){
+      tbody.innerHTML='';
+      const rows = rowsForSelection();
+      if (rows.length===0){ resultWrap.style.display='none'; return; }
+      resultWrap.style.display='block';
+
+      const w = Number(weightEl.value)||0;
+      const ak3T = akurit3TabletsByWeight(w);
+      const trac4T = trac4TabletsByWeight(w);
+
+      rows.forEach(function(row){
+        const tr = document.createElement('tr');
+        const tdName = document.createElement('td'); tdName.textContent = row.name; tdName.style.fontWeight = (row.tag==='AK3'||row.tag==='TRAC4')?'600':'500';
+        const tdRec = document.createElement('td'); tdRec.textContent = fmtRange(row.mgkgMin, row.mgkgMax);
+        const tdStrength = document.createElement('td'); tdStrength.textContent = row.tabletMg;
+
+        const targetMin = w * row.mgkgMin;
+        const t = (row.tag==='AK3') ? ak3T : (row.tag==='TRAC4' ? trac4T : pickTablets(w, row.mgkgMin, row.tabletMg, row.maxMg));
+        const actual = t * row.tabletMg;
+        const mgkgActual = (w>0 && actual>0) ? (actual/w) : NaN;
+        const delta = actual - targetMin;
+
+        const tdTarget = document.createElement('td'); tdTarget.textContent = fmtMg(targetMin);
+        const tdTabs = document.createElement('td'); tdTabs.textContent = fmtTablets(t);
+        const tdActual = document.createElement('td'); tdActual.textContent = fmtMg(actual);
+
+        const tdMgkg = document.createElement('td');
+        if (isFinite(mgkgActual)){
+          const warnLow = mgkgActual < row.mgkgMin - 1e-9;
+          const warnHigh = mgkgActual > row.mgkgMax + 1e-9;
+          const overMax = (row.maxMg && actual > row.maxMg);
+          tdMgkg.className = 'mgkg ' + ((warnLow||warnHigh||overMax)?'warn':'ok');
+          tdMgkg.innerHTML = mgkgActual.toFixed(1)
+            + (warnLow ? ' <span class="pill">⚠ 低於 ' + row.mgkgMin + ' mg/kg</span>' : '')
+            + (warnHigh ? ' <span class="pill">⚠ 高於 ' + row.mgkgMax + ' mg/kg</span>' : '')
+            + (overMax ? ' <span class="pill bad">⚠ 超過最大日劑量 ' + row.maxMg + ' mg</span>' : '');
+        } else { tdMgkg.textContent = '—'; }
+
+        const tdDelta = document.createElement('td');
+        tdDelta.className = 'delta ' + (Math.abs(delta) <= 0.15 * (w*row.mgkgMin||1) ? 'ok' : 'warn');
+        tdDelta.textContent = (delta===0? '+0' : (delta>0? '+' : '')) + fmtMg(delta);
+
+        const tdSug = document.createElement('td'); tdSug.textContent = suggestionText(row, w);
+
+        tr.appendChild(tdName);
+        tr.appendChild(tdRec);
+        tr.appendChild(tdStrength);
+        tr.appendChild(tdTarget);
+        tr.appendChild(tdTabs);
+        tr.appendChild(tdActual);
+        tr.appendChild(tdMgkg);
+        tr.appendChild(tdDelta);
+        tr.appendChild(tdSug);
+        tbody.appendChild(tr);
+      });
+    }
+
+    buildBtn.addEventListener('click', function(){
+      const w = Number(weightEl.value)||0;
+      if (!w || w<=0){ alert('請先輸入有效體重（kg）'); return; }
+      buildSelection();
+      render();
+    });
+    clearBtn.addEventListener('click', function(){ tbody.innerHTML=''; resultWrap.style.display='none'; });
+    weightEl.addEventListener('input', function(){ if (resultWrap.style.display==='block') render(); });
+    ;['opt-INH','opt-RMP','opt-EMB','opt-PZA','opt-AK3','opt-TRAC4'].forEach(function(id){
+      const el = document.getElementById(id);
+      el.addEventListener('change', function(){ if (resultWrap.style.display==='block'){ buildSelection(); render(); } });
+    });
+    buildSelection();
+    render();
+
+    const testBtn = document.getElementById('runTests');
+    const testLog = document.getElementById('testlog');
+    function approxEqual(a,b,eps){ return Math.abs(a-b) < (eps||1e-6); }
+    function akurit3TabletsByWeightTest(){
+      const cases = [[30,2],[54,3],[70,4],[71,5]]; return cases.map(([w,exp])=>akurit3TabletsByWeight(w)===exp).every(Boolean);
+    }
+    function computeForWeight(w){
+      const ak3T = akurit3TabletsByWeight(w);
+      const trac4T = trac4TabletsByWeight(w);
+      return DRUGS.map(function(row){
+        const t = (row.tag==='AK3') ? ak3T : (row.tag==='TRAC4' ? trac4T : pickTablets(w, row.mgkgMin, row.tabletMg, row.maxMg));
+        return { name: row.name, tablets: t, mg: t*row.tabletMg };
+      });
+    }
+    function runTests(){
+      const lines = [];
+      function ok(name){ lines.push('✅ ' + name); }
+      function ng(name, exp, got){ lines.push('❌ ' + name + ' 期望: ' + exp + ' 實際: ' + got); }
+      akurit3TabletsByWeightTest() ? ok('AKURIT-3 體重帶顆數') : ng('AKURIT-3 體重帶顆數','正確','錯誤');
+      var tt1 = trac4TabletsByWeight(37); (tt1===2? ok: ng)('Trac4 37kg → 2#',2,tt1);
+      var tt2 = trac4TabletsByWeight(38); (tt2===3? ok: ng)('Trac4 38kg → 3#',3,tt2);
+      var rows72 = computeForWeight(72);
+      var inh72 = rows72.find(function(r){return r.name.indexOf('INH (Isoniazid)')===0;});
+      (inh72.tablets===4? ok: ng)('INH 72kg → 4.0 錠(向上進位)', 4, inh72.tablets);
+      var rows200 = computeForWeight(200);
+      var inh200 = rows200.find(function(r){return r.name.indexOf('INH (Isoniazid)')===0;});
+      (inh200.tablets===3? ok: ng)('INH 200kg 上限 → 3.0 錠', 3, inh200.tablets);
+      var rows60 = computeForWeight(60);
+      var pza60 = rows60.find(function(r){return r.name.indexOf('PZA (Pyrazinamide)')===0;});
+      (approxEqual(pza60.tablets, 2.0)? ok: ng)('PZA 60kg → 2.0 錠 (min 15 mg/kg)', 2.0, pza60.tablets);
+      var rows200b = computeForWeight(200);
+      var emb200 = rows200b.find(function(r){return r.name.indexOf('EMB (Ethambutol)')===0;});
+      (approxEqual(emb200.tablets, 4.0)? ok: ng)('EMB 200kg 上限 → 4.0 錠 (1600 mg)', 4.0, emb200.tablets);
+      var log = document.getElementById('testlog');
+      if (log) log.textContent = lines.join('\n');
+    }
+    if (testBtn) testBtn.addEventListener('click', function(){ try{ runTests(); } catch(e){ showError(e); } });
+  }catch(e){ showError(e); }
+})();
+</script>
+</body>
+</html>
