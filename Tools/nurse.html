@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>醫療現況模擬器</title>
+    <!-- 使用 Tailwind CSS 進行美化 -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        /* 開關動畫過渡 */
+        .bg-switch { transition: background-color 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-100">
+        <!-- 標題區 -->
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-gray-800 flex items-center justify-center gap-2">
+                🏥 醫療現況模擬器
+            </h1>
+        </div>
+
+        <!-- 開關列表容器 -->
+        <div class="space-y-6">
+            
+            <!-- 開關 1：護病比（初始：關閉） -->
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-blue-300 transition-colors">
+                <div>
+                    <span class="block text-base font-semibold text-gray-700">1. 護病比</span>
+                    <span id="status-text-1" class="text-sm font-medium text-red-500">❌ 過高</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer select-none">
+                    <input type="checkbox" id="switch-1" class="sr-only peer" onchange="handleSwitch(1)">
+                    <div class="w-14 h-8 bg-gray-300 peer-focus:outline-none rounded-full bg-switch peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500"></div>
+                </label>
+            </div>
+
+            <!-- 開關 2：ER待床時間（初始：開啟） -->
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-blue-300 transition-colors">
+                <div>
+                    <span class="block text-base font-semibold text-gray-700">2. ER待床時間</span>
+                    <span id="status-text-2" class="text-sm font-medium text-emerald-600">🟢 正常</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer select-none">
+                    <input type="checkbox" id="switch-2" class="sr-only peer" checked onchange="handleSwitch(2)">
+                    <div class="w-14 h-8 bg-gray-300 peer-focus:outline-none rounded-full bg-switch peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500"></div>
+                </label>
+            </div>
+
+            <!-- 開關 3：健保費用（初始：開啟） -->
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-blue-300 transition-colors">
+                <div>
+                    <span class="block text-base font-semibold text-gray-700">3. 健保費用</span>
+                    <span id="status-text-3" class="text-sm font-medium text-emerald-600">🟢 正常</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer select-none">
+                    <input type="checkbox" id="switch-3" class="sr-only peer" checked onchange="handleSwitch(3)">
+                    <div class="w-14 h-8 bg-gray-300 peer-focus:outline-none rounded-full bg-switch peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500"></div>
+                </label>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- JavaScript 核心邏輯 -->
+    <script>
+        // 初始狀態下，開關 2 和 3 是開啟的，依序放入陣列中
+        let activeOrder = [2, 3];
+
+        // 狀態文字定義
+        const statusMap = {
+            1: { on: "🟢 正常", off: "❌ 過高" },
+            2: { on: "🟢 正常", off: "❌ 過久" },
+            3: { on: "🟢 正常", off: "❌ 漲價" }
+        };
+
+        function handleSwitch(id) {
+            const currentSwitch = document.getElementById(`switch-${id}`);
+            const isChecked = currentSwitch.checked;
+
+            if (isChecked) {
+                activeOrder.push(id);
+
+                // 如果開啟的數量大於兩個，關閉最早開啟的那一個
+                if (activeOrder.length > 2) {
+                    const firstId = activeOrder.shift();
+                    document.getElementById(`switch-${firstId}`).checked = false;
+                    updateStatusUI(firstId, false);
+                }
+            } else {
+                // 如果是手動關閉，從陣列中移除
+                activeOrder = activeOrder.filter(item => item !== id);
+            }
+
+            updateStatusUI(id, isChecked);
+        }
+
+        function updateStatusUI(id, isOn) {
+            const textElement = document.getElementById(`status-text-${id}`);
+            if (isOn) {
+                textElement.textContent = statusMap[id].on;
+                textElement.className = "text-sm font-medium text-emerald-600";
+            } else {
+                textElement.textContent = statusMap[id].off;
+                textElement.className = "text-sm font-medium text-red-500";
+            }
+        }
+    </script>
+</body>
+</html>
