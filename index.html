@@ -16,11 +16,19 @@
         }
         .card:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
         .card h2 { margin-top: 0; color: #3498db; }
+        .card.acls { background: #0d171c; color: #dbe8ec; border-left: 5px solid #ff4b4b; }
+        .card.acls h2 { color: #ff7b7b; }
+        .card.acls p { color: #91a3aa; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>臨床快速工具箱</h1>
+
+        <a href="Tools/acls.html" class="card acls">
+            <h2>＋ ACLS 指令紀錄台</h2>
+            <p>CPR、插管、電擊、用藥計時與 TXT 紀錄匯出</p>
+        </a>
         
         <a href="Tools/tb-dose.html" class="card">
             <h2>💊 TB Dose 計算</h2>
@@ -41,6 +49,7 @@
         <a href="Tools/nurse.html" class="card">
             <h2>醫療現況模擬器</h2>
             <p>醫療困境</p>
+        </a>
 
         <a href="tools/abg-calc.html" class="card">
             <h2>🩸 ABG 計算 (開發中)</h2>

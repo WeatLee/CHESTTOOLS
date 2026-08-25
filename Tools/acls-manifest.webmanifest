@@ -1,0 +1,11 @@
+{
+  "name": "ACLS 指令紀錄台",
+  "short_name": "ACLS 紀錄",
+  "start_url": "./acls.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#071015",
+  "theme_color": "#071015",
+  "description": "iPad 適用的 ACLS 處置、電擊與用藥時間紀錄工具"
+}
