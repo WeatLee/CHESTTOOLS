@@ -59,7 +59,7 @@
   const state=load();
   const history=[];
   const $=id=>document.getElementById(id);
-  const FULL_TEXT=/lung-cancer-nhi-pathway/i.test(decodeURIComponent(location.pathname))?'nhi-drug-rules.html':'健保給付規定查詢.html';
+  const FULL_TEXT=/lung-cancer-nhi-pathway/i.test(decodeURIComponent(location.pathname))?'nhi-drug-rules.html?v=115.8.21':'健保給付規定查詢.html';
   $('fullTop').href=FULL_TEXT;$('fullBottom').href=FULL_TEXT;
 
   const LABELS={
