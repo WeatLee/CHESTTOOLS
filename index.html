@@ -5,11 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>醫學工具箱</title>
     <style>
+        * { box-sizing: border-box; }
         body { font-family: sans-serif; background-color: #f4f7f6; padding: 20px; }
-        .container { max-width: 600px; margin: auto; }
+        .container { max-width: 1100px; margin: auto; }
         h1 { text-align: center; color: #2c3e50; }
-        .card { 
-            background: white; padding: 20px; margin-bottom: 15px; 
+        .card-columns {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+            align-items: start;
+        }
+        .card-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .card {
+            background: white; padding: 20px;
             border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             text-decoration: none; display: block; color: #333;
             transition: 0.3s;
@@ -19,56 +31,67 @@
         .card.acls { background: #0d171c; color: #dbe8ec; border-left: 5px solid #ff4b4b; }
         .card.acls h2 { color: #ff7b7b; }
         .card.acls p { color: #91a3aa; }
+        @media (max-width: 768px) {
+            .container { max-width: 600px; }
+            .card-columns { grid-template-columns: 1fr; gap: 15px; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>臨床快速工具箱</h1>
 
-        <a href="Tools/acls.html" class="card acls">
-            <h2>＋ ACLS 指令紀錄台</h2>
-            <p>CPR、插管、電擊、用藥計時與 TXT 紀錄匯出</p>
-        </a>
-        
-        <a href="Tools/tb-dose.html" class="card">
-            <h2>💊 TB Dose 計算</h2>
-            <p>根據體重快速計算 R / H / E / Z 建議劑量</p>
-        </a>
+        <div class="card-columns">
+            <div class="card-column">
+                <a href="Tools/acls.html" class="card acls">
+                    <h2>＋ ACLS 指令紀錄台</h2>
+                    <p>CPR、插管、電擊、用藥計時與 TXT 紀錄匯出</p>
+                </a>
 
-         <a href="Tools/LTBI.html" class="card">
-            <h2>💊 LTBI Dose 計算</h2>
-            <p>根據體重快速計算 LTBI 建議劑量</p>
-        </a>
-        
-        <a href="Tools/date-calc.html" class="card">
-        <div class="icon">📅</div>
-           <h2>日期追蹤計算</h2>
-           <p>快速推算 28, 56, 84, 90 天後的日期</p>
-        </a>
+                <a href="Tools/tb-dose.html" class="card">
+                    <h2>💊 TB Dose 計算</h2>
+                    <p>根據體重快速計算 R / H / E / Z 建議劑量</p>
+                </a>
 
-        <a href="Tools/nurse.html" class="card">
-            <h2>醫療現況模擬器</h2>
-            <p>醫療困境</p>
-        </a>
+                <a href="Tools/LTBI.html" class="card">
+                    <h2>💊 LTBI Dose 計算</h2>
+                    <p>根據體重快速計算 LTBI 建議劑量</p>
+                </a>
 
-        <a href="tools/abg-calc.html" class="card">
-            <h2>🩸 ABG 計算 (開發中)</h2>
-            <p>酸鹼失衡分析與預期代償計算</p>
-        </a>
+                <a href="Tools/date-calc.html" class="card">
+                    <div class="icon">📅</div>
+                    <h2>日期追蹤計算</h2>
+                    <p>快速推算 28, 56, 84, 90 天後的日期</p>
+                </a>
 
-        <a href="Tools/lung-cancer-nhi-pathway.html?v=8f11b150" class="card" style="border-left:5px solid #187464">
-            <h2>🫁 肺癌健保特殊用藥路徑查詢</h2>
-            <p>依癌別、期別、driver gene、PD-L1 與既往治療，逐層篩選可能符合的特殊健保給付路徑</p>
-        </a>
+            </div>
 
-        <a href="Tools/nhi-drug-rules.html?v=a312bfad" class="card" style="border-left:5px solid #176b87">
-            <h2>🩺 健保藥品給付規定查詢</h2>
-            <p>第六節呼吸道與第九節抗癌瘤藥物；優先顯示藥品完整主條文，可展開相關規定及完整 IO 給付規定</p>
-        </a>
-        <a href="https://chest-board-ai-pipeline.vercel.app/" class="card" style="border-left:5px solid #0f766e">
-            <h2>📚 胸腔專科醫師歷屆題庫</h2>
-            <p>依年度或主題選題；可逐題看詳解，或交卷後查看成績與詳解</p>
-        </a>
+            <div class="card-column">
+                <a href="Tools/nurse.html" class="card">
+                    <h2>醫療現況模擬器</h2>
+                    <p>醫療困境</p>
+                </a>
+
+                <a href="tools/abg-calc.html" class="card">
+                    <h2>🩸 ABG 計算 (開發中)</h2>
+                    <p>酸鹼失衡分析與預期代償計算</p>
+                </a>
+                <a href="Tools/lung-cancer-nhi-pathway.html?v=8f11b150" class="card" style="border-left:5px solid #187464">
+                    <h2>🫁 肺癌健保特殊用藥路徑查詢</h2>
+                    <p>依癌別、期別、driver gene、PD-L1 與既往治療，逐層篩選可能符合的特殊健保給付路徑</p>
+                </a>
+
+                <a href="Tools/nhi-drug-rules.html?v=a312bfad" class="card" style="border-left:5px solid #176b87">
+                    <h2>🩺 健保藥品給付規定查詢</h2>
+                    <p>第六節呼吸道與第九節抗癌瘤藥物；優先顯示藥品完整主條文，可展開相關規定及完整 IO 給付規定</p>
+                </a>
+
+                <a href="https://chest-board-ai-pipeline.vercel.app/" class="card" style="border-left:5px solid #0f766e">
+                    <h2>📚 胸腔專科醫師歷屆題庫</h2>
+                    <p>依年度或主題選題；可逐題看詳解，或交卷後查看成績與詳解</p>
+                </a>
+            </div>
+        </div>
     </div>
 </body>
 </html>
