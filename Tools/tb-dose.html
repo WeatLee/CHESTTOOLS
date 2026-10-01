@@ -100,11 +100,13 @@
           <input id="weight" type="number" step="0.1" min="30" placeholder="例如 60" value="60" />
         </div>
         <div class="control">
-          <label for="renalFunction">CCr / eGFR (mL/min)<br><span class="required">治療前必填</span></label>
+          <label>腎功能調整</label>
           <div>
-            <input id="renalFunction" type="number" step="1" min="0" max="200" placeholder="例如 75" />
-            <label class="chip" style="margin-left:8px"><input type="checkbox" id="hemodialysis"> 血液透析</label>
-            <div class="helper">優先使用 Cockcroft-Gault CCr；無法取得時可用 eGFR 替代。血液透析者可直接勾選。</div>
+            <div class="chipset">
+              <label class="chip"><input type="checkbox" id="renalBelow30"> CCr / eGFR &lt;30</label>
+              <label class="chip"><input type="checkbox" id="hemodialysis"> 血液透析</label>
+            </div>
+            <div class="helper">皆未勾選時視為 CCr / eGFR ≥30；兩個選項擇一。</div>
           </div>
         </div>
         <div class="control">
@@ -187,7 +189,7 @@
     const resultWrap = document.getElementById('resultWrap');
     const renalAlert = document.getElementById('renalAlert');
     const weightEl = document.getElementById('weight');
-    const renalEl = document.getElementById('renalFunction');
+    const renalBelow30El = document.getElementById('renalBelow30');
     const dialysisEl = document.getElementById('hemodialysis');
     const buildBtn = document.getElementById('buildBtn');
     const clearBtn = document.getElementById('clearBtn');
@@ -229,13 +231,7 @@
     }
 
     function renalState(){
-      const dialysis = dialysisEl.checked;
-      const raw = renalEl.value.trim();
-      if (dialysis) return { known:true, low:true, dialysis:true, value: raw === '' ? null : Number(raw) };
-      if (raw === '') return { known:false, low:false, dialysis:false, value:null };
-      const value = Number(raw);
-      if (!Number.isFinite(value) || value < 0 || value > 200) return { known:false, invalid:true, low:false, dialysis:false, value:null };
-      return { known:true, low:value < 30, dialysis:false, value:value };
+      return { known:true, low:renalBelow30El.checked || dialysisEl.checked, dialysis:dialysisEl.checked };
     }
 
     function componentOf(row){ return row.key || row.comp; }
@@ -309,8 +305,6 @@
       const w = Number(weightEl.value);
       if (!Number.isFinite(w) || w < 30 || w > 250){ showError('請輸入 30–250 kg 的有效成人體重；低於 30 kg 需個別評估。'); return null; }
       const renal = renalState();
-      if (renal.invalid){ showError('CCr / eGFR 請輸入 0–200 mL/min 的有效數值。'); return null; }
-      if (!renal.known){ showError('治療前必須確認腎功能：請輸入 CCr / eGFR，或勾選血液透析。'); return null; }
       const rows = selectedRows();
       if (!rows.length){ showError('請選擇至少一種單方藥物或一種複方。'); return null; }
       return { weight:w, renal:renal, rows:rows };
@@ -378,10 +372,12 @@
       renalAlert.style.display='none';
     });
     weightEl.addEventListener('input', refreshIfVisible);
-    renalEl.addEventListener('input', refreshIfVisible);
+    renalBelow30El.addEventListener('change', function(){
+      if (renalBelow30El.checked) dialysisEl.checked = false;
+      refreshIfVisible();
+    });
     dialysisEl.addEventListener('change', function(){
-      renalEl.disabled = dialysisEl.checked;
-      renalEl.placeholder = dialysisEl.checked ? '已選血液透析' : '例如 75';
+      if (dialysisEl.checked) renalBelow30El.checked = false;
       refreshIfVisible();
     });
 

@@ -43,8 +43,8 @@ class FakeElement {
 }
 
 const ids = [
-  'err', 'tbody', 'resultWrap', 'renalAlert', 'weight', 'renalFunction',
-  'hemodialysis', 'buildBtn', 'clearBtn', 'runTests', 'testlog',
+  'err', 'tbody', 'resultWrap', 'renalAlert', 'weight', 'renalBelow30', 'hemodialysis',
+  'buildBtn', 'clearBtn', 'runTests', 'testlog',
   'opt-INH', 'opt-RMP', 'opt-EMB', 'opt-PZA', 'opt-AK3', 'opt-TRAC4'
 ];
 const elements = Object.fromEntries(ids.map((id) => [id, new FakeElement(id)]));
@@ -75,18 +75,14 @@ function rows() {
 }
 
 click('buildBtn');
-assert.match(elements.err.textContent, /必須確認腎功能/);
-assert.equal(elements.resultWrap.style.display, 'none');
-
-elements.renalFunction.value = '75';
-click('buildBtn');
 let output = rows();
 assert.equal(output.length, 4);
 assert.deepEqual(output.find((row) => row[0].startsWith('INH')).slice(1, 7), ['5 (4–6)', '100', '3', '300', '5.0', '每日 1 次']);
 assert.deepEqual(output.find((row) => row[0].startsWith('EMB')).slice(3, 7), ['3', '1,200', '20.0', '每日 1 次']);
 assert.deepEqual(output.find((row) => row[0].startsWith('PZA')).slice(3, 7), ['3', '1,500', '25.0', '每日 1 次']);
 
-elements.renalFunction.value = '20';
+elements.renalBelow30.checked = true;
+elements.renalBelow30.dispatch('change');
 click('buildBtn');
 output = rows();
 assert.equal(output.find((row) => row[0].startsWith('INH'))[6], '每日 1 次');
@@ -96,14 +92,15 @@ assert.match(elements.renalAlert.innerHTML, /每次劑量不減/);
 
 elements.hemodialysis.checked = true;
 elements.hemodialysis.dispatch('change');
+assert.equal(elements.renalBelow30.checked, false);
 click('buildBtn');
 output = rows();
 assert.equal(output.find((row) => row[0].startsWith('INH'))[6], '每日 1 次；透析日於透析後');
 assert.equal(output.find((row) => row[0].startsWith('PZA'))[6], '每週 3 次；透析後');
 
-elements.hemodialysis.checked = false;
-elements.hemodialysis.dispatch('change');
-elements.renalFunction.value = '20';
+elements.renalBelow30.checked = true;
+elements.renalBelow30.dispatch('change');
+assert.equal(elements.hemodialysis.checked, false);
 elements['opt-TRAC4'].checked = true;
 elements['opt-TRAC4'].dispatch('change');
 click('buildBtn');
