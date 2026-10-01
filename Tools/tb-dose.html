@@ -40,6 +40,8 @@
     h1 { font-size: 22px; margin: 0 0 6px; letter-spacing: 0.2px; }
     p.sub { margin: 0 0 8px; color: var(--muted); }
     .err { margin: 6px 20px 0; color: #fff; background: #7f1d1d; border: 1px solid #ef4444; padding: 8px 12px; border-radius: 8px; display:none; white-space: pre-wrap; }
+    .clinical-alert { margin: 0 20px 16px; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(245,158,11,.55); background: rgba(245,158,11,.12); color: #fde68a; display:none; line-height:1.65; }
+    .clinical-alert.bad { border-color: rgba(239,68,68,.65); background: rgba(127,29,29,.42); color:#fee2e2; }
 
     .controls { display: grid; grid-template-columns: 1fr; gap: 12px; padding: 6px 20px 18px; }
     .control { display: grid; grid-template-columns: 140px 1fr; gap: 10px; align-items: center; }
@@ -55,7 +57,7 @@
     button:hover { background: #223056; }
 
     .tblwrap { overflow-x: auto; border-top: 1px solid rgba(255,255,255,0.06); background: repeating-linear-gradient(0deg, transparent, transparent 38px, var(--grid) 38px, var(--grid) 39px); display:none; }
-    table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+    table { width: 100%; border-collapse: collapse; min-width: 920px; }
     thead th { position: sticky; top: 0; backdrop-filter: blur(8px); background: rgba(9,14,30,0.85); }
     th, td { padding: 10px 10px; border-bottom: 1px solid rgba(255,255,255,0.06); text-align: right; }
     th:first-child, td:first-child { text-align: left; }
@@ -69,6 +71,10 @@
     .pill.bad { color: var(--bad); border-color: rgba(239,68,68,.5); }
 
     .foot { padding: 14px 20px 20px; color: var(--muted); font-size: 13px; display: grid; gap: 6px; }
+    .helper { margin-top:6px; color:var(--muted); font-size:12px; line-height:1.5; }
+    .required { color:#fca5a5; font-weight:700; }
+    .frequency { font-weight:700; color:var(--accent); }
+    .blocked { color:#fca5a5; font-weight:700; }
 
     details { padding: 12px 20px 20px; }
     .testlog { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px; white-space: pre-wrap; }
@@ -84,14 +90,22 @@
     <div class="card">
       <div class="hdr">
         <h1>肺結核藥物劑量</h1>
-        <p class="sub">兩步驟：①輸入體重、選擇要調整的藥物 → ②按「建立分析表格」後，顯示下方分析與建議顆數。</p>
+        <p class="sub">成人藥敏性結核病一般每日療法參考：①輸入體重與腎功能 → ②選擇單方或複方 → ③建立建議表格。</p>
         <div id="err" class="err"></div>
       </div>
 
       <div class="controls">
         <div class="control">
           <label for="weight">體重 (kg)</label>
-          <input id="weight" type="number" step="0.1" min="0" placeholder="例如 60" value="60" />
+          <input id="weight" type="number" step="0.1" min="30" placeholder="例如 60" value="60" />
+        </div>
+        <div class="control">
+          <label for="renalFunction">CCr / eGFR (mL/min)<br><span class="required">治療前必填</span></label>
+          <div>
+            <input id="renalFunction" type="number" step="1" min="0" max="200" placeholder="例如 75" />
+            <label class="chip" style="margin-left:8px"><input type="checkbox" id="hemodialysis"> 血液透析</label>
+            <div class="helper">優先使用 Cockcroft-Gault CCr；無法取得時可用 eGFR 替代。血液透析者可直接勾選。</div>
+          </div>
         </div>
         <div class="control">
           <label>選擇藥物</label>
@@ -103,7 +117,7 @@
               <label class="chip"><input type="checkbox" id="opt-EMB" checked> EMB</label>
               <label class="chip"><input type="checkbox" id="opt-PZA" checked> PZA</label>
             </div>
-            <div style="margin:12px 0 6px; color:var(--muted); font-size:12px;">復方（依仿單體重帶，顆數一致）</div>
+            <div style="margin:12px 0 6px; color:var(--muted); font-size:12px;">複方（與單方擇一；腎功能低下時不建議）</div>
             <div class="chipset">
               <label class="chip"><input type="checkbox" id="opt-AK3"> AKURIT-3（INH/RMP/EMB）</label>
               <label class="chip"><input type="checkbox" id="opt-TRAC4"> Trac 4（INH/RMP/EMB/PZA）</label>
@@ -111,6 +125,8 @@
           </div>
         </div>
       </div>
+
+      <div id="renalAlert" class="clinical-alert"></div>
 
       <div class="btnrow">
         <button id="buildBtn">建立分析表格</button>
@@ -121,15 +137,14 @@
         <table>
           <thead>
             <tr>
-              <th style="width: 20%">藥品</th>
-              <th style="width: 12%">建議 (mg/kg)</th>
-              <th style="width: 10%">單顆 (mg)</th>
-              <th style="width: 14%">目標下限 (mg)</th>
-              <th style="width: 12%">顆數 (0.5)</th>
-              <th style="width: 12%">實際給予 (mg)</th>
-              <th style="width: 12%">實得 mg/kg</th>
-              <th style="width: 8%">差值</th>
-              <th style="width: 20%">仿單建議（供醫師判斷）</th>
+              <th>藥品</th>
+              <th>指引建議 mg/kg<br>（容許範圍）</th>
+              <th>單顆 (mg)</th>
+              <th>建議顆數</th>
+              <th>每次劑量 (mg)</th>
+              <th>實得 mg/kg</th>
+              <th>給藥頻率</th>
+              <th>臨床提示</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -137,8 +152,9 @@
       </div>
 
       <div class="foot">
-        <div>演算法：單方藥物以 <code>目標下限 = 體重 × 建議下限 mg/kg</code> 計算，顆數取 <b>向上進位到 0.5 顆</b>，若超過最大日劑量則<b>下修</b>到不超上限的最大 0.5 顆。復方（AKURIT-3 / Trac 4）之顆數固定依仿單體重帶，三/四成分顆數一致。</div>
-        <div>EMB 仿單建議：40–55 kg → 2# QD；56–75 kg → 3# QD；≥76 kg → 4# QD。PZA 建議：15–30 mg/kg（區間），若需體重段建議可再加。</div>
+        <div>依據：衛生福利部疾病管制署《結核病診治指引》第七版，表 6-1、表 6-2及第 4.7 節。H 5 (4–6)、R 10 (8–12)、Z 25 (15–30)、E 15 (15–20) mg/kg。</div>
+        <div>CCr / eGFR &lt;30 mL/min：H、R 劑量與頻率不變；E、Z 每次劑量不變，改為每週 3 次。血液透析日於透析後給藥。INH 應評估補充 pyridoxine。</div>
+        <div>本工具限成人一般劑量參考；體重 &lt;40 kg、兒童、腹膜透析、嚴重肝病、藥物交互作用或抗藥性結核，需個別評估。</div>
       </div>
 
       <details>
@@ -153,210 +169,239 @@
   </div>
 
 <script>
-// (保持原本的 Script 內容不變)
 (function(){
-  function showError(e){
-    var el = document.getElementById('err');
-    if(!el) return;
+  function showError(message){
+    const el = document.getElementById('err');
+    if (!el) return;
     el.style.display = 'block';
-    el.textContent = (e && e.stack) ? e.stack : (e && e.message ? e.message : String(e));
+    el.textContent = message instanceof Error ? message.message : String(message);
+  }
+  function clearError(){
+    const el = document.getElementById('err');
+    el.style.display = 'none';
+    el.textContent = '';
   }
 
   try{
     const tbody = document.getElementById('tbody');
     const resultWrap = document.getElementById('resultWrap');
+    const renalAlert = document.getElementById('renalAlert');
     const weightEl = document.getElementById('weight');
+    const renalEl = document.getElementById('renalFunction');
+    const dialysisEl = document.getElementById('hemodialysis');
     const buildBtn = document.getElementById('buildBtn');
     const clearBtn = document.getElementById('clearBtn');
-
-    const optINH = document.getElementById('opt-INH');
-    const optRMP = document.getElementById('opt-RMP');
-    const optEMB = document.getElementById('opt-EMB');
-    const optPZA = document.getElementById('opt-PZA');
-    const optAK3 = document.getElementById('opt-AK3');
-    const optTRAC4 = document.getElementById('opt-TRAC4');
+    const singleIds = ['opt-INH','opt-RMP','opt-EMB','opt-PZA'];
+    const comboIds = ['opt-AK3','opt-TRAC4'];
 
     const DRUGS = [
-      { name: 'INH (Isoniazid)',    mgkgMin: 5,  mgkgMax: 5,  tabletMg: 100, maxMg: 300, tag: 'BASE', key:'INH' },
-      { name: 'RMP (Rifampin)',     mgkgMin: 10, mgkgMax: 10, tabletMg: 150, maxMg: 600, tag: 'BASE', key:'RMP' },
-      { name: 'EMB (Ethambutol)',   mgkgMin: 15, mgkgMax: 20, tabletMg: 400, maxMg: 1600, tag: 'BASE', key:'EMB' },
-      { name: 'PZA (Pyrazinamide)', mgkgMin: 15, mgkgMax: 30, tabletMg: 500, maxMg: 2000, tag: 'BASE', key:'PZA' },
-      { name: 'AKURIT-3 · INH',     mgkgMin: 5,  mgkgMax: 5,  tabletMg: 75,  maxMg: 300, tag: 'AK3', comp: 'INH' },
-      { name: 'AKURIT-3 · RMP',     mgkgMin: 10, mgkgMax: 10, tabletMg: 150, maxMg: 600, tag: 'AK3', comp: 'RMP' },
-      { name: 'AKURIT-3 · EMB',     mgkgMin: 15, mgkgMax: 20, tabletMg: 275, maxMg: 1600, tag: 'AK3', comp: 'EMB' },
-      { name: 'Trac 4 · INH',        mgkgMin: 5,  mgkgMax: 5,  tabletMg: 75,  maxMg: 300, tag: 'TRAC4', comp: 'INH' },
-      { name: 'Trac 4 · RMP',        mgkgMin: 10, mgkgMax: 10, tabletMg: 150, maxMg: 600, tag: 'TRAC4', comp: 'RMP' },
-      { name: 'Trac 4 · EMB',        mgkgMin: 15, mgkgMax: 20, tabletMg: 275, maxMg: 1600, tag: 'TRAC4', comp: 'EMB' },
-      { name: 'Trac 4 · PZA',        mgkgMin: 15, mgkgMax: 30, tabletMg: 400, maxMg: 2000, tag: 'TRAC4', comp: 'PZA' },
+      { name:'INH (Isoniazid)', key:'INH', target:5, min:4, max:6, tabletMg:100, maxMg:300, tag:'BASE' },
+      { name:'RMP (Rifampin)', key:'RMP', target:10, min:8, max:12, tabletMg:150, maxMg:600, tag:'BASE' },
+      { name:'EMB (Ethambutol)', key:'EMB', target:15, min:15, max:20, tabletMg:400, maxMg:1600, tag:'BASE' },
+      { name:'PZA (Pyrazinamide)', key:'PZA', target:25, min:15, max:30, tabletMg:500, maxMg:2000, tag:'BASE' },
+      { name:'AKuriT-3 · INH', comp:'INH', target:5, min:4, max:6, tabletMg:75, maxMg:300, tag:'AK3' },
+      { name:'AKuriT-3 · RMP', comp:'RMP', target:10, min:8, max:12, tabletMg:150, maxMg:600, tag:'AK3' },
+      { name:'AKuriT-3 · EMB', comp:'EMB', target:15, min:15, max:20, tabletMg:275, maxMg:1600, tag:'AK3' },
+      { name:'Trac 4 · INH', comp:'INH', target:5, min:4, max:6, tabletMg:75, maxMg:300, tag:'TRAC4' },
+      { name:'Trac 4 · RMP', comp:'RMP', target:10, min:8, max:12, tabletMg:150, maxMg:600, tag:'TRAC4' },
+      { name:'Trac 4 · EMB', comp:'EMB', target:15, min:15, max:20, tabletMg:275, maxMg:1600, tag:'TRAC4' },
+      { name:'Trac 4 · PZA', comp:'PZA', target:25, min:15, max:30, tabletMg:400, maxMg:2000, tag:'TRAC4' }
     ];
 
-    function akurit3TabletsByWeight(w){
-      if (w >= 71) return 5; if (w >= 55) return 4; if (w >= 38) return 3; if (w >= 30) return 2; return 0;
-    }
-    function trac4TabletsByWeight(w){ return akurit3TabletsByWeight(w); }
-
-    function embLabel(w){ if (w >= 76) return '4# QD'; if (w >= 56) return '3# QD'; if (w >= 40) return '2# QD'; return '—'; }
-    function pzaLabel(w){ if (w >= 76) return '4# QD'; if (w >= 56) return '3# QD'; if (w >= 40) return '2# QD'; return '—'; }
-
-    function fmtRange(min,max){ return (min===max) ? String(min) : (min + '–' + max); }
-    function roundHalfUp(x){ return Math.ceil((x + Number.EPSILON) * 2) / 2; }
-    function halfFloor(x){ return Math.floor((x + Number.EPSILON) * 2) / 2; }
-    function fmtTablets(x){ return isFinite(x) ? (Math.round(x*2)/2).toFixed(1) : '—'; }
-    function fmtMg(x){ return isFinite(x) ? Math.round(x).toLocaleString() : '—'; }
-
-    function pickTablets(weight, mgkgMin, strength, maxMg){
-      if (!weight || weight<=0 || !strength || strength<=0) return 0;
-      const targetMin = weight * mgkgMin;
-      let t = roundHalfUp(targetMin / strength);
-      let mg = t * strength;
-      if (maxMg && mg > maxMg){ t = halfFloor(maxMg/strength); mg = t * strength; }
-      if (t < 0) t = 0;
-      return t;
+    function comboTabletsByWeight(w){
+      if (w >= 71) return 5;
+      if (w >= 55) return 4;
+      if (w >= 38) return 3;
+      if (w >= 30) return 2;
+      return 0;
     }
 
-    function suggestionText(row, w){
-      if (row.tag === 'AK3'){ const n = akurit3TabletsByWeight(w); return n ? ('AKURIT-3：' + n + '# QD（仿單）') : 'AKURIT-3：—'; }
-      if (row.tag === 'TRAC4'){ const n = trac4TabletsByWeight(w); return n ? ('Trac 4：' + n + '# QD（仿單）') : 'Trac 4：—'; }
-      if (row.name.indexOf('EMB')===0) return embLabel(w);
-      if (row.name.indexOf('PZA')===0) return pzaLabel(w);
-      return '—';
+    function singleTabletsByWeight(key, w){
+      if (w < 40) return null;
+      if (key === 'INH') return w >= 50 ? 3 : 2;
+      if (key === 'RMP') return w >= 50 ? 4 : 3;
+      if (key === 'EMB' || key === 'PZA'){
+        if (w >= 76) return 4;
+        if (w >= 56) return 3;
+        return 2;
+      }
+      return null;
     }
 
-    let selectedKeys = [];
-
-    function buildSelection(){
-      selectedKeys = [];
-      if (optINH.checked) selectedKeys.push('INH');
-      if (optRMP.checked) selectedKeys.push('RMP');
-      if (optEMB.checked) selectedKeys.push('EMB');
-      if (optPZA.checked) selectedKeys.push('PZA');
-      if (optAK3.checked) selectedKeys.push('AK3');
-      if (optTRAC4.checked) selectedKeys.push('TRAC4');
+    function renalState(){
+      const dialysis = dialysisEl.checked;
+      const raw = renalEl.value.trim();
+      if (dialysis) return { known:true, low:true, dialysis:true, value: raw === '' ? null : Number(raw) };
+      if (raw === '') return { known:false, low:false, dialysis:false, value:null };
+      const value = Number(raw);
+      if (!Number.isFinite(value) || value < 0 || value > 200) return { known:false, invalid:true, low:false, dialysis:false, value:null };
+      return { known:true, low:value < 30, dialysis:false, value:value };
     }
 
-    function rowsForSelection(){
+    function componentOf(row){ return row.key || row.comp; }
+    function fmtMg(x){ return Number.isFinite(x) ? Math.round(x).toLocaleString() : '—'; }
+    function fmtTablets(x){ return Number.isFinite(x) ? String(x) : '—'; }
+    function recommendedRange(row){ return row.target + ' (' + row.min + '–' + row.max + ')'; }
+
+    function frequencyFor(row, renal){
+      const comp = componentOf(row);
+      if (renal.low && (comp === 'EMB' || comp === 'PZA')) return renal.dialysis ? '每週 3 次；透析後' : '每週 3 次';
+      if (renal.dialysis) return '每日 1 次；透析日於透析後';
+      return '每日 1 次';
+    }
+
+    function clinicalNote(row, w, renal, blocked){
+      if (blocked === 'renal') return '腎功能低下時 H/R 與 E/Z 頻率不同，不建議使用固定複方；請改用單方。';
+      if (blocked === 'weight') return '體重 <40 kg 未列於成人單方常用體重帶，請依 mg/kg 個別計算並由醫師確認。';
+      const comp = componentOf(row);
+      const notes = [];
+      if (row.tag !== 'BASE'){
+        if (w >= 50 && w <= 54) notes.push('指引列 3 顆；可依肝腎功能考慮 4 顆');
+        if (w >= 71) notes.push('指引為可考慮 5 顆');
+      } else if (comp === 'INH'){
+        notes.push(w < 50 ? '常用量 100 mg/tab 2–3 顆' : '常用量 100 mg/tab 3 顆');
+      } else if (comp === 'RMP'){
+        notes.push(w < 50 ? '常用量 150 mg/tab 3 顆' : '相當於 300 mg/tab 2 顆');
+      } else {
+        notes.push('依疾管署成人常用體重帶');
+      }
+      if (renal.low && comp === 'INH') notes.push('腎功能不全應評估補充 pyridoxine (vitamin B6)');
+      return notes.join('；');
+    }
+
+    function doseFor(row, w, renal){
+      if (row.tag !== 'BASE' && renal.low) return { blocked:'renal', tablets:null, mg:null };
+      const tablets = row.tag === 'BASE' ? singleTabletsByWeight(row.key, w) : comboTabletsByWeight(w);
+      if (!tablets) return { blocked:'weight', tablets:null, mg:null };
+      return { blocked:null, tablets:tablets, mg:tablets * row.tabletMg };
+    }
+
+    function selectedRows(){
       const rows = [];
-      const byTag = (tag)=> DRUGS.filter(d=>d.tag===tag);
-      const byKey = (key)=> DRUGS.find(d=>d.key===key && d.tag==='BASE');
-      selectedKeys.forEach(k=>{
-        if (k==='AK3' || k==='TRAC4') rows.push(...byTag(k));
-        else {
-          const r = byKey(k); if (r) rows.push(r);
+      singleIds.forEach(function(id){
+        const el = document.getElementById(id);
+        if (el.checked){
+          const key = id.replace('opt-','');
+          rows.push(DRUGS.find(function(d){ return d.tag === 'BASE' && d.key === key; }));
         }
       });
-      return rows;
+      comboIds.forEach(function(id){
+        const el = document.getElementById(id);
+        if (el.checked){
+          const tag = id === 'opt-AK3' ? 'AK3' : 'TRAC4';
+          rows.push.apply(rows, DRUGS.filter(function(d){ return d.tag === tag; }));
+        }
+      });
+      return rows.filter(Boolean);
+    }
+
+    function showRenalAlert(renal){
+      if (!renal.low){ renalAlert.style.display = 'none'; renalAlert.textContent = ''; return; }
+      renalAlert.style.display = 'block';
+      renalAlert.className = 'clinical-alert bad';
+      renalAlert.innerHTML = '<b>腎功能調整：</b>CCr / eGFR &lt;30 mL/min 時，INH、RMP 維持每日劑量；EMB、PZA 每次劑量不減，但改為每週 3 次。'
+        + (renal.dialysis ? '血液透析日請於透析後給藥。' : '')
+        + ' 固定複方無法分開頻率，請使用單方。';
+    }
+
+    function validateInputs(){
+      clearError();
+      const w = Number(weightEl.value);
+      if (!Number.isFinite(w) || w < 30 || w > 250){ showError('請輸入 30–250 kg 的有效成人體重；低於 30 kg 需個別評估。'); return null; }
+      const renal = renalState();
+      if (renal.invalid){ showError('CCr / eGFR 請輸入 0–200 mL/min 的有效數值。'); return null; }
+      if (!renal.known){ showError('治療前必須確認腎功能：請輸入 CCr / eGFR，或勾選血液透析。'); return null; }
+      const rows = selectedRows();
+      if (!rows.length){ showError('請選擇至少一種單方藥物或一種複方。'); return null; }
+      return { weight:w, renal:renal, rows:rows };
     }
 
     function render(){
+      const input = validateInputs();
+      if (!input){ tbody.innerHTML=''; resultWrap.style.display='none'; renalAlert.style.display='none'; return; }
+      const w = input.weight;
+      const renal = input.renal;
       tbody.innerHTML='';
-      const rows = rowsForSelection();
-      if (rows.length===0){ resultWrap.style.display='none'; return; }
-      resultWrap.style.display='block';
+      showRenalAlert(renal);
 
-      const w = Number(weightEl.value)||0;
-      const ak3T = akurit3TabletsByWeight(w);
-      const trac4T = trac4TabletsByWeight(w);
-
-      rows.forEach(function(row){
+      input.rows.forEach(function(row){
+        const dose = doseFor(row, w, renal);
+        const actualMgKg = dose.mg ? dose.mg / w : NaN;
         const tr = document.createElement('tr');
-        const tdName = document.createElement('td'); tdName.textContent = row.name; tdName.style.fontWeight = (row.tag==='AK3'||row.tag==='TRAC4')?'600':'500';
-        const tdRec = document.createElement('td'); tdRec.textContent = fmtRange(row.mgkgMin, row.mgkgMax);
-        const tdStrength = document.createElement('td'); tdStrength.textContent = row.tabletMg;
-
-        const targetMin = w * row.mgkgMin;
-        const t = (row.tag==='AK3') ? ak3T : (row.tag==='TRAC4' ? trac4T : pickTablets(w, row.mgkgMin, row.tabletMg, row.maxMg));
-        const actual = t * row.tabletMg;
-        const mgkgActual = (w>0 && actual>0) ? (actual/w) : NaN;
-        const delta = actual - targetMin;
-
-        const tdTarget = document.createElement('td'); tdTarget.textContent = fmtMg(targetMin);
-        const tdTabs = document.createElement('td'); tdTabs.textContent = fmtTablets(t);
-        const tdActual = document.createElement('td'); tdActual.textContent = fmtMg(actual);
-
-        const tdMgkg = document.createElement('td');
-        if (isFinite(mgkgActual)){
-          const warnLow = mgkgActual < row.mgkgMin - 1e-9;
-          const warnHigh = mgkgActual > row.mgkgMax + 1e-9;
-          const overMax = (row.maxMg && actual > row.maxMg);
-          tdMgkg.className = 'mgkg ' + ((warnLow||warnHigh||overMax)?'warn':'ok');
-          tdMgkg.innerHTML = mgkgActual.toFixed(1)
-            + (warnLow ? ' <span class="pill">⚠ 低於 ' + row.mgkgMin + ' mg/kg</span>' : '')
-            + (warnHigh ? ' <span class="pill">⚠ 高於 ' + row.mgkgMax + ' mg/kg</span>' : '')
-            + (overMax ? ' <span class="pill bad">⚠ 超過最大日劑量 ' + row.maxMg + ' mg</span>' : '');
-        } else { tdMgkg.textContent = '—'; }
-
-        const tdDelta = document.createElement('td');
-        tdDelta.className = 'delta ' + (Math.abs(delta) <= 0.15 * (w*row.mgkgMin||1) ? 'ok' : 'warn');
-        tdDelta.textContent = (delta===0? '+0' : (delta>0? '+' : '')) + fmtMg(delta);
-
-        const tdSug = document.createElement('td'); tdSug.textContent = suggestionText(row, w);
-
-        tr.appendChild(tdName);
-        tr.appendChild(tdRec);
-        tr.appendChild(tdStrength);
-        tr.appendChild(tdTarget);
-        tr.appendChild(tdTabs);
-        tr.appendChild(tdActual);
-        tr.appendChild(tdMgkg);
-        tr.appendChild(tdDelta);
-        tr.appendChild(tdSug);
+        const values = [
+          row.name,
+          recommendedRange(row),
+          String(row.tabletMg),
+          fmtTablets(dose.tablets),
+          fmtMg(dose.mg),
+          Number.isFinite(actualMgKg) ? actualMgKg.toFixed(1) : '—',
+          dose.blocked ? '—' : frequencyFor(row, renal),
+          clinicalNote(row, w, renal, dose.blocked)
+        ];
+        values.forEach(function(value, index){
+          const td = document.createElement('td');
+          td.textContent = value;
+          if (index === 0) td.style.fontWeight = row.tag === 'BASE' ? '500' : '600';
+          if (index === 5 && Number.isFinite(actualMgKg)) td.className = 'mgkg ' + (actualMgKg >= row.min && actualMgKg <= row.max ? 'ok' : 'warn');
+          if (index === 6 && !dose.blocked) td.className = 'frequency';
+          if (index === 7 && dose.blocked) td.className = 'blocked';
+          tr.appendChild(td);
+        });
         tbody.appendChild(tr);
       });
+      resultWrap.style.display='block';
     }
 
-    buildBtn.addEventListener('click', function(){
-      const w = Number(weightEl.value)||0;
-      if (!w || w<=0){ alert('請先輸入有效體重（kg）'); return; }
-      buildSelection();
-      render();
+    function refreshIfVisible(){ if (resultWrap.style.display === 'block') render(); }
+
+    singleIds.forEach(function(id){
+      document.getElementById(id).addEventListener('change', function(event){
+        if (event.target.checked) comboIds.forEach(function(comboId){ document.getElementById(comboId).checked = false; });
+        refreshIfVisible();
+      });
     });
-    clearBtn.addEventListener('click', function(){ tbody.innerHTML=''; resultWrap.style.display='none'; });
-    weightEl.addEventListener('input', function(){ if (resultWrap.style.display==='block') render(); });
-    ;['opt-INH','opt-RMP','opt-EMB','opt-PZA','opt-AK3','opt-TRAC4'].forEach(function(id){
-      const el = document.getElementById(id);
-      el.addEventListener('change', function(){ if (resultWrap.style.display==='block'){ buildSelection(); render(); } });
+    comboIds.forEach(function(id){
+      document.getElementById(id).addEventListener('change', function(event){
+        if (event.target.checked){
+          singleIds.forEach(function(singleId){ document.getElementById(singleId).checked = false; });
+          comboIds.forEach(function(comboId){ if (comboId !== id) document.getElementById(comboId).checked = false; });
+        }
+        refreshIfVisible();
+      });
     });
-    buildSelection();
-    render();
+
+    buildBtn.addEventListener('click', render);
+    clearBtn.addEventListener('click', function(){
+      clearError();
+      tbody.innerHTML='';
+      resultWrap.style.display='none';
+      renalAlert.style.display='none';
+    });
+    weightEl.addEventListener('input', refreshIfVisible);
+    renalEl.addEventListener('input', refreshIfVisible);
+    dialysisEl.addEventListener('change', function(){
+      renalEl.disabled = dialysisEl.checked;
+      renalEl.placeholder = dialysisEl.checked ? '已選血液透析' : '例如 75';
+      refreshIfVisible();
+    });
 
     const testBtn = document.getElementById('runTests');
-    const testLog = document.getElementById('testlog');
-    function approxEqual(a,b,eps){ return Math.abs(a-b) < (eps||1e-6); }
-    function akurit3TabletsByWeightTest(){
-      const cases = [[30,2],[54,3],[70,4],[71,5]]; return cases.map(([w,exp])=>akurit3TabletsByWeight(w)===exp).every(Boolean);
-    }
-    function computeForWeight(w){
-      const ak3T = akurit3TabletsByWeight(w);
-      const trac4T = trac4TabletsByWeight(w);
-      return DRUGS.map(function(row){
-        const t = (row.tag==='AK3') ? ak3T : (row.tag==='TRAC4' ? trac4T : pickTablets(w, row.mgkgMin, row.tabletMg, row.maxMg));
-        return { name: row.name, tablets: t, mg: t*row.tabletMg };
-      });
-    }
     function runTests(){
       const lines = [];
-      function ok(name){ lines.push('✅ ' + name); }
-      function ng(name, exp, got){ lines.push('❌ ' + name + ' 期望: ' + exp + ' 實際: ' + got); }
-      akurit3TabletsByWeightTest() ? ok('AKURIT-3 體重帶顆數') : ng('AKURIT-3 體重帶顆數','正確','錯誤');
-      var tt1 = trac4TabletsByWeight(37); (tt1===2? ok: ng)('Trac4 37kg → 2#',2,tt1);
-      var tt2 = trac4TabletsByWeight(38); (tt2===3? ok: ng)('Trac4 38kg → 3#',3,tt2);
-      var rows72 = computeForWeight(72);
-      var inh72 = rows72.find(function(r){return r.name.indexOf('INH (Isoniazid)')===0;});
-      (inh72.tablets===4? ok: ng)('INH 72kg → 4.0 錠(向上進位)', 4, inh72.tablets);
-      var rows200 = computeForWeight(200);
-      var inh200 = rows200.find(function(r){return r.name.indexOf('INH (Isoniazid)')===0;});
-      (inh200.tablets===3? ok: ng)('INH 200kg 上限 → 3.0 錠', 3, inh200.tablets);
-      var rows60 = computeForWeight(60);
-      var pza60 = rows60.find(function(r){return r.name.indexOf('PZA (Pyrazinamide)')===0;});
-      (approxEqual(pza60.tablets, 2.0)? ok: ng)('PZA 60kg → 2.0 錠 (min 15 mg/kg)', 2.0, pza60.tablets);
-      var rows200b = computeForWeight(200);
-      var emb200 = rows200b.find(function(r){return r.name.indexOf('EMB (Ethambutol)')===0;});
-      (approxEqual(emb200.tablets, 4.0)? ok: ng)('EMB 200kg 上限 → 4.0 錠 (1600 mg)', 4.0, emb200.tablets);
-      var log = document.getElementById('testlog');
-      if (log) log.textContent = lines.join('\n');
+      function check(name, expected, actual){ lines.push((expected === actual ? '✅ ' : '❌ ') + name + (expected === actual ? '' : '；期望 ' + expected + '，實際 ' + actual)); }
+      check('INH 60 kg → 3 顆 / 300 mg', 3, singleTabletsByWeight('INH',60));
+      check('RMP 60 kg → 4 顆 / 600 mg', 4, singleTabletsByWeight('RMP',60));
+      check('PZA 60 kg → 3 顆 / 1500 mg', 3, singleTabletsByWeight('PZA',60));
+      check('EMB 60 kg → 3 顆 / 1200 mg', 3, singleTabletsByWeight('EMB',60));
+      [[55,2],[56,3],[75,3],[76,4]].forEach(function(c){ check('E/Z 體重帶 ' + c[0] + ' kg', c[1], singleTabletsByWeight('PZA',c[0])); });
+      [[37,2],[38,3],[54,3],[55,4],[70,4],[71,5]].forEach(function(c){ check('複方體重帶 ' + c[0] + ' kg', c[1], comboTabletsByWeight(c[0])); });
+      const lowRenal = { low:true, dialysis:false };
+      check('CCr <30：EMB 改每週 3 次', '每週 3 次', frequencyFor(DRUGS[2],lowRenal));
+      check('CCr <30：固定複方阻擋', 'renal', doseFor(DRUGS[4],60,lowRenal).blocked);
+      document.getElementById('testlog').textContent = lines.join('\n');
     }
     if (testBtn) testBtn.addEventListener('click', function(){ try{ runTests(); } catch(e){ showError(e); } });
-  }catch(e){ showError(e); }
+  } catch(e){ showError(e); }
 })();
 </script>
 </body>
