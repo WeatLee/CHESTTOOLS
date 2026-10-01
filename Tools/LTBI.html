@@ -34,7 +34,7 @@
     h1 { font-size: 22px; margin: 0 0 10px; color: var(--accent); letter-spacing: 0.5px; }
     p.sub { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
 
-    .inputs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .inputs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; margin-bottom: 20px; }
     @media (max-width: 600px) { .inputs-grid { grid-template-columns: 1fr; } }
 
     label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
@@ -88,7 +88,7 @@
 
     <div class="card">
       <h1>📋 LTBI 治療處方決策工具</h1>
-      <p class="sub">每日服用處方輸出「理論計算毫克數（含上限截斷鎖）」，低體重與每週處方呈現精確防呆顆數對照。</p>
+      <p class="sub">依疾管署《結核病診治指引》第八版表 10-5，按年齡與體重計算 LTBI 處方劑量；治療前須先排除活動性結核病。</p>
 
       <div class="inputs-grid">
         <div>
@@ -96,10 +96,18 @@
           <input type="number" id="weightInput" step="0.1" placeholder="例如 60" value="60">
         </div>
         <div>
+          <label for="ageInput">年齡（足歲）</label>
+          <input type="number" id="ageInput" step="1" min="0" max="120" placeholder="例如 45" value="18">
+        </div>
+        <div>
           <label for="dateInput">起始服藥日期 (可連打或斜線)</label>
           <input type="text" id="dateInput" placeholder="如 1150519 或 2026/5/19">
         </div>
       </div>
+
+      <label class="regime-btn" style="display:inline-block; margin-bottom:18px; padding:9px 14px; font-weight:600;">
+        <input type="checkbox" id="pregnantInput"> 懷孕中
+      </label>
 
       <label>選擇治療處方</label>
       <div class="regime-select">
@@ -126,9 +134,9 @@
           <thead>
             <tr>
               <th style="width: 32%">藥品成分 (常用規格)</th>
-              <th style="width: 28%">指引建議 / 臨床裁量劑量</th>
-              <th style="width: 20%">每日最大劑量</th>
-              <th style="width: 20%">實得 mg/kg 劑量</th>
+              <th style="width: 25%">指引建議劑量</th>
+              <th style="width: 20%">本次計算</th>
+              <th style="width: 23%">頻率／劑型提示</th>
             </tr>
           </thead>
           <tbody id="prescriptionTbody">
@@ -140,32 +148,40 @@
         <label>📅 療程排程預估</label>
         <div style="font-size: 16px; background: rgba(255,255,255,0.02); padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
           總療程期程：<span id="timelineDuration" style="font-weight: bold; color: var(--accent);"></span><br>
-          預計完服/結案日期：<span id="timelineEndDate" style="font-weight: bold; color: var(--ok);"></span>
+          預計服藥／期限日期：<span id="timelineEndDate" style="font-weight: bold; color: var(--ok);"></span>
         </div>
       </div>
     </div>
 
     <div class="footer-guideline">
       <div class="footer-section">
-        <h3>🩸 治療前基準檢查 (Baseline Evaluation) —— 所有個案</h3>
+        <h3>🩸 治療前評估</h3>
         <ul>
-          <li>常規抽血：<code>AST (GOT)</code>、<code>ALT (GPT)</code>、<code>Total Bilirubin</code>、<code>Creatinine / eGFR</code> 。</li>
-          <li>影像與常規確認：必須安排 <code>Chest X-ray</code> 嚴格排除活動性肺結核 ；育齡女性需執行驗孕 。</li>
-          <li>高風險因子註記：確認個案是否為 B 肝帶原者、C 肝感染者或具經常性酗酒史。</li>
+          <li>開始治療前必須依症狀、理學評估及胸部 X 光排除活動性結核病，並確認指標個案藥敏結果。</li>
+          <li>35 歲以上、肝硬化、慢性肝炎或肝病變、酒癮、注射藥癮、HIV 感染、懷孕或產後 3 個月者，治療前應檢查肝功能。</li>
+          <li>使用 RMP／RPT 前須檢查藥物交互作用；孕婦可選 4R、3HR 或 6H/9H，使用 INH 時評估補充 pyridoxine。</li>
         </ul>
       </div>
       <div class="footer-section">
-        <h3>📅 治療期間抽血追蹤時程 (針對肝毒性高風險群)</h3>
+        <h3>📅 治療期間監測</h3>
         <ul>
-          <li>常規肝功能追蹤點：於 <b>第 2 週</b>、<b>第 4 週</b>、<b>第 8 週</b> 追蹤檢驗 <code>AST / ALT / Total Bilirubin</code>。</li>
-          <li>異常追蹤：服藥期間不論在第幾週，若個案出現發燒、噁心、嘔吐、右上腹痛、黃疸、茶色尿等症狀，應<b>立即回診抽血</b>。</li>
+          <li>至少每月回診，以問診與身體檢查評估副作用及是否有活動性結核病；有症狀或高風險者依臨床需要追蹤肝功能。</li>
+          <li>若出現發燒、噁心、嘔吐、右上腹痛、黃疸、茶色尿、呼吸困難、低血壓或廣泛皮疹，應立即停藥並儘速就醫評估。</li>
         </ul>
       </div>
       <div class="footer-section">
         <h3>⚠️ 臨床停藥指引標準</h3>
         <ul>
-          <li>個案<b>無症狀</b>：肝功能指数 <code>ALT / AST ≥ 5 倍</code> 正常值上限 (ULN)。</li>
+          <li>個案<b>無症狀</b>：肝功能指數 <code>ALT / AST ≥ 5 倍</code> 正常值上限 (ULN)。</li>
           <li>個案<b>出現肝炎症狀</b>：<code>ALT / AST ≥ 3 倍</code> 正常值上限 (ULN) 或出現黃疸。</li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h3>📚 資料來源與範圍</h3>
+        <ul>
+          <li><a href="https://www.cdc.gov.tw/Category/MPage/YpPM4PxFx3b_6FKuMDYjew" target="_blank" rel="noopener" style="color:var(--accent)">衛生福利部疾病管制署《結核病診治指引》第八版，第十章（2026/7/22 修訂）</a>，表 10-5。</li>
+          <li>6FQ／9FQ 為 MDR-TB 接觸者專案處方，應轉介 TMTC 團隊或約定院所評估，故不納入一般自動計算。</li>
+          <li>本工具提供指引劑量核對，不能取代醫師對交互作用、肝腎功能、指標個案藥敏及個別劑型的判斷。</li>
         </ul>
       </div>
     </div>
@@ -173,7 +189,9 @@
 
   <script>
     const weightInput = document.getElementById('weightInput');
+    const ageInput = document.getElementById('ageInput');
     const dateInput = document.getElementById('dateInput');
+    const pregnantInput = document.getElementById('pregnantInput');
     const regimeRadios = document.getElementsByName('regime');
     const prescriptionTbody = document.getElementById('prescriptionTbody');
     const routeTip = document.getElementById('routeTip');
@@ -206,151 +224,145 @@
       return (d.getFullYear() === year && d.getMonth() === month && d.getDate() === day) ? d : null;
     }
 
+    const schedules = {
+      '1HP': { doses:28, frequency:'每日', deadline:40, label:'28 劑（1 個月），必須都治 (DOPT)' },
+      '3HP': { doses:12, frequency:'每週', deadline:120, label:'12 劑（3 個月），每週一次，必須都治 (DOPT)' },
+      '4R':  { doses:120, frequency:'每日', deadline:160, label:'120 劑（4 個月），必須都治 (DOPT)' },
+      '3HR': { doses:90, frequency:'每日', deadline:120, label:'90 劑（3 個月），必須都治 (DOPT)' },
+      '6H':  { doses:180, frequency:'每日', deadline:240, label:'180 劑（6 個月），建議都治' },
+      '9H':  { doses:270, frequency:'每日', deadline:365, label:'270 劑（9 個月），建議都治' }
+    };
+
+    function selectedRegime() {
+      for (const radio of regimeRadios) if (radio.checked) return radio.value;
+      return '1HP';
+    }
+
+    function fmtDose(value) {
+      return Number.isInteger(value) ? value.toLocaleString('en-US') : value.toFixed(1);
+    }
+
+    function rpt3hpDose(weight) {
+      if (weight <= 14.0) return 300;
+      if (weight <= 25.0) return 450;
+      if (weight <= 32.0) return 600;
+      if (weight < 50.0) return 750;
+      return 900;
+    }
+
+    function rpt1hpDose(weight) {
+      if (weight < 35) return 300;
+      if (weight < 45) return 450;
+      return 600;
+    }
+
+    function doseRow(name, guideline, calculated, frequency, note) {
+      return `<tr><td><b>${name}</b></td><td>${guideline}</td><td class="highlight-text">${calculated}</td><td>${frequency}<br><small style="color:var(--muted)">${note}</small></td></tr>`;
+    }
+
+    function showAlert(element, title, body) {
+      alertZone.style.display = 'block';
+      element.style.display = 'block';
+      element.innerHTML = `<div class="alert-title">${title}</div>${body}`;
+    }
+
+    function formatDate(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+      return `<span style="font-size:13px; color:var(--muted)">[民國 ${y - 1911}/${m}/${d}]</span> ${y}/${m}/${d} (${weekDays[date.getDay()]})`;
+    }
+
     function calculateLTBI() {
-      const w = parseFloat(weightInput.value) || 0;
-      let selectedRegime = '1HP';
-      for (const r of regimeRadios) { if (r.checked) { selectedRegime = r.value; break; } }
+      const weight = Number(weightInput.value);
+      const age = Number(ageInput.value);
+      const regime = selectedRegime();
+      const pregnant = pregnantInput.checked;
+      const schedule = schedules[regime];
 
       alertZone.style.display = 'none';
-      dangerAlert.style.display = 'none'; infoAlert.style.display = 'none'; warnAlert.style.display = 'none';
-      routeTip.style.background = 'none'; routeTip.textContent = '';
+      dangerAlert.style.display = 'none';
+      infoAlert.style.display = 'none';
+      warnAlert.style.display = 'none';
+      routeTip.style.background = 'rgba(139,179,255,0.12)';
+      routeTip.style.color = 'var(--accent)';
+      routeTip.textContent = `${schedule.frequency}・${schedule.doses} 劑`;
+      timelineBox.style.display = 'none';
 
-      if (w <= 0) {
-        prescriptionTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--bad);">請輸入有效病患體重</td></tr>';
-        timelineBox.style.display = 'none';
+      if (!Number.isFinite(weight) || weight <= 0 || weight > 300 || !Number.isFinite(age) || age < 0 || age > 120) {
+        prescriptionTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--bad);">請輸入有效的體重與年齡</td></tr>';
         return;
       }
 
-      let rowsHtml = ''; let days = 0; let durationText = '';
+      if ((regime === '1HP' && age < 13) || (regime === '3HP' && age < 2)) {
+        const ageLimit = regime === '1HP' ? '未滿 13 歲不使用 1HP' : '未滿 2 歲不使用 3HP';
+        showAlert(dangerAlert, '❌ 年齡限制', `${ageLimit}；請改選其他適用處方並由醫師評估。`);
+        prescriptionTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--bad);">此年齡不適用所選處方</td></tr>';
+        return;
+      }
 
-      switch (selectedRegime) {
-        case '1HP':
-          days = 28; durationText = '28天 (1個月) 每日服用，必須都治 (DOPT) ';
-          alertZone.style.display = 'block';
-          dangerAlert.style.display = 'block'; dangerAlert.innerHTML = '<div class="alert-title">❌ 使用限制與禁忌</div>• 孕婦絕對禁用！<br>• 不適用於 &lt;13 歲兒童。<br>• 指標個案對 INH 或 RMP 抗藥則不適用。';
-          infoAlert.style.display = 'block'; infoAlert.innerHTML = '<div class="alert-title">📋 專案進口限制</div>本處方藥品為專案進口，發藥前<b>須請個案簽立藥品使用同意書</b>。[cite: 5]';
-          
-          let rpt1hpTabs = w >= 45 ? 2 : 1;
-          if (w >= 45) {
-            routeTip.textContent = '💡 建議：複方1# + 單方RPT 2# 混搭優選'; routeTip.style.background = 'rgba(0, 210, 213, 0.2)'; routeTip.style.color = 'var(--info)';
-            rowsHtml += `
-              <tr style="background: rgba(139,179,255,0.03)"><td><b>[複方型]</b> INH 300mg + RPT 300mg </td><td class="highlight-text">固定 1 顆 </td><td>300mg / 300mg</td><td>各 300 mg</td></tr>
-              <tr style="background: rgba(139,179,255,0.03)"><td><b>[單方型]</b> Rifapentine (RPT) 150mg </td><td class="highlight-text">補 2 顆 (共600mg) </td><td>每日上限 600 mg </td><td>總共 600 mg</td></tr>
-              <tr class="disable-text"><td>[全單方] Isoniazid (INH) 300mg </td><td>固定 1 顆</td><td>300 mg </td><td>300 mg</td></tr>
-              <tr class="disable-text"><td>[全單方] Rifapentine (RPT) 150mg </td><td>4 顆</td><td>每日上限 600 mg </td><td>600 mg</td></tr>
-            `;
-          } else {
-            routeTip.textContent = '💡 建議：全複方 1 顆方案'; routeTip.style.background = 'rgba(34, 197, 94, 0.2)'; routeTip.style.color = 'var(--ok)';
-            rowsHtml += `
-              <tr><td><b>[複方首選]</b> INH 300mg + RPT 300mg </td><td class="highlight-text">固定 1 顆 </td><td>300mg / 300mg</td><td>各 300 mg</td></tr>
-              <tr><td>[單方替代] Isoniazid (INH) 300mg </td><td>固定 1 顆</td><td>300 mg </td><td>300 mg</td></tr>
-              <tr><td>[單方替代] Rifapentine (RPT) 150mg </td><td>${rpt1hpTabs} 顆 </td><td>指引上限 600 mg </td><td>${rpt1hpTabs * 150} mg</td></tr>
-            `;
-          }
-          break;
+      if (pregnant && (regime === '1HP' || regime === '3HP')) {
+        showAlert(dangerAlert, '❌ 孕期處方限制', '孕婦不使用 1HP／3HP；疾管署指引可選 4R、3HR 或 6H/9H。');
+        prescriptionTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--bad);">請改選孕期可使用處方</td></tr>';
+        return;
+      }
 
-        case '3HP':
-          days = 84; durationText = '12個劑量 (3個月) 每週服用一次，必須都治 (DOPT) ';
-          alertZone.style.display = 'block';
-          dangerAlert.style.display = 'block'; dangerAlert.innerHTML = '<div class="alert-title">❌ 使用限制與禁忌</div>• 孕婦絕對禁用！<br>• 不適用於 &lt;2 歲幼童。<br>• 指標個案對 INH 或 RMP 抗藥則不適用。';
-          infoAlert.style.display = 'block'; infoAlert.innerHTML = '<div class="alert-title">📋 專案進口限制</div>本處方藥品為專案進口，發藥前<b>須請個案簽立藥品使用同意書</b>。[cite: 5]';
+      const isChild = age < 18;
+      const inhDailyRate = isChild ? 10 : 5;
+      const rmpDailyRate = isChild ? 15 : 10;
+      const inhDaily = Math.min(300, weight * inhDailyRate);
+      const rmpDaily = Math.min(600, weight * rmpDailyRate);
+      let rowsHtml = '';
 
-          if (w >= 50.0) {
-            routeTip.textContent = '💡 建議：全複方 3 顆方案'; routeTip.style.background = 'rgba(34, 197, 94, 0.2)'; routeTip.style.color = 'var(--ok)';
-            rowsHtml += `
-              <tr><td><b>[複方首選]</b> 3HP 複方 (INH300+RPT300) </td><td class="highlight-text">固定 3 顆 </td><td>每週上限 900mg </td><td>各 900 mg</td></tr>
-              <tr class="disable-text"><td>[單方替代] Isoniazid (INH) 300mg </td><td>固定 3 顆</td><td>每週上限 900 mg </td><td>900 mg</td></tr>
-              <tr class="disable-text"><td>[單方替代] Rifapentine (RPT) 150mg </td><td>6 顆</td><td>每週上限 900 mg </td><td>900 mg</td></tr>
-            `;
-          } else {
-            routeTip.textContent = '⚠️ 提示：體重 < 50kg 建議改用純單方'; routeTip.style.background = 'rgba(245, 158, 11, 0.2)'; routeTip.style.color = 'var(--warn)';
-            warnAlert.style.display = 'block';
-            warnAlert.innerHTML = `<div class="alert-title">⚠️ 體重劑量安全防呆提示</div>病患體重較輕 (${w}kg)，若使用 3 顆複方會導致 INH 強制灌足 900mg，實得高達 ${(900/w).toFixed(1)} mg/kg（指引目標 15 mg/kg），將顯著增加肝毒性風險！<br><b>臨床建議改走下列【純單方調整路線】。</b>`;
-            
-            let rpt3hpTabs = 5;
-            if (w < 14.1) rpt3hpTabs = 2; 
-            else if (w < 25.1) rpt3hpTabs = 3; 
-            else if (w < 32.1) rpt3hpTabs = 4; 
+      if (regime.includes('R') || regime.includes('HP')) {
+        showAlert(warnAlert, '⚠️ Rifamycin 交互作用', 'RMP／RPT 會影響多種藥物濃度；處方前須完整核對用藥（含抗病毒藥、warfarin、methadone、phenytoin 等）。');
+      }
 
-            rowsHtml += `
-              <tr class="disable-text"><td>[複方風險] 3HP 複方 (INH300+RPT300) </td><td>3 顆</td><td>過量風險！</td><td>INH過高: ${(900/w).toFixed(1)} mg/kg</td></tr>
-              <tr style="background: rgba(34,197,94,0.04)"><td><b>[單方精算]</b> Isoniazid (INH) 300mg </td><td class="highlight-text">固定 2 顆</td><td>每週最大 900 mg </td><td><b>600 mg</b> (實得 ${(600/w).toFixed(1)} mg/kg，最符目標)</td></tr>
-              <tr style="background: rgba(34,197,94,0.04)"><td><b>[單方精算]</b> Rifapentine (RPT) 150mg </td><td class="highlight-text">${rpt3hpTabs} 顆 </td><td>指引區間固定劑量 </td><td><b>${rpt3hpTabs * 150} mg</b> </td></tr>
-            `;
-          }
-          break;
+      if (regime === '1HP') {
+        const rpt = rpt1hpDose(weight);
+        rowsHtml += doseRow('Isoniazid (INH)', '固定 300 mg；每次最大 300 mg', '300 mg', '每日一次', '可使用 INH 300 mg 單方或 HP 複方');
+        rowsHtml += doseRow('Rifapentine (RPT)', '&lt;35 kg：300 mg；35-&lt;45 kg：450 mg；≥45 kg：600 mg', `${rpt} mg（150 mg × ${rpt / 150} 顆）`, '每日一次', `若使用 HP 複方 300/300 mg：1 顆複方${rpt > 300 ? `，另補 RPT 150 mg × ${(rpt - 300) / 150} 顆` : ''}`);
+        showAlert(infoAlert, '📋 1HP 重要提醒', '限 13 歲以上；指標個案 INH 或 RMP 抗藥時不適用。共 28 劑，最適完治期限 40 天。');
+      } else if (regime === '3HP') {
+        const inhRate = age <= 11 ? 25 : 15;
+        const inh = Math.min(900, weight * inhRate);
+        const rpt = rpt3hpDose(weight);
+        rowsHtml += doseRow('Isoniazid (INH)', `${age <= 11 ? '2-11 歲：25' : '≥12 歲：15'} mg/kg；每次最大 900 mg`, `${fmtDose(inh)} mg（${(inh / weight).toFixed(1)} mg/kg）`, '每週一次', '實際錠數須依可用 100/300 mg 規格由醫師調整');
+        rowsHtml += doseRow('Rifapentine (RPT)', '依體重帶 300／450／600／750／900 mg', `${rpt} mg（150 mg × ${rpt / 150} 顆）`, '每週一次', '每次最大 900 mg');
+        showAlert(infoAlert, '📋 3HP 重要提醒', '限 2 歲以上；指標個案 INH 或 RMP 抗藥時不適用。HP 複方每顆為 INH 300 mg/RPT 300 mg，須分別核對兩成分目標劑量。');
+      } else if (regime === '4R') {
+        rowsHtml += doseRow('Rifampin (RMP)', `${isChild ? '兒童 15 mg/kg（10-20）' : '成人 10 mg/kg'}；每日最大 600 mg`, `${fmtDose(rmpDaily)} mg（${(rmpDaily / weight).toFixed(1)} mg/kg）`, '每日一次', '指標個案 RMP 抗藥時不適用');
+      } else if (regime === '3HR') {
+        rowsHtml += doseRow('Isoniazid (INH)', `${isChild ? '兒童 10 mg/kg（7-15）' : '成人 5 mg/kg'}；每日最大 300 mg`, `${fmtDose(inhDaily)} mg（${(inhDaily / weight).toFixed(1)} mg/kg）`, '每日一次', '二合一複方須依產品規格與體重核對');
+        rowsHtml += doseRow('Rifampin (RMP)', `${isChild ? '兒童 15 mg/kg（10-20）' : '成人 10 mg/kg'}；每日最大 600 mg`, `${fmtDose(rmpDaily)} mg（${(rmpDaily / weight).toFixed(1)} mg/kg）`, '每日一次', '指標個案 INH 或 RMP 抗藥時不適用');
+      } else {
+        rowsHtml += doseRow('Isoniazid (INH)', `${isChild ? '兒童 10 mg/kg（7-15）' : '成人 5 mg/kg'}；每日最大 300 mg`, `${fmtDose(inhDaily)} mg（${(inhDaily / weight).toFixed(1)} mg/kg）`, '每日一次', '指標個案 INH 抗藥時不適用；依風險評估補充 pyridoxine');
+      }
 
-        case '4R':
-          days = 120; durationText = '120天 (4個月) 每日服用，必須都治 (DOPT) ';
-          alertZone.style.display = 'block';
-          dangerAlert.style.display = 'block'; dangerAlert.innerHTML = '<div class="alert-title">❌ 使用限制</div>• 指標個案對 RMP 抗藥則不可使用。';
-
-          let rawRmp4r = w * 10; 
-          let cappedRmp4r = Math.min(600, rawRmp4r); 
-          let rmp4rStyle = rawRmp4r > 600 ? 'max-capped-text' : 'calc-mg-text';
-          let rmp4rLabel = rawRmp4r > 600 ? `達上限截斷: 600 mg` : `理論計算: ${rawRmp4r.toFixed(0)} mg`;
-
-          rowsHtml += `
-            <tr><td>Rifampin (RMP)<br><small style="color:var(--muted)">常用規格: 300mg/錠</small></td><td class="${rmp4rStyle}">${rmp4rLabel}</td><td>每日最大 600 mg </td><td>${(cappedRmp4r/w).toFixed(1)} mg/kg (目標: 10 mg/kg )</td></tr>
-          `;
-          break;
-
-        case '3HR':
-          days = 90; durationText = '90天 (3個月) 每日服用，必須都治 (DOPT) ';
-          alertZone.style.display = 'block';
-          dangerAlert.style.display = 'block'; dangerAlert.innerHTML = '<div class="alert-title">❌ 使用限制</div>• 指標個案對 INH 或 RMP 抗藥則不適用。';
-
-          let rawInh3hr = w * 5; 
-          let cappedInh3hr = Math.min(300, rawInh3hr); 
-          let inh3hrStyle = rawInh3hr > 300 ? 'max-capped-text' : 'calc-mg-text';
-          let inh3hrLabel = rawInh3hr > 300 ? `達上限截斷: 300 mg` : `理論計算: ${rawInh3hr.toFixed(0)} mg`;
-
-          let rawRmp3hr = w * 10; 
-          let cappedRmp3hr = Math.min(600, rawRmp3hr); 
-          let rmp3hrStyle = rawRmp3hr > 600 ? 'max-capped-text' : 'calc-mg-text';
-          let rmp3hrLabel = rawRmp3hr > 600 ? `達上限截斷: 600 mg` : `理論計算: ${rawRmp3hr.toFixed(0)} mg`;
-          
-          rowsHtml += `
-            <tr><td><b>[複方對照]</b> 二合一複方型規格</td><td class="highlight-text">固定 2 顆</td><td>300mg / 600mg [cite: 20]</td><td>各廠牌比例固定</td></tr>
-            <tr style="border-top: 1px dashed rgba(255,255,255,0.2)"><td>Isoniazid (INH)<br><small style="color:var(--muted)">常用規格: 100mg/錠</small></td><td class="${inh3hrStyle}">${inh3hrLabel}</td><td>每日最大 300 mg </td><td>${(cappedInh3hr/w).toFixed(1)} mg/kg (目標: 5 mg/kg )</td></tr>
-            <tr><td>Rifampin (RMP)<br><small style="color:var(--muted)">常用規格: 300mg/錠</small></td><td class="${rmp3hrStyle}">${rmp3hrLabel}</td><td>每日最大 600 mg </td><td>${(cappedRmp3hr/w).toFixed(1)} mg/kg (目標: 10 mg/kg )</td></tr>
-          `;
-          break;
-
-        case '6H':
-        case '9H':
-          days = selectedRegime === '6H' ? 180 : 270; 
-          durationText = `${days}天 (${selectedRegime === '6H' ? '6' : '9'}個月) 每日服用，臨床建議都治 `;
-          alertZone.style.display = 'block';
-          dangerAlert.style.display = 'block'; dangerAlert.innerHTML = `<div class="alert-title">❌ 使用限制</div>• 指標個案對 INH 具抗藥性則不適用。`;
-
-          let rawInhH = w * 5; 
-          let cappedInhH = Math.min(300, rawInhH); 
-          let inhHStyle = rawInhH > 300 ? 'max-capped-text' : 'calc-mg-text';
-          let inhHLabel = rawInhH > 300 ? `達上限截斷: 300 mg` : `理論計算: ${rawInhH.toFixed(0)} mg`;
-
-          rowsHtml += `
-            <tr><td>Isoniazid (INH)<br><small style="color:var(--muted)">常用規格: 100mg/錠</small></td><td class="${inhHStyle}">${inhHLabel}</td><td>每日最大 300 mg </td><td>${(cappedInhH/w).toFixed(1)} mg/kg (目標: 5 mg/kg )</td></tr>
-          `;
-          break;
+      if (pregnant && (regime === '4R' || regime === '3HR' || regime === '6H' || regime === '9H')) {
+        showAlert(infoAlert, '🤰 孕期提示', '此處方可列入孕期選項；若含 INH，應評估同時補充 pyridoxine (vitamin B6)。仍須由醫師檢查交互作用與肝毒性風險。');
       }
 
       prescriptionTbody.innerHTML = rowsHtml;
 
       const startDate = parseFlexibleDate(dateInput.value);
       if (startDate) {
-        timelineBox.style.display = 'block'; timelineDuration.textContent = durationText;
-        const endDate = new Date(startDate); endDate.setDate(startDate.getDate() + days);
-        const y = endDate.getFullYear(); const m = String(endDate.getMonth() + 1).padStart(2, '0'); const d = String(endDate.getDate()).padStart(2, '0');
-        const weekDays = ["日", "一", "二", "三", "四", "五", "六"];
-        timelineEndDate.innerHTML = `<span style="font-size:13px; color:var(--muted)">[民國 ${y-1911}/${m}/${d}]</span> ${y}/${m}/${d} (${weekDays[endDate.getDay()]})`;
-      } else {
-        timelineBox.style.display = 'none';
+        const lastDoseOffset = schedule.frequency === '每週' ? (schedule.doses - 1) * 7 : schedule.doses - 1;
+        const lastDoseDate = new Date(startDate);
+        lastDoseDate.setDate(startDate.getDate() + lastDoseOffset);
+        const deadlineDate = new Date(startDate);
+        deadlineDate.setDate(startDate.getDate() + schedule.deadline - 1);
+        timelineBox.style.display = 'block';
+        timelineDuration.textContent = `${schedule.label}；最適完治期限 ${schedule.deadline} 天`;
+        timelineEndDate.innerHTML = `預計最後一劑：${formatDate(lastDoseDate)}<br>最適完治期限：${formatDate(deadlineDate)}`;
       }
     }
 
     weightInput.addEventListener('input', calculateLTBI);
+    ageInput.addEventListener('input', calculateLTBI);
     dateInput.addEventListener('input', calculateLTBI);
+    pregnantInput.addEventListener('change', calculateLTBI);
     regimeRadios.forEach(r => r.addEventListener('change', calculateLTBI));
     calculateLTBI();
   </script>
