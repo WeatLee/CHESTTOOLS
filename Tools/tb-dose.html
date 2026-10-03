@@ -46,8 +46,8 @@
     .controls { display: grid; grid-template-columns: 1fr; gap: 12px; padding: 6px 20px 18px; }
     .control { display: grid; grid-template-columns: 140px 1fr; gap: 10px; align-items: center; }
     label { font-size: 13px; color: var(--muted); }
-    input[type="number"], input[type="date"]{ background: #0e1529; border: 1px solid rgba(255,255,255,0.12); color: var(--text); padding: 10px 12px; border-radius: 10px; font-size: 16px; outline: none; min-width: 180px; color-scheme:dark; }
-    input[type="number"]:focus, input[type="date"]:focus{ border-color: var(--accent); box-shadow: 0 0 0 4px rgba(139,179,255,0.15); }
+    input[type="number"], input[type="text"]{ background: #0e1529; border: 1px solid rgba(255,255,255,0.12); color: var(--text); padding: 10px 12px; border-radius: 10px; font-size: 16px; outline: none; min-width: 180px; }
+    input[type="number"]:focus, input[type="text"]:focus{ border-color: var(--accent); box-shadow: 0 0 0 4px rgba(139,179,255,0.15); }
 
     .chipset { display: flex; flex-wrap: wrap; gap: 8px; }
     .chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.03); font-size: 13px; }
@@ -77,6 +77,7 @@
     .blocked { color:#fca5a5; font-weight:700; }
     .timeline-card { margin: 0 20px 18px; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(139,179,255,.38); background: rgba(139,179,255,.08); display:none; line-height:1.65; }
     .timeline-card strong { color:#bfdbfe; }
+    .field-error { display:none; margin-top:6px; color:#fca5a5; font-size:12px; }
     .note-stack { padding: 2px 20px 18px; display:grid; gap:10px; }
     .note-stack details { padding:0; border:1px solid rgba(255,255,255,.1); border-radius:12px; background:rgba(255,255,255,.025); }
     .note-stack summary { padding:13px 15px; cursor:pointer; color:var(--accent); font-weight:700; }
@@ -105,7 +106,11 @@
       <div class="controls">
         <div class="control">
           <label for="treatmentStart">治療開始日期</label>
-          <input id="treatmentStart" type="date" />
+          <div>
+            <input id="treatmentStart" type="text" inputmode="numeric" placeholder="例如 20260815 或 1150815" />
+            <div class="helper">可輸入西元／民國日期，完成後自動轉為 YYYY/MM/DD。</div>
+            <div id="dateError" class="field-error"></div>
+          </div>
         </div>
         <div class="control">
           <label for="treatmentDays">目前有效治療天數</label>
@@ -138,11 +143,13 @@
               <label class="chip"><input type="checkbox" id="opt-EMB" checked> EMB</label>
               <label class="chip"><input type="checkbox" id="opt-PZA" checked> PZA</label>
             </div>
-            <div style="margin:12px 0 6px; color:var(--muted); font-size:12px;">複方（與單方擇一；腎功能低下時不建議）</div>
+            <div style="margin:12px 0 6px; color:var(--muted); font-size:12px;">複方（彼此擇一；可與上方單方併選）</div>
             <div class="chipset">
               <label class="chip"><input type="checkbox" id="opt-AK3"> AKURIT-3（INH/RMP/EMB）</label>
               <label class="chip"><input type="checkbox" id="opt-TRAC4"> Trac 4（INH/RMP/EMB/PZA）</label>
+              <label class="chip"><input type="checkbox" id="opt-MACOX"> Macox Plus 300（RMP/INH）</label>
             </div>
+            <div class="helper">若複方與單方含有相同成分，系統只提醒確認，不會取消選取。</div>
           </div>
         </div>
       </div>
@@ -150,6 +157,7 @@
       <div id="timelineReminder" class="timeline-card"></div>
 
       <div id="renalAlert" class="clinical-alert"></div>
+      <div id="duplicateAlert" class="clinical-alert"></div>
 
       <div class="btnrow">
         <button id="buildBtn">建立分析表格</button>
@@ -226,26 +234,44 @@
     const tbody = document.getElementById('tbody');
     const resultWrap = document.getElementById('resultWrap');
     const renalAlert = document.getElementById('renalAlert');
+    const duplicateAlert = document.getElementById('duplicateAlert');
     const weightEl = document.getElementById('weight');
     const treatmentStartEl = document.getElementById('treatmentStart');
     const treatmentDaysEl = document.getElementById('treatmentDays');
     const timelineReminder = document.getElementById('timelineReminder');
+    const dateError = document.getElementById('dateError');
     const renalBelow30El = document.getElementById('renalBelow30');
     const dialysisEl = document.getElementById('hemodialysis');
     const buildBtn = document.getElementById('buildBtn');
     const clearBtn = document.getElementById('clearBtn');
     const singleIds = ['opt-INH','opt-RMP','opt-EMB','opt-PZA'];
-    const comboIds = ['opt-AK3','opt-TRAC4'];
+    const comboIds = ['opt-AK3','opt-TRAC4','opt-MACOX'];
 
-    function localDateAtMidnight(value){
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return null;
-      const parts = value.split('-').map(Number);
-      const date = new Date(parts[0], parts[1] - 1, parts[2]);
-      return date.getFullYear() === parts[0] && date.getMonth() === parts[1] - 1 && date.getDate() === parts[2] ? date : null;
+    function parseFlexibleDate(value){
+      const raw = String(value || '').trim();
+      if (!raw) return null;
+      let year, month, day;
+      if (/[/.-]/.test(raw)) {
+        const parts = raw.split(/[/.-]/);
+        if (parts.length !== 3) return null;
+        year = Number(parts[0]); month = Number(parts[1]); day = Number(parts[2]);
+      } else if (/^\d{8}$/.test(raw)) {
+        year = Number(raw.slice(0,4)); month = Number(raw.slice(4,6)); day = Number(raw.slice(6,8));
+      } else if (/^\d{7}$/.test(raw)) {
+        year = Number(raw.slice(0,3)); month = Number(raw.slice(3,5)); day = Number(raw.slice(5,7));
+      } else return null;
+      if (year < 200) year += 1911;
+      const date = new Date(year, month - 1, day);
+      return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? date : null;
+    }
+
+    function formattedDate(date){
+      const pad = function(value){ return String(value).padStart(2,'0'); };
+      return date.getFullYear() + '/' + pad(date.getMonth() + 1) + '/' + pad(date.getDate());
     }
 
     function calculatedTreatmentDays(value){
-      const start = localDateAtMidnight(value);
+      const start = parseFlexibleDate(value);
       if (!start) return '';
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -272,7 +298,22 @@
     }
 
     treatmentStartEl.addEventListener('change', function(){
-      treatmentDaysEl.value = calculatedTreatmentDays(treatmentStartEl.value);
+      const start = parseFlexibleDate(treatmentStartEl.value);
+      const calculated = calculatedTreatmentDays(treatmentStartEl.value);
+      dateError.style.display = 'none';
+      dateError.textContent = '';
+      if (treatmentStartEl.value.trim() && !start) {
+        treatmentDaysEl.value = '';
+        dateError.textContent = '日期格式不正確，請輸入例如 20260815 或 1150815。';
+        dateError.style.display = 'block';
+      } else if (start && !calculated) {
+        treatmentDaysEl.value = '';
+        dateError.textContent = '治療開始日期不可晚於今天。';
+        dateError.style.display = 'block';
+      } else {
+        if (start) treatmentStartEl.value = formattedDate(start);
+        treatmentDaysEl.value = calculated;
+      }
       updateTimelineReminder();
     });
     treatmentDaysEl.addEventListener('input', updateTimelineReminder);
@@ -288,7 +329,9 @@
       { name:'Trac 4 · INH', comp:'INH', target:5, min:4, max:6, tabletMg:75, maxMg:300, tag:'TRAC4' },
       { name:'Trac 4 · RMP', comp:'RMP', target:10, min:8, max:12, tabletMg:150, maxMg:600, tag:'TRAC4' },
       { name:'Trac 4 · EMB', comp:'EMB', target:15, min:15, max:20, tabletMg:275, maxMg:1600, tag:'TRAC4' },
-      { name:'Trac 4 · PZA', comp:'PZA', target:25, min:15, max:30, tabletMg:400, maxMg:2000, tag:'TRAC4' }
+      { name:'Trac 4 · PZA', comp:'PZA', target:25, min:15, max:30, tabletMg:400, maxMg:2000, tag:'TRAC4' },
+      { name:'Macox Plus 300 · INH', comp:'INH', target:5, min:4, max:6, tabletMg:150, maxMg:300, tag:'MACOX' },
+      { name:'Macox Plus 300 · RMP', comp:'RMP', target:10, min:8, max:12, tabletMg:300, maxMg:600, tag:'MACOX' }
     ];
 
     function comboTabletsByWeight(w){
@@ -329,12 +372,16 @@
 
     function clinicalNote(row, w, renal, blocked){
       if (blocked === 'renal') return '腎功能低下時 H/R 與 E/Z 頻率不同，不建議使用固定複方；請改用單方。';
+      if (blocked === 'macox-weight') return 'Macox Plus 300 常用量適用體重 ≥50 kg；較低體重請改用其他劑型或單方個別計算。';
       if (blocked === 'weight') return '體重 <40 kg 未列於成人單方常用體重帶，請依 mg/kg 個別計算並由醫師確認。';
       const comp = componentOf(row);
       const notes = [];
       if (row.tag !== 'BASE'){
-        if (w >= 50 && w <= 54) notes.push('指引列 3 顆；可依肝腎功能考慮 4 顆');
-        if (w >= 71) notes.push('指引為可考慮 5 顆');
+        if (row.tag === 'MACOX') notes.push('每錠含 RMP 300 mg + INH 150 mg；體重 ≥50 kg 常用 2 錠');
+        else {
+          if (w >= 50 && w <= 54) notes.push('指引列 3 顆；可依肝腎功能考慮 4 顆');
+          if (w >= 71) notes.push('指引為可考慮 5 顆');
+        }
       } else if (comp === 'INH'){
         notes.push(w < 50 ? '常用量 100 mg/tab 2–3 顆' : '常用量 100 mg/tab 3 顆');
       } else if (comp === 'RMP'){
@@ -347,8 +394,9 @@
     }
 
     function doseFor(row, w, renal){
-      if (row.tag !== 'BASE' && renal.low) return { blocked:'renal', tablets:null, mg:null };
-      const tablets = row.tag === 'BASE' ? singleTabletsByWeight(row.key, w) : comboTabletsByWeight(w);
+      if (row.tag !== 'BASE' && row.tag !== 'MACOX' && renal.low) return { blocked:'renal', tablets:null, mg:null };
+      if (row.tag === 'MACOX' && w < 50) return { blocked:'macox-weight', tablets:null, mg:null };
+      const tablets = row.tag === 'BASE' ? singleTabletsByWeight(row.key, w) : (row.tag === 'MACOX' ? 2 : comboTabletsByWeight(w));
       if (!tablets) return { blocked:'weight', tablets:null, mg:null };
       return { blocked:null, tablets:tablets, mg:tablets * row.tabletMg };
     }
@@ -365,7 +413,7 @@
       comboIds.forEach(function(id){
         const el = document.getElementById(id);
         if (el.checked){
-          const tag = id === 'opt-AK3' ? 'AK3' : 'TRAC4';
+          const tag = id === 'opt-AK3' ? 'AK3' : (id === 'opt-TRAC4' ? 'TRAC4' : 'MACOX');
           rows.push.apply(rows, DRUGS.filter(function(d){ return d.tag === tag; }));
         }
       });
@@ -378,7 +426,17 @@
       renalAlert.className = 'clinical-alert bad';
       renalAlert.innerHTML = '<b>腎功能調整：</b>CCr / eGFR &lt;30 mL/min 時，INH、RMP 維持每日劑量；EMB、PZA 每次劑量不減，但改為每週 3 次。'
         + (renal.dialysis ? '血液透析日請於透析後給藥。' : '')
-        + ' 固定複方無法分開頻率，請使用單方。';
+        + ' 含 EMB／PZA 的固定複方無法分開頻率，請使用單方。';
+    }
+
+    function showDuplicateAlert(rows){
+      const counts = {};
+      rows.forEach(function(row){ const comp = componentOf(row); counts[comp] = (counts[comp] || 0) + 1; });
+      const duplicated = Object.keys(counts).filter(function(comp){ return counts[comp] > 1; });
+      if (!duplicated.length){ duplicateAlert.style.display='none'; duplicateAlert.textContent=''; return; }
+      duplicateAlert.style.display='block';
+      duplicateAlert.className='clinical-alert';
+      duplicateAlert.innerHTML='<b>重複成分提醒：</b>目前選擇重複包含 ' + duplicated.join('、') + '，請確認是否為刻意追加劑量。';
     }
 
     function validateInputs(){
@@ -393,11 +451,12 @@
 
     function render(){
       const input = validateInputs();
-      if (!input){ tbody.innerHTML=''; resultWrap.style.display='none'; renalAlert.style.display='none'; return; }
+      if (!input){ tbody.innerHTML=''; resultWrap.style.display='none'; renalAlert.style.display='none'; duplicateAlert.style.display='none'; return; }
       const w = input.weight;
       const renal = input.renal;
       tbody.innerHTML='';
       showRenalAlert(renal);
+      showDuplicateAlert(input.rows);
 
       input.rows.forEach(function(row){
         const dose = doseFor(row, w, renal);
@@ -430,15 +489,11 @@
     function refreshIfVisible(){ if (resultWrap.style.display === 'block') render(); }
 
     singleIds.forEach(function(id){
-      document.getElementById(id).addEventListener('change', function(event){
-        if (event.target.checked) comboIds.forEach(function(comboId){ document.getElementById(comboId).checked = false; });
-        refreshIfVisible();
-      });
+      document.getElementById(id).addEventListener('change', refreshIfVisible);
     });
     comboIds.forEach(function(id){
       document.getElementById(id).addEventListener('change', function(event){
         if (event.target.checked){
-          singleIds.forEach(function(singleId){ document.getElementById(singleId).checked = false; });
           comboIds.forEach(function(comboId){ if (comboId !== id) document.getElementById(comboId).checked = false; });
         }
         refreshIfVisible();
@@ -451,6 +506,7 @@
       tbody.innerHTML='';
       resultWrap.style.display='none';
       renalAlert.style.display='none';
+      duplicateAlert.style.display='none';
     });
     weightEl.addEventListener('input', refreshIfVisible);
     renalBelow30El.addEventListener('change', function(){

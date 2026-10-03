@@ -44,9 +44,9 @@ class FakeElement {
 
 const ids = [
   'err', 'tbody', 'resultWrap', 'renalAlert', 'weight', 'renalBelow30', 'hemodialysis',
-  'treatmentStart', 'treatmentDays', 'timelineReminder',
+  'treatmentStart', 'treatmentDays', 'timelineReminder', 'dateError', 'duplicateAlert',
   'buildBtn', 'clearBtn', 'runTests', 'testlog',
-  'opt-INH', 'opt-RMP', 'opt-EMB', 'opt-PZA', 'opt-AK3', 'opt-TRAC4'
+  'opt-INH', 'opt-RMP', 'opt-EMB', 'opt-PZA', 'opt-AK3', 'opt-TRAC4', 'opt-MACOX'
 ];
 const elements = Object.fromEntries(ids.map((id) => [id, new FakeElement(id)]));
 elements.weight.value = '60';
@@ -106,8 +106,32 @@ elements['opt-TRAC4'].checked = true;
 elements['opt-TRAC4'].dispatch('change');
 click('buildBtn');
 output = rows();
+assert.equal(output.length, 8);
+assert.ok(output.filter((row) => row[0].startsWith('Trac 4')).every((row) => row[3] === '—' && /不建議使用固定複方/.test(row[7])));
+assert.match(elements.duplicateAlert.innerHTML, /INH、RMP、EMB、PZA/);
+
+for (const id of ['opt-INH','opt-RMP','opt-EMB','opt-PZA','opt-TRAC4']) elements[id].checked = false;
+elements['opt-MACOX'].checked = true;
+elements['opt-MACOX'].dispatch('change');
+click('buildBtn');
+output = rows();
+assert.equal(output.length, 2);
+assert.deepEqual(output.map((row) => row.slice(0,7)), [
+  ['Macox Plus 300 · INH','5 (4–6)','150','2','300','5.0','每日 1 次'],
+  ['Macox Plus 300 · RMP','10 (8–12)','300','2','600','10.0','每日 1 次']
+]);
+
+elements.renalBelow30.checked = false;
+elements['opt-MACOX'].checked = false;
+elements['opt-AK3'].checked = true;
+elements['opt-PZA'].checked = true;
+elements['opt-AK3'].dispatch('change');
+click('buildBtn');
+output = rows();
 assert.equal(output.length, 4);
-assert.ok(output.every((row) => row[3] === '—' && /不建議使用固定複方/.test(row[7])));
+assert.ok(output.some((row) => row[0] === 'AKuriT-3 · INH'));
+assert.ok(output.some((row) => row[0] === 'PZA (Pyrazinamide)'));
+assert.equal(elements.duplicateAlert.style.display, 'none');
 
 click('runTests');
 assert.doesNotMatch(elements.testlog.textContent, /❌/);
@@ -121,5 +145,14 @@ assert.match(elements.timelineReminder.innerHTML, /痰塗片、培養及胸部 X
 elements.treatmentDays.value = '150';
 elements.treatmentDays.dispatch('input');
 assert.match(elements.timelineReminder.innerHTML, /第 5 個月/);
+
+elements.treatmentStart.value = '20200102';
+elements.treatmentStart.dispatch('change');
+assert.equal(elements.treatmentStart.value, '2020/01/02');
+assert.ok(Number(elements.treatmentDays.value) > 0);
+
+elements.treatmentStart.value = '1150801';
+elements.treatmentStart.dispatch('change');
+assert.equal(elements.treatmentStart.value, '2026/08/01');
 
 console.log('tb-dose tests passed');
