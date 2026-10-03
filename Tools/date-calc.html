@@ -40,14 +40,13 @@
     }
     input[type="text"]:focus { border-color: var(--accent); }
 
-    .days-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
-    .day-option { position: relative; }
-    .day-option input { position: absolute; opacity: 0; }
-    .day-btn {
-      display: block; text-align: center; padding: 10px; background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; cursor: pointer; font-size: 13px;
-    }
-    .day-option input:checked + .day-btn { background: var(--accent); color: #0b1020; font-weight: bold; }
+    .schedule-group { margin-top: 16px; }
+    .schedule-title { margin: 0 0 7px; color: var(--muted); font-size: 13px; font-weight: 700; }
+    .schedule-list { border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; }
+    .schedule-row { display: grid; grid-template-columns: 76px 1fr; gap: 12px; align-items: center; padding: 10px 13px; background: rgba(139,179,255,0.035); border-bottom: 1px solid rgba(255,255,255,0.07); }
+    .schedule-row:last-child { border-bottom: 0; }
+    .schedule-days { color: var(--accent); font-weight: 800; }
+    .schedule-date { color: var(--ok); font-weight: 700; font-variant-numeric: tabular-nums; }
 
     .result-box {
       background: rgba(139, 179, 255, 0.05); border: 1px dashed var(--accent);
@@ -70,17 +69,7 @@
       <label>起始日期</label>
       <input type="text" id="add_date" placeholder="1150504 或 2026/5/4">
 
-      <label>增加天數</label>
-      <div class="days-grid">
-        <label class="day-option"><input type="radio" name="n_days" value="28"><span class="day-btn">28天</span></label>
-        <label class="day-option"><input type="radio" name="n_days" value="56"><span class="day-btn">56天</span></label>
-        <label class="day-option"><input type="radio" name="n_days" value="84"><span class="day-btn">84天</span></label>
-        <label class="day-option"><input type="radio" name="n_days" value="90" checked><span class="day-btn">90天</span></label>
-      </div>
-
-      <div class="result-box">
-        <div id="add_result" class="result-val">---</div>
-      </div>
+      <div id="date_results">---</div>
     </div>
 
     <!-- 功能二：算差距 -->
@@ -142,21 +131,28 @@
     // --- 功能一邏輯：推算日期 ---
     function calcAdd() {
       const start = parseFlexibleDate(document.getElementById('add_date').value);
-      const resEl = document.getElementById('add_result');
+      const resEl = document.getElementById('date_results');
       if (!start) { resEl.textContent = "---"; return; }
 
-      let n = 90;
-      document.getElementsByName('n_days').forEach(r => { if(r.checked) n = parseInt(r.value); });
+      function resultRow(n) {
+        const target = new Date(start);
+        target.setDate(start.getDate() + n);
+        const y = target.getFullYear();
+        const m = String(target.getMonth() + 1).padStart(2, '0');
+        const d = String(target.getDate()).padStart(2, '0');
+        const week = ["日", "一", "二", "三", "四", "五", "六"][target.getDay()];
+        return `<div class="schedule-row"><div class="schedule-days">${n}天</div><div class="schedule-date">${y}/${m}/${d}（${week}）</div></div>`;
+      }
 
-      const target = new Date(start);
-      target.setDate(start.getDate() + n);
-
-      const y = target.getFullYear();
-      const m = String(target.getMonth() + 1).padStart(2, '0');
-      const d = String(target.getDate()).padStart(2, '0');
-      const week = ["日", "一", "二", "三", "四", "五", "六"][target.getDay()];
-
-      resEl.innerHTML = `<span style="font-size:14px; color:var(--muted)">${y-1911}/${m}/${d}</span><br>${y}/${m}/${d} (${week})`;
+      resEl.innerHTML = `
+        <div class="schedule-group">
+          <div class="schedule-title">常用週數</div>
+          <div class="schedule-list">${[14,21,28,56,84].map(resultRow).join('')}</div>
+        </div>
+        <div class="schedule-group">
+          <div class="schedule-title">常用月份天數</div>
+          <div class="schedule-list">${[30,60,90].map(resultRow).join('')}</div>
+        </div>`;
     }
 
     // --- 功能二邏輯：計算差距 ---
@@ -176,7 +172,6 @@
 
     // 監聽器
     document.getElementById('add_date').addEventListener('input', calcAdd);
-    document.getElementsByName('n_days').forEach(r => r.addEventListener('change', calcAdd));
     document.getElementById('diff_date_a').addEventListener('input', calcDiff);
     document.getElementById('diff_date_b').addEventListener('input', calcDiff);
 
