@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ABG 與 Anion Gap</title>
+  <style>
+    :root { --bg:#0b1020; --card:#121a2f; --muted:#98a2b3; --text:#e6e9ef; --accent:#8bb3ff; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444; --info:#22d3ee; }
+    * { box-sizing:border-box; }
+    body { margin:0; padding:20px; font-family:ui-sans-serif,system-ui,-apple-system,"Noto Sans TC",sans-serif; background:radial-gradient(1000px 700px at 15% -10%,#1a2647 0,transparent 60%),var(--bg); color:var(--text); line-height:1.55; }
+    .wrap { max-width:850px; margin:20px auto; }
+    .back-link { display:inline-block; margin-bottom:18px; padding:8px 14px; color:var(--accent); text-decoration:none; border:1px solid rgba(139,179,255,.3); border-radius:8px; }
+    .card { margin-bottom:20px; padding:22px; background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02)); border:1px solid rgba(255,255,255,.08); border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.3); }
+    h1 { margin:0 0 6px; font-size:23px; color:var(--accent); }
+    h2 { margin:0 0 15px; font-size:18px; color:#bfdbfe; }
+    .sub,.helper { color:var(--muted); font-size:13px; }
+    .sub { margin:0 0 18px; }
+    label { display:block; margin-bottom:6px; color:var(--muted); font-size:13px; font-weight:700; }
+    input { width:100%; padding:11px 12px; color:var(--text); background:#0e1529; border:1px solid rgba(255,255,255,.12); border-radius:10px; outline:none; font-size:16px; }
+    input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(139,179,255,.14); }
+    input[readonly] { color:#cbd5e1; background:rgba(255,255,255,.04); }
+    .abg-grid { display:grid; grid-template-columns:minmax(0,3fr) minmax(150px,1fr); gap:14px; }
+    .ag-grid { display:grid; grid-template-columns:repeat(4,minmax(120px,1fr)); gap:12px; }
+    .output { display:none; margin-top:16px; padding:14px 16px; border:1px solid rgba(139,179,255,.3); border-radius:12px; background:rgba(139,179,255,.07); }
+    .output-row { display:grid; grid-template-columns:105px 1fr; gap:10px; padding:5px 0; }
+    .output-label { color:var(--muted); font-size:13px; }
+    .output-value { font-weight:700; }
+    .status-ok { color:#86efac; }
+    .status-warn { color:#fde68a; }
+    .status-bad { color:#fca5a5; }
+    .notice { display:none; margin-top:12px; padding:11px 13px; border-radius:10px; color:#fee2e2; background:rgba(127,29,29,.4); border:1px solid rgba(239,68,68,.55); }
+    .cause-box { display:none; margin-top:14px; padding:13px 15px; border-left:4px solid var(--warn); background:rgba(245,158,11,.08); border-radius:8px; }
+    .cause-box h3 { margin:0 0 7px; font-size:15px; color:#fde68a; }
+    .cause-box ul { margin:0; padding-left:21px; color:#d7dce5; }
+    .source { color:var(--muted); font-size:12px; }
+    .source a { color:var(--accent); }
+    @media (max-width:680px) { .abg-grid,.ag-grid { grid-template-columns:1fr; } .output-row { grid-template-columns:1fr; gap:1px; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <a href="../index.html" class="back-link">← 回到工具選單</a>
+
+    <section class="card">
+      <h1>🩸 ABG 與 Anion Gap</h1>
+      <p class="sub">快速判讀酸鹼狀態、預期代償與 anion gap；不儲存輸入資料。</p>
+      <div class="abg-grid">
+        <div>
+          <label for="abgInput">ABG：pH／PaCO₂／PaO₂／HCO₃⁻</label>
+          <input id="abgInput" type="text" inputmode="decimal" placeholder="例如 7.31/89/80/43；省略 PaO₂：7.31/89/43" autocomplete="off" />
+          <div class="helper">PaO₂可省略；3段輸入視為 pH／PaCO₂／HCO₃⁻。</div>
+        </div>
+        <div>
+          <label for="fio2Input">FiO₂（選填）</label>
+          <input id="fio2Input" type="text" inputmode="decimal" placeholder="21%、21 或 0.21" autocomplete="off" />
+        </div>
+      </div>
+      <div id="abgError" class="notice"></div>
+      <div id="abgOutput" class="output">
+        <div class="output-row"><div class="output-label">主要異常</div><div id="primaryResult" class="output-value"></div></div>
+        <div class="output-row"><div class="output-label">代償狀態</div><div id="compensationResult" class="output-value"></div></div>
+        <div class="output-row"><div class="output-label">綜合提醒</div><div id="mixedResult" class="output-value"></div></div>
+        <div id="oxygenRow" class="output-row"><div class="output-label">氧合資料</div><div id="oxygenResult" class="output-value"></div></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Anion Gap</h2>
+      <div class="ag-grid">
+        <div><label for="naInput">Na⁺</label><input id="naInput" type="number" step="0.1" inputmode="decimal" /></div>
+        <div><label for="clInput">Cl⁻</label><input id="clInput" type="number" step="0.1" inputmode="decimal" /></div>
+        <div><label for="hco3Display">HCO₃⁻（由ABG帶入）</label><input id="hco3Display" type="text" readonly /></div>
+        <div><label for="albuminInput">Albumin g/dL（選填）</label><input id="albuminInput" type="number" step="0.1" inputmode="decimal" /></div>
+      </div>
+      <div class="helper" style="margin-top:9px;">AG = Na − Cl − HCO₃⁻；本頁使用ABG HCO₃⁻。若有同次血液生化total CO₂／HCO₃⁻，仍應配合生化數值判讀。</div>
+      <div id="agOutput" class="output">
+        <div class="output-row"><div class="output-label">Anion gap</div><div id="agResult" class="output-value"></div></div>
+        <div id="correctedRow" class="output-row"><div class="output-label">Albumin校正AG</div><div id="correctedAgResult" class="output-value"></div></div>
+        <div class="output-row"><div class="output-label">結果提醒</div><div id="agInterpretation" class="output-value"></div></div>
+      </div>
+      <div id="causeBox" class="cause-box"><h3 id="causeTitle"></h3><div id="causeContent"></div></div>
+    </section>
+
+    <section class="card source">
+      判讀依據：<a href="https://www.thoracic.org/professionals/clinical-resources/critical-care/clinical-education/abgs.php" target="_blank" rel="noopener">American Thoracic Society ABG Interpretation</a>；albumin校正AG採 2.5 ×（4 − albumin）。本工具僅供醫療專業人員快速核對，不能取代臨床情境與原始檢驗報告。
+    </section>
+  </main>
+
+  <script>
+  (function(){
+    const $ = function(id){ return document.getElementById(id); };
+    const abgInput=$('abgInput'), fio2Input=$('fio2Input'), naInput=$('naInput'), clInput=$('clInput'), albuminInput=$('albuminInput');
+
+    function parseNumber(value){
+      const raw=String(value).trim();
+      if(!raw) return null;
+      const n=Number(raw);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function parseAbg(value){
+      const parts=String(value||'').trim().replace(/，/g,',').split(/[\/／]/).map(function(v){return v.trim();});
+      if (parts.length!==3 && parts.length!==4) return null;
+      const pH=parseNumber(parts[0]), pco2=parseNumber(parts[1]);
+      const po2=parts.length===4 && parts[2]!=='' ? parseNumber(parts[2]) : null;
+      const hco3=parseNumber(parts.length===4 ? parts[3] : parts[2]);
+      if (pH===null || pco2===null || hco3===null) return null;
+      if (pH<6.5 || pH>8 || pco2<5 || pco2>200 || hco3<1 || hco3>80 || (po2!==null && (po2<5 || po2>800))) return null;
+      return {pH:pH,pco2:pco2,po2:po2,hco3:hco3};
+    }
+
+    function parseFio2(value){
+      const raw=String(value||'').trim().replace('%','');
+      if (!raw) return null;
+      let n=Number(raw);
+      if (!Number.isFinite(n)) return NaN;
+      if (n>1) n=n/100;
+      return n>=0.21 && n<=1 ? n : NaN;
+    }
+
+    function hco3FromHenderson(pH,pco2){ return 0.03*pco2*Math.pow(10,pH-6.1); }
+    function within(value,low,high){ return value>=low && value<=high; }
+    function fixed(value,digits){ return Number(value).toFixed(digits===undefined?1:digits); }
+
+    function metabolicCompensation(type,gas){
+      let expected,tolerance;
+      if(type==='metabolic-acidosis'){ expected=1.5*gas.hco3+8; tolerance=2; }
+      else { expected=40+0.6*(gas.hco3-24); tolerance=5; }
+      const low=expected-tolerance, high=expected+tolerance;
+      if(within(gas.pco2,low,high)) return {fit:true,text:'預期 PaCO₂ '+fixed(expected)+'（約 '+fixed(low)+'–'+fixed(high)+'）mmHg'};
+      return {fit:false,text:'預期 PaCO₂ '+fixed(low)+'–'+fixed(high)+' mmHg；實際 '+fixed(gas.pco2)+' mmHg',mixed:gas.pco2>high?'合併呼吸性酸中毒':'合併呼吸性鹼中毒'};
+    }
+
+    function respiratoryCompensation(type,gas){
+      const delta=Math.abs(gas.pco2-40)/10;
+      let acute,chronic;
+      if(type==='respiratory-acidosis'){ acute=24+delta; chronic=24+3.5*delta; }
+      else { acute=24-2*delta; chronic=24-5*delta; }
+      const acuteDiff=Math.abs(gas.hco3-acute), chronicDiff=Math.abs(gas.hco3-chronic);
+      const closer=acuteDiff<=chronicDiff?'急性':'慢性';
+      const expected=closer==='急性'?acute:chronic;
+      const fit=Math.abs(gas.hco3-expected)<=2;
+      let mixed='';
+      if(!fit){
+        const min=Math.min(acute,chronic)-2, max=Math.max(acute,chronic)+2;
+        if(gas.hco3<min) mixed='合併代謝性酸中毒';
+        else if(gas.hco3>max) mixed='合併代謝性鹼中毒';
+        else mixed='代償介於急、慢性預期值，請依病程判斷';
+      }
+      return {fit:fit,text:'較接近'+closer+'變化；預期 HCO₃⁻約 '+fixed(expected)+' mmol/L',mixed:mixed};
+    }
+
+    function interpretAbg(gas){
+      const acidemia=gas.pH<7.35, alkalemia=gas.pH>7.45, normalPh=!acidemia&&!alkalemia;
+      const respAcid=gas.pco2>45, respAlk=gas.pco2<35, metAcid=gas.hco3<22, metAlk=gas.hco3>26;
+      let type='normal', primary='數值大致在一般範圍', comp='無明顯代償需求', mixed='仍須配合臨床狀況判讀。';
+
+      if(acidemia && respAcid && metAcid) return {type:'mixed',primary:'混合型酸中毒',comp:'不屬單純代償',mixed:'呼吸性酸中毒合併代謝性酸中毒。'};
+      if(alkalemia && respAlk && metAlk) return {type:'mixed',primary:'混合型鹼中毒',comp:'不屬單純代償',mixed:'呼吸性鹼中毒合併代謝性鹼中毒。'};
+
+      if((acidemia && metAcid && !respAcid) || (normalPh && metAcid && gas.pH<7.40)){ type='metabolic-acidosis'; primary='代謝性酸中毒'; }
+      else if((acidemia && respAcid) || (normalPh && respAcid && gas.pH<7.40)){ type='respiratory-acidosis'; primary='呼吸性酸中毒'; }
+      else if((alkalemia && metAlk && !respAlk) || (normalPh && metAlk && gas.pH>7.40)){ type='metabolic-alkalosis'; primary='代謝性鹼中毒'; }
+      else if((alkalemia && respAlk) || (normalPh && respAlk && gas.pH>7.40)){ type='respiratory-alkalosis'; primary='呼吸性鹼中毒'; }
+      else if(acidemia){ primary='酸血症，型態不典型'; type='unclear'; }
+      else if(alkalemia){ primary='鹼血症，型態不典型'; type='unclear'; }
+
+      if(type.indexOf('metabolic-')===0){
+        const c=metabolicCompensation(type,gas);
+        comp=c.fit?(normalPh?'完全代償（pH已回正常且符合預期）':'部分／適當代償'):'超出預期代償範圍';
+        mixed=c.fit?c.text:(c.mixed+'；'+c.text);
+      } else if(type.indexOf('respiratory-')===0){
+        const c=respiratoryCompensation(type,gas);
+        const compensating=type==='respiratory-acidosis'?gas.hco3>26:gas.hco3<22;
+        comp=c.fit?(normalPh?'完全代償（pH已回正常且符合預期）':(compensating?'部分／適當代償':'未見明顯代償')):'超出預期代償範圍';
+        mixed=c.fit?c.text:(c.mixed+'；'+c.text);
+      }
+      return {type:type,primary:primary,comp:comp,mixed:mixed};
+    }
+
+    function renderAbg(){
+      const gas=parseAbg(abgInput.value);
+      const fio2=parseFio2(fio2Input.value);
+      $('abgError').style.display='none'; $('abgError').textContent=''; $('abgOutput').style.display='none'; $('hco3Display').value='';
+      if(!String(abgInput.value).trim()){ renderAg(); return; }
+      if(!gas){ $('abgError').textContent='格式或數值不正確。請輸入 pH／PaCO₂／PaO₂／HCO₃⁻，省略PaO₂時可輸入3段。'; $('abgError').style.display='block'; renderAg(); return; }
+      if(Number.isNaN(fio2)){ $('abgError').textContent='FiO₂請輸入21%、21或0.21至1.0之間的數值。'; $('abgError').style.display='block'; renderAg(); return; }
+      $('hco3Display').value=fixed(gas.hco3);
+      const hh=hco3FromHenderson(gas.pH,gas.pco2);
+      if(Math.abs(hh-gas.hco3)>Math.max(3,gas.hco3*0.15)){
+        $('abgError').innerHTML='pH、PaCO₂與HCO₃⁻數值不一致（依前兩項估算HCO₃⁻約 '+fixed(hh)+' mmol/L），請確認輸入順序或原始報告。';
+        $('abgError').style.display='block';
+        $('abgOutput').style.display='block';
+        $('primaryResult').textContent='無法可靠判讀'; $('compensationResult').textContent='請先確認數值'; $('mixedResult').textContent='避免以不一致資料判定混合型酸鹼異常。';
+      } else {
+        const result=interpretAbg(gas);
+        $('abgOutput').style.display='block';
+        $('primaryResult').textContent=result.primary; $('compensationResult').textContent=result.comp; $('mixedResult').textContent=result.mixed;
+      }
+      let oxygen=[];
+      if(gas.po2!==null) oxygen.push('PaO₂ '+fixed(gas.po2,0)+' mmHg');
+      if(fio2!==null && !Number.isNaN(fio2)) oxygen.push('FiO₂ '+fixed(fio2*100,0)+'%');
+      if(gas.po2!==null && fio2!==null && !Number.isNaN(fio2)) oxygen.push('P/F '+fixed(gas.po2/fio2,0));
+      $('oxygenRow').style.display=oxygen.length?'grid':'none'; $('oxygenResult').textContent=oxygen.join('；');
+      renderAg();
+    }
+
+    function causeHtml(items){ return '<ul>'+items.map(function(item){return '<li>'+item+'</li>';}).join('')+'</ul>'; }
+
+    function renderAg(){
+      const hco3=parseNumber($('hco3Display').value), na=parseNumber(naInput.value), cl=parseNumber(clInput.value), albumin=parseNumber(albuminInput.value);
+      $('agOutput').style.display='none'; $('causeBox').style.display='none';
+      if(hco3===null || na===null || cl===null) return;
+      const ag=na-cl-hco3;
+      const corrected=albumin!==null ? ag+2.5*(4-albumin) : null;
+      const reference=corrected!==null?corrected:ag;
+      $('agOutput').style.display='block'; $('agResult').textContent=fixed(ag)+' mEq/L';
+      $('correctedRow').style.display=corrected!==null?'grid':'none'; $('correctedAgResult').textContent=corrected!==null?fixed(corrected)+' mEq/L':'';
+      let interpretation;
+      if(reference>12) interpretation='AG升高'+(hco3<22?'，符合高AG代謝性酸中毒型態。':'；但目前HCO₃⁻未降低，不能僅依AG判定代謝性酸中毒。');
+      else if(reference>=8) interpretation='AG約在常用參考範圍；請依本院檢驗參考值判讀。';
+      else interpretation='AG偏低；常見於低albumin，也應考慮檢驗誤差或paraproteinemia。';
+      $('agInterpretation').textContent=interpretation;
+
+      if(hco3<22 && reference>12){
+        $('causeTitle').textContent='高anion gap代謝性酸中毒：常見可能原因';
+        $('causeContent').innerHTML=causeHtml(['乳酸中毒','酮酸中毒（糖尿病、酒精性或飢餓）','腎衰竭／尿毒症','Methanol或ethylene glycol等毒性醇類','Salicylate','5-oxoproline／慢性acetaminophen相關','D-lactic acidosis']);
+        $('causeBox').style.display='block';
+      } else if(hco3<22 && reference>=8){
+        $('causeTitle').textContent='正常anion gap代謝性酸中毒：常見可能原因';
+        $('causeContent').innerHTML=causeHtml(['腹瀉或其他腸胃道HCO₃⁻流失','Renal tubular acidosis','大量normal saline','Acetazolamide','胰液、膽汁或腸液流失']);
+        $('causeBox').style.display='block';
+      } else if(reference<8){
+        $('causeTitle').textContent='低anion gap：常見考量';
+        $('causeContent').innerHTML=causeHtml(['低albumin','檢驗或採檢誤差','Paraproteinemia／monoclonal gammopathy','其他未測量陽離子增加']);
+        $('causeBox').style.display='block';
+      }
+    }
+
+    abgInput.addEventListener('input',renderAbg); fio2Input.addEventListener('input',renderAbg);
+    [naInput,clInput,albuminInput].forEach(function(el){el.addEventListener('input',renderAg);});
+  })();
+  </script>
+</body>
+</html>
