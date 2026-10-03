@@ -44,6 +44,7 @@ class FakeElement {
 
 const ids = [
   'err', 'tbody', 'resultWrap', 'renalAlert', 'weight', 'renalBelow30', 'hemodialysis',
+  'treatmentStart', 'treatmentDays', 'timelineReminder',
   'buildBtn', 'clearBtn', 'runTests', 'testlog',
   'opt-INH', 'opt-RMP', 'opt-EMB', 'opt-PZA', 'opt-AK3', 'opt-TRAC4'
 ];
@@ -64,7 +65,7 @@ const htmlPath = path.join(__dirname, '..', 'Tools', 'tb-dose.html');
 const html = fs.readFileSync(htmlPath, 'utf8');
 const match = html.match(/<script>([\s\S]*?)<\/script>/);
 assert.ok(match, 'inline script should exist');
-vm.runInNewContext(match[1], { document, console, Number, String, Math, Error });
+vm.runInNewContext(match[1], { document, console, Number, String, Math, Date, Error });
 
 function click(id) {
   elements[id].dispatch('click');
@@ -111,5 +112,14 @@ assert.ok(output.every((row) => row[3] === '—' && /不建議使用固定複方
 click('runTests');
 assert.doesNotMatch(elements.testlog.textContent, /❌/);
 assert.match(elements.testlog.textContent, /CCr <30：固定複方阻擋/);
+
+elements.treatmentDays.value = '60';
+elements.treatmentDays.dispatch('input');
+assert.equal(elements.timelineReminder.style.display, 'block');
+assert.match(elements.timelineReminder.innerHTML, /痰塗片、培養及胸部 X 光/);
+
+elements.treatmentDays.value = '150';
+elements.treatmentDays.dispatch('input');
+assert.match(elements.timelineReminder.innerHTML, /第 5 個月/);
 
 console.log('tb-dose tests passed');

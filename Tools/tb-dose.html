@@ -46,8 +46,8 @@
     .controls { display: grid; grid-template-columns: 1fr; gap: 12px; padding: 6px 20px 18px; }
     .control { display: grid; grid-template-columns: 140px 1fr; gap: 10px; align-items: center; }
     label { font-size: 13px; color: var(--muted); }
-    input[type="number"]{ background: #0e1529; border: 1px solid rgba(255,255,255,0.12); color: var(--text); padding: 10px 12px; border-radius: 10px; font-size: 16px; outline: none; min-width: 180px; }
-    input[type="number"]:focus{ border-color: var(--accent); box-shadow: 0 0 0 4px rgba(139,179,255,0.15); }
+    input[type="number"], input[type="date"]{ background: #0e1529; border: 1px solid rgba(255,255,255,0.12); color: var(--text); padding: 10px 12px; border-radius: 10px; font-size: 16px; outline: none; min-width: 180px; color-scheme:dark; }
+    input[type="number"]:focus, input[type="date"]:focus{ border-color: var(--accent); box-shadow: 0 0 0 4px rgba(139,179,255,0.15); }
 
     .chipset { display: flex; flex-wrap: wrap; gap: 8px; }
     .chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.03); font-size: 13px; }
@@ -75,6 +75,14 @@
     .required { color:#fca5a5; font-weight:700; }
     .frequency { font-weight:700; color:var(--accent); }
     .blocked { color:#fca5a5; font-weight:700; }
+    .timeline-card { margin: 0 20px 18px; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(139,179,255,.38); background: rgba(139,179,255,.08); display:none; line-height:1.65; }
+    .timeline-card strong { color:#bfdbfe; }
+    .note-stack { padding: 2px 20px 18px; display:grid; gap:10px; }
+    .note-stack details { padding:0; border:1px solid rgba(255,255,255,.1); border-radius:12px; background:rgba(255,255,255,.025); }
+    .note-stack summary { padding:13px 15px; cursor:pointer; color:var(--accent); font-weight:700; }
+    .note-body { padding:0 15px 15px; color:#d7dce5; font-size:14px; line-height:1.75; }
+    .resource-link { display:inline-block; color:var(--accent); text-decoration:none; border:1px solid rgba(139,179,255,.3); border-radius:9px; padding:8px 11px; margin:2px 6px 2px 0; }
+    .resource-link:hover { background:rgba(139,179,255,.1); }
 
     details { padding: 12px 20px 20px; }
     .testlog { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px; white-space: pre-wrap; }
@@ -95,6 +103,17 @@
       </div>
 
       <div class="controls">
+        <div class="control">
+          <label for="treatmentStart">治療開始日期</label>
+          <input id="treatmentStart" type="date" />
+        </div>
+        <div class="control">
+          <label for="treatmentDays">目前有效治療天數</label>
+          <div>
+            <input id="treatmentDays" type="number" min="1" step="1" placeholder="輸入日期後自動計算" />
+            <div class="helper">若曾中斷治療，可直接修正有效治療天數；後續提醒將以此數字判斷。</div>
+          </div>
+        </div>
         <div class="control">
           <label for="weight">體重 (kg)</label>
           <input id="weight" type="number" step="0.1" min="30" placeholder="例如 60" value="60" />
@@ -128,6 +147,8 @@
         </div>
       </div>
 
+      <div id="timelineReminder" class="timeline-card"></div>
+
       <div id="renalAlert" class="clinical-alert"></div>
 
       <div class="btnrow">
@@ -154,9 +175,26 @@
       </div>
 
       <div class="foot">
-        <div>依據：衛生福利部疾病管制署《結核病診治指引》第七版，表 6-1、表 6-2及第 4.7 節。H 5 (4–6)、R 10 (8–12)、Z 25 (15–30)、E 15 (15–20) mg/kg。</div>
+        <div>依據：衛生福利部疾病管制署《結核病診治指引》第八版。H 5 (4–6)、R 10 (8–12)、Z 25 (15–30)、E 15 (15–20) mg/kg。</div>
         <div>CCr / eGFR &lt;30 mL/min：H、R 劑量與頻率不變；E、Z 每次劑量不變，改為每週 3 次。血液透析日於透析後給藥。INH 應評估補充 pyridoxine。</div>
         <div>本工具限成人一般劑量參考；體重 &lt;40 kg、兒童、腹膜透析、嚴重肝病、藥物交互作用或抗藥性結核，需個別評估。</div>
+      </div>
+
+      <div class="note-stack">
+        <details>
+          <summary>何時考慮延長療程？</summary>
+          <div class="note-body">若胸部 X 光有廣泛結核侵犯或開洞病灶、治療第 2 個月痰培養仍為陽性，或加強期未全程使用 PZA，應評估將持續期延長為 7 個月，使總療程達 9 個月。實際療程仍應依藥敏結果、治療反應及臨床判斷調整。</div>
+        </details>
+        <details>
+          <summary>何時考慮加入 Vitamin B6？</summary>
+          <div class="note-body">糖尿病、腎功能不全、營養不良、慢性肝病、飲酒、HIV 感染、周邊神經病變、懷孕或哺乳，以及使用 cycloserine 或高劑量 INH（16–20 mg/kg/day）時，可考慮補充 pyridoxine（Vitamin B6）50 mg/day。</div>
+        </details>
+        <div>
+          <a class="resource-link" href="tb-support.html#table-5-1">肝炎後重新加藥（表 5-1）</a>
+          <a class="resource-link" href="tb-support.html#table-5-2">皮疹後重新加藥（表 5-2）</a>
+          <a class="resource-link" href="tb-support.html#table-5-3">替代療程（表 5-3）</a>
+          <a class="resource-link" href="tb-support.html#table-6-4">常見藥物交互作用（表 6-4）</a>
+        </div>
       </div>
 
       <details>
@@ -189,12 +227,55 @@
     const resultWrap = document.getElementById('resultWrap');
     const renalAlert = document.getElementById('renalAlert');
     const weightEl = document.getElementById('weight');
+    const treatmentStartEl = document.getElementById('treatmentStart');
+    const treatmentDaysEl = document.getElementById('treatmentDays');
+    const timelineReminder = document.getElementById('timelineReminder');
     const renalBelow30El = document.getElementById('renalBelow30');
     const dialysisEl = document.getElementById('hemodialysis');
     const buildBtn = document.getElementById('buildBtn');
     const clearBtn = document.getElementById('clearBtn');
     const singleIds = ['opt-INH','opt-RMP','opt-EMB','opt-PZA'];
     const comboIds = ['opt-AK3','opt-TRAC4'];
+
+    function localDateAtMidnight(value){
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return null;
+      const parts = value.split('-').map(Number);
+      const date = new Date(parts[0], parts[1] - 1, parts[2]);
+      return date.getFullYear() === parts[0] && date.getMonth() === parts[1] - 1 && date.getDate() === parts[2] ? date : null;
+    }
+
+    function calculatedTreatmentDays(value){
+      const start = localDateAtMidnight(value);
+      if (!start) return '';
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const days = Math.floor((today - start) / 86400000) + 1;
+      return days > 0 ? String(days) : '';
+    }
+
+    function reminderForDay(day){
+      if (!Number.isInteger(day) || day < 1) return '';
+      if (day <= 13) return '<strong>治療初期：</strong>確認治療前基礎檢驗、痰檢與胸部 X 光資料。';
+      if (day <= 27) return '<strong>約第 2 週：</strong>可考慮追蹤血球、肝腎功能及尿酸。';
+      if (day <= 44) return '<strong>約第 4 週：</strong>可考慮再次追蹤血球、肝腎功能及尿酸。';
+      if (day <= 75) return '<strong>接近第 2 個月：</strong>建議安排痰塗片、培養及胸部 X 光，並依結果評估後續療程。';
+      if (day <= 134) return '<strong>持續治療中：</strong>依症狀、治療反應及痰菌狀況安排追蹤。';
+      if (day <= 165) return '<strong>接近第 5 個月：</strong>建議安排痰塗片及培養。';
+      return '<strong>接近或已達標準療程完成期：</strong>建議確認痰檢、胸部 X 光及療程完成條件。';
+    }
+
+    function updateTimelineReminder(){
+      const day = Number(treatmentDaysEl.value);
+      const message = reminderForDay(day);
+      timelineReminder.style.display = message ? 'block' : 'none';
+      timelineReminder.innerHTML = message ? '目前有效治療第 <strong>' + day + '</strong> 天<br>' + message : '';
+    }
+
+    treatmentStartEl.addEventListener('change', function(){
+      treatmentDaysEl.value = calculatedTreatmentDays(treatmentStartEl.value);
+      updateTimelineReminder();
+    });
+    treatmentDaysEl.addEventListener('input', updateTimelineReminder);
 
     const DRUGS = [
       { name:'INH (Isoniazid)', key:'INH', target:5, min:4, max:6, tabletMg:100, maxMg:300, tag:'BASE' },
