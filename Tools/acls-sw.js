@@ -1,4 +1,4 @@
-const CACHE_NAME = "acls-console-v1";
+const CACHE_NAME = "acls-console-v3";
 const APP_FILES = ["./acls.html", "./acls-manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
