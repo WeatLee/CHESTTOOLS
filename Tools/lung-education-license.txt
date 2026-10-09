@@ -1,7 +1,7 @@
 Lung geometry: Modified from BodyParts3D version 4.3, © The Database Center for Life Science, licensed under Creative Commons Attribution-ShareAlike 2.1 Japan (CC BY-SA 2.1 JP).
 Source: https://dbarchive.biosciencedbc.jp/en/bodyparts3d/
 License: https://creativecommons.org/licenses/by-sa/2.1/jp/deed.en
-Modification: 18 bronchopulmonary segment OBJ meshes were merged into five lung lobes. Heart, aorta, carotid and jugular vessels, pulmonary arteries, and pulmonary veins were grouped from the same source; the descending aorta was trimmed to the displayed chest region. The meshes were scaled, reoriented, and compressed for the educational viewer. This modified geometry remains under CC BY-SA 2.1 JP.
+Modification: 18 bronchopulmonary segment OBJ meshes were merged into five lung lobes. Heart, aorta, carotid and jugular vessels, pulmonary arteries, and pulmonary veins were grouped from the same source; the descending aorta was trimmed and capped to the displayed chest region. The meshes were scaled, reoriented, and compressed for the educational viewer. A simplified left common carotid continuation is drawn in code. The modified BodyParts3D geometry remains under CC BY-SA 2.1 JP.
 
 Three.js — MIT License
 Copyright © 2010-2026 Three.js authors
