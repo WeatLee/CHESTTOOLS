@@ -1,3 +1,8 @@
+Lung geometry: Modified from BodyParts3D version 4.3, © The Database Center for Life Science, licensed under Creative Commons Attribution-ShareAlike 2.1 Japan (CC BY-SA 2.1 JP).
+Source: https://dbarchive.biosciencedbc.jp/en/bodyparts3d/
+License: https://creativecommons.org/licenses/by-sa/2.1/jp/deed.en
+Modification: 18 bronchopulmonary segment OBJ meshes were merged into five lung lobes, scaled, reoriented, and compressed for the educational viewer. This modified geometry remains under CC BY-SA 2.1 JP.
+
 Three.js — MIT License
 Copyright © 2010-2026 Three.js authors
 https://github.com/mrdoob/three.js/blob/master/LICENSE
