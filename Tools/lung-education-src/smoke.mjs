@@ -29,24 +29,41 @@ const packed=gunzipSync(Buffer.from(lungMeshData,'base64'));
 const view=new DataView(packed.buffer,packed.byteOffset,packed.byteLength);
 assert.equal(packed.toString('ascii',0,5),'LUNG1');
 let offset=6;
+const lobeMeshes={};
 for(let group=0;group<view.getUint8(5);group++){
   const lobe=packed.toString('ascii',offset,offset+3);offset+=3;
   const vertices=view.getUint32(offset,true),indices=view.getUint32(offset+4,true);offset+=8;
   const target=targets[lobe];
   assert.ok(new THREE.Vector3(...airway[lobe].at(-1)).distanceTo(new THREE.Vector3(...target))<.32,`${lobe} target must stay near its lobar bronchus`);
   let nearest=Infinity;
+  const positions=new Float32Array(vertices*3);
   const segmentDistances=Object.fromEntries(Object.entries(segments).filter(([,s])=>s.lobe===lobe).map(([key])=>[key,Infinity]));
   for(let i=0;i<vertices;i++){
     const x=view.getFloat32(offset,true),y=view.getFloat32(offset+4,true),z=view.getFloat32(offset+8,true);
+    positions.set([x,y,z],i*3);
     const dx=x-target[0],dy=y-target[1],dz=z-target[2];
     nearest=Math.min(nearest,Math.hypot(dx,dy,dz));offset+=12;
     for(const key of Object.keys(segmentDistances)){
       const p=targets[key];segmentDistances[key]=Math.min(segmentDistances[key],Math.hypot(x-p[0],y-p[1],z-p[2]));
     }
   }
-  offset+=indices*4;
+  const faces=new Uint32Array(indices);
+  for(let i=0;i<indices;i++){faces[i]=view.getUint32(offset,true);offset+=4;}
+  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));geometry.setIndex(new THREE.BufferAttribute(faces,1));
+  geometry.computeBoundingSphere();lobeMeshes[lobe]=new THREE.Mesh(geometry,new THREE.MeshBasicMaterial({side:THREE.DoubleSide}));
   assert.ok(nearest<.35,`${lobe} target must stay near its lobe surface (distance ${nearest.toFixed(3)})`);
   for(const [key,distance] of Object.entries(segmentDistances))assert.ok(distance<.7,`${key} target must be inside or close to ${lobe} (distance ${distance.toFixed(3)})`);
+}
+const front=new THREE.Vector3(0,0,1);
+for(const [key,{lobe,points}] of Object.entries(segments)){
+  const point=new THREE.Vector3(...points.at(-1));
+  const ray=new THREE.Raycaster(point,front,1e-5,10);
+  const hits=ray.intersectObject(lobeMeshes[lobe],false);
+  let crossings=0,last=-1;
+  for(const hit of hits)if(Math.abs(hit.distance-last)>1e-4){crossings++;last=hit.distance;}
+  assert.ok(crossings%2===1,`${key} terminal airway must be within its lung lobe`);
+  const nearestFront=new THREE.Raycaster(point,front,1e-5,10).intersectObjects(Object.entries(lobeMeshes).filter(([name])=>name[0]===lobe[0]).map(([,mesh])=>mesh),false)[0];
+  assert.ok(nearestFront?.distance>.043,`${key} terminal airway must not cross the front lung surface`);
 }
 for(const [key,segment] of Object.entries(segments)){
   assert.ok(samePoint(airway[segment.lobe][segment.at],segment.points[0]),`${key} must meet its lobar parent`);

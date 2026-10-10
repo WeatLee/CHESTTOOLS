@@ -238,6 +238,30 @@ function tube(points, radius, color, parent, opacity=1) {
   const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve,Math.max(12,points.length*8),radius,9,false),mat);
   parent.add(mesh); return mesh;
 }
+function seamlessAorta(){
+  // One continuous sweep replaces three adjoining source pieces. Their
+  // separate end caps and normals made a visible ring at the arch junction.
+  const points=[
+    [.23,-.45,.17],[.23,0,.18],[.08,.30,.30],[.06,.60,.24],
+    [.08,.84,.15],[.25,1.00,-.12],[.37,.82,-.43],[.32,.59,-.62],
+    [.31,.28,-.73],[.29,0,-.70],[.17,-.50,-.53],[.17,-1.00,-.27],[.14,-1.55,-.12]
+  ];
+  const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)),false,'centripetal');
+  const length=176,sides=20,geometry=new THREE.TubeGeometry(curve,length,1,sides,false);
+  const position=geometry.getAttribute('position');
+  for(let ring=0;ring<=length;ring++){
+    const t=ring/length,center=curve.getPointAt(t);
+    const radius=.132-.033*THREE.MathUtils.smoothstep(t,.42,.82);
+    for(let j=0;j<=sides;j++){
+      const i=ring*(sides+1)+j;
+      const x=position.getX(i)-center.x,y=position.getY(i)-center.y,z=position.getZ(i)-center.z;
+      position.setXYZ(i,center.x+x*radius,center.y+y*radius,center.z+z*radius);
+    }
+  }
+  position.needsUpdate=true;geometry.computeBoundingSphere();
+  const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:0xb06866,roughness:1,side:THREE.DoubleSide}));
+  mesh.userData.organ='AORT';return mesh;
+}
 function oval(parent, color, pos, scale, rotation=0) {
   const obj = new THREE.Mesh(new THREE.SphereGeometry(1,32,20),new THREE.MeshStandardMaterial({color,roughness:.85}));
   obj.position.set(...pos); obj.scale.set(...scale); obj.rotation.z=rotation; parent.add(obj); return obj;
@@ -311,12 +335,14 @@ async function loadAnatomicalOrgans(){
     const positions=new Float32Array(nv*3),indices=new Uint32Array(ni);
     for(let i=0;i<positions.length;i++){positions[i]=view.getFloat32(at,true);at+=4;}
     for(let i=0;i<ni;i++){indices[i]=view.getUint32(at,true);at+=4;}
+    if(key==='AORT')continue;
     const geo=new THREE.BufferGeometry();
     geo.setAttribute('position',new THREE.BufferAttribute(positions,3));
     geo.setIndex(new THREE.BufferAttribute(indices,1));geo.computeVertexNormals();
     const mat=new THREE.MeshStandardMaterial({color:colors[key],roughness:1,side:THREE.DoubleSide});
     const mesh=new THREE.Mesh(geo,mat);mesh.userData.organ=key;meshes.push(mesh);
   }
+  meshes.push(seamlessAorta());
   for(const old of [...heartGroup.children]){heartGroup.remove(old);old.geometry?.dispose();old.material?.dispose();}
   for(const mesh of meshes)heartGroup.add(mesh);
   // The source set only includes the upper left common carotid outside this chest crop.
@@ -624,7 +650,7 @@ function updateProcedure(){
   const reach=.32;
   const gap=end.distanceTo(target);
   const sampleAllowed=isNode||gap<=reach+l.size*.035;
-  let retreat=isNode?.12:Math.max(.28,Math.min(.38,l.size*.065+.10)),scopeEnd=end.clone(),cut=points.length-1;
+  let retreat=isNode?.12:Math.max(.23,Math.min(.29,l.size*.065+.045)),scopeEnd=end.clone(),cut=points.length-1;
   while(cut>0&&retreat>0){const segment=points[cut].distanceTo(points[cut-1]);if(segment>=retreat){scopeEnd=points[cut].clone().lerp(points[cut-1],retreat/segment);retreat=0;}else{retreat-=segment;cut--;scopeEnd=points[cut].clone();}}
   const scopePath=[...points.slice(0,cut),scopeEnd];
   if(v>0){
