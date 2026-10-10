@@ -35,6 +35,12 @@
             .container { max-width: 600px; }
             .card-columns { grid-template-columns: 1fr; gap: 15px; }
         }
+        .contact-qr { position:fixed;right:22px;bottom:22px;z-index:10;display:flex;flex-direction:column;align-items:center;gap:7px;padding:12px;background:white;border:1px solid #dbe5e8;border-radius:12px;box-shadow:0 4px 20px #123b6118;color:#123b61;text-decoration:none;font-size:12px; }
+        .contact-qr img { display:block;width:132px;height:132px; }
+        .contact-qr strong { font-size:13px; }
+        .contact-qr:focus-visible { outline:3px solid #087f91;outline-offset:4px; }
+        @media (min-width:769px) { body { padding-bottom:220px; } }
+        @media (max-width:768px) { .contact-qr { position:static;width:max-content;margin:24px 0 0 auto;box-shadow:none; } }
     </style>
 </head>
 <body>
@@ -43,7 +49,6 @@
 
         <div class="card-columns">
             <div class="card-column">
-<a href="Tools/lee-business-card.html" class="card" style="border-left:5px solid #123b61"><h2>李岱晃醫師｜數位名片</h2><p>高醫胸腔內科 · 中英文名片與聯絡方式</p></a>
                 <a href="Tools/acls.html" class="card acls">
                     <h2>＋ ACLS 指令紀錄台</h2>
                     <p>CPR、插管、電擊、用藥計時與 TXT 紀錄匯出</p>
@@ -106,6 +111,11 @@
             </div>
         </div>
     </div>
+    <a class="contact-qr" href="Tools/lee-business-card.html" aria-label="開啟李岱晃醫師名片">
+        <img src="Tools/assets/lee-business-card/contact-qr.svg" alt="掃描連至李岱晃醫師名片" width="132" height="132">
+        <strong>李岱晃醫師｜名片</strong>
+        <span>掃描或點擊開啟</span>
+    </a>
 </body>
 </html>
 
