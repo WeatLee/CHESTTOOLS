@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import audioData from './audio-data.js';
 import {compressionWeight} from './effusion-shape.js';
+import {airway,segments,lobeNames,segmentNames,fixedTargets,routeSections} from './airway-data.js';
 if(audioData.broncho)window.privateAudioData=audioData;
 
 const $ = id => document.getElementById(id);
@@ -26,7 +27,7 @@ const light = new THREE.DirectionalLight(0xffffff, 1.65); light.position.set(-3,
 const backLight = new THREE.DirectionalLight(0xd5e6e0, .65); backLight.position.set(3, 2, -5); scene.add(backLight);
 
 const palette = { RUL:0x84a5c3, RML:0xd9a557, RLL:0x91b18b, LUL:0xab91bc, LLL:0xbf8188 };
-const names = { RUL:'右上葉', RML:'右中葉', RLL:'右下葉', LUL:'左上葉', LLL:'左下葉' };
+const names = {...lobeNames,...segmentNames};
 const lungMeshes = {};
 const lungMaterials = {};
 const lungGroup = new THREE.Group(); scene.add(lungGroup);
@@ -40,9 +41,16 @@ const nerveGroup = new THREE.Group(); scene.add(nerveGroup);
 const procedureGroup = new THREE.Group(); scene.add(procedureGroup);
 const effusionGroup=new THREE.Group();scene.add(effusionGroup);
 function rebuildEffusion(){
-  for(const old of [...effusionGroup.children]){effusionGroup.remove(old);old.material.dispose();if(old.userData.fluid)old.geometry.dispose();}
+  const oldGeometries=new Set();
+  for(const old of [...effusionGroup.children]){effusionGroup.remove(old);old.material.dispose();oldGeometries.add(old.geometry);}
+  for(const geometry of oldGeometries)geometry.dispose();
   const levels=[0,-1.05,-.57,.06];
-  for(const [key,lung] of Object.entries(lungMeshes))for(const amount of [1,2,3]){
+  for(const [key,lung] of Object.entries(lungMeshes)){
+    // One uncompressed contour per lobe serves all three water levels.
+    const shell=lung.geometry.clone();
+    const base=lung.userData.basePositions;
+    if(base){shell.getAttribute('position').array.set(base);shell.computeVertexNormals();}
+  for(const amount of [1,2,3]){
     const side=key[0],level=levels[amount];
     const material=new THREE.ShaderMaterial({
       uniforms:{level:{value:level},side:{value:side==='R'?-1:1}},
@@ -56,21 +64,11 @@ function rebuildEffusion(){
         }`,
       transparent:true,depthWrite:true,side:THREE.FrontSide,toneMapped:false
     });
-    const overlay=new THREE.Mesh(lung.geometry,material);
+    // A stationary shell follows the original pleural contour. As the lung
+    // compresses beneath it, the fluid fills the space instead of becoming a ball.
+    const overlay=new THREE.Mesh(shell,material);
     overlay.userData={side,lobe:key,amount};overlay.renderOrder=4;effusionGroup.add(overlay);
   }
-  for(const side of ['R','L']){
-    const fluidGeometry=new THREE.SphereGeometry(1,64,48);
-    const position=fluidGeometry.attributes.position;
-    for(let i=0;i<position.count;i++)position.setY(i,THREE.MathUtils.clamp(position.getY(i),-.85,.75));
-    position.needsUpdate=true;fluidGeometry.computeVertexNormals();
-    const fluid=new THREE.Mesh(
-      fluidGeometry,
-      new THREE.MeshBasicMaterial({color:0x8fb7c5,transparent:true,opacity:.38,depthWrite:false,side:THREE.FrontSide})
-    );
-    fluid.position.set(side==='R'?-1.12:1.12,-.66,.02);
-    fluid.scale.set(.88,.95,.62);
-    fluid.userData={side,amount:3,fluid:true};fluid.renderOrder=4;effusionGroup.add(fluid);
   }
   updateEffusion();
 }
@@ -200,7 +198,9 @@ async function loadAnatomicalLungs() {
   if(magic!=='LUNG1')throw new Error('Invalid lung mesh data');
   let at=6;
   const count=view.getUint8(5);
-  for(const old of [...effusionGroup.children]){effusionGroup.remove(old);old.material.dispose();if(old.userData.fluid)old.geometry.dispose();}
+  const oldShells=new Set();
+  for(const old of [...effusionGroup.children]){effusionGroup.remove(old);old.material.dispose();oldShells.add(old.geometry);}
+  for(const geometry of oldShells)geometry.dispose();
   for(const mesh of Object.values(lungMeshes)){
     lungGroup.remove(mesh);mesh.geometry.dispose();mesh.material.dispose();
   }
@@ -242,34 +242,48 @@ function oval(parent, color, pos, scale, rotation=0) {
   const obj = new THREE.Mesh(new THREE.SphereGeometry(1,32,20),new THREE.MeshStandardMaterial({color,roughness:.85}));
   obj.position.set(...pos); obj.scale.set(...scale); obj.rotation.z=rotation; parent.add(obj); return obj;
 }
-// The displayed airway and the scope share these centerlines.
-const airway = {
-  trachea:[[0,2,.04],[0,1.38,.04],[0,.72,.04]],
-  rightMain:[[0,.72,.04],[-.25,.53,.09],[-.50,.36,.14],[-.73,.08,.18],[-.84,-.07,.20]],
-  leftMain:[[0,.72,.04],[.32,.48,.07],[.72,.18,.12]],
-  RUL:[[-.50,.36,.14],[-.72,.61,.22],[-.86,.88,.25]],
-  // The middle-lobe bronchus leaves the bronchus intermedius anteriorly and laterally.
-  RML:[[-.73,.08,.18],[-.97,-.02,.31],[-1.18,-.17,.42],[-1.33,-.30,.47]],
-  RLL:[[-.84,-.07,.20],[-1.02,-.58,.24],[-1.16,-1.03,.26]],
-  LUL:[[.72,.18,.12],[.77,.40,-.10],[.78,.58,-.28]],
-  LLL:[[.72,.18,.12],[.92,.0,.17],[1.19,-.45,.24],[1.35,-.85,.27]]
-};
-// Fixed teaching targets sit near their own lobar airway endpoints.
-const presetTargets={
-  RUL:[-.99,.83,.34],RML:[-1.39,-.39,.49],RLL:[-1.29,-1.10,.34],
-  LUL:[.96,.62,-.18],LLL:[1.44,-.95,.36],
-  TR:[-.32,1.25,.04],SC:[0,.39,-.20]
-};
-const tracheaMesh=tube(airway.trachea,.115,bronze,bronchiGroup);
-for(let y=.85;y<1.96;y+=.115){const ring=new THREE.Mesh(new THREE.TorusGeometry(.123,.008,6,30),new THREE.MeshStandardMaterial({color:0xe2c5ad,roughness:1}));ring.rotation.x=Math.PI/2;ring.position.set(0,y,.04);bronchiGroup.add(ring);}
-tube(airway.rightMain,.105,bronze,bronchiGroup);
-tube(airway.leftMain,.095,bronze,bronchiGroup);
-// Cover open tube intersections at the carina and lobar takeoffs.
-oval(bronchiGroup,bronze,[0,.71,.04],[.116,.12,.116]);
-for(const key of ['RUL','RML','RLL','LUL','LLL'])tube(airway[key],.068,bronze,bronchiGroup);
-for(const [point,radius] of [[airway.RUL[0],.101],[airway.RML[0],.099],[airway.RLL[0],.09],[airway.LUL[0],.097]]){
-  oval(bronchiGroup,bronze,point,[radius,radius,radius]);
+const presetTargets=fixedTargets;
+function populateLocationMenu(){
+  const select=$('locationSelect');
+  select.replaceChildren();
+  for(const lobe of Object.keys(lobeNames)){
+    const group=document.createElement('optgroup');group.label=lobeNames[lobe];
+    const whole=document.createElement('option');whole.value=lobe;whole.textContent='整個肺葉（原示範點）';group.appendChild(whole);
+    for(const [key,segment] of Object.entries(segments))if(segment.lobe===lobe){
+      const option=document.createElement('option');option.value=key;option.textContent=segment.label;group.appendChild(option);
+    }
+    select.appendChild(group);
+  }
+  for(const [key,label] of [['TR','氣管旁（TBNA）'],['SC','隆突下（TBNA）']]){
+    const option=document.createElement('option');option.value=key;option.textContent=label;select.appendChild(option);
+  }
 }
+populateLocationMenu();
+// The main, lobar and segmental bronchi are baked as one watertight union.
+// One surface removes the crossing caps and patch spheres at bifurcations.
+async function loadAirwayMesh(){
+  const {default:data}=await import('./airway-mesh-data.js');
+  const bytes=Uint8Array.from(atob(data),c=>c.charCodeAt(0));
+  const buffer=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+  const view=new DataView(buffer);
+  if(String.fromCharCode(...new Uint8Array(buffer,0,5))!=='AIRW1')throw new Error('Invalid airway mesh');
+  const count=view.getUint32(8,true),packed=new Float32Array(buffer,12,count*6);
+  const positions=new Float32Array(count*3),normals=new Float32Array(count*3);
+  for(let i=0;i<count;i++){positions.set(packed.subarray(i*6,i*6+3),i*3);normals.set(packed.subarray(i*6+3,i*6+6),i*3);}
+  const geometry=new THREE.BufferGeometry();
+  geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));
+  geometry.setAttribute('normal',new THREE.BufferAttribute(normals,3));
+  const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:bronze,roughness:.75,side:THREE.DoubleSide}));
+  bronchiGroup.add(mesh);
+  for(const old of guideTubes){bronchiGroup.remove(old);old.geometry.dispose();old.material.dispose();}
+}
+const guideTubes=[];
+guideTubes.push(tube(airway.trachea,.115,bronze,bronchiGroup));
+for(const [key,radius] of [['rightMain',.103],['leftMain',.095],...['RUL','RML','RLL','LUL','LLL'].map(key=>[key,.064]),...Object.keys(segments).map(key=>[key,.038])]){
+  guideTubes.push(tube(airway[key]||segments[key].points,radius,bronze,bronchiGroup));
+}
+loadAirwayMesh().catch(error=>console.error('Airway mesh fallback',error));
+for(let y=.85;y<1.96;y+=.115){const ring=new THREE.Mesh(new THREE.TorusGeometry(.123,.008,6,30),new THREE.MeshStandardMaterial({color:0xe2c5ad,roughness:1}));ring.rotation.x=Math.PI/2;ring.position.set(0,y,.04);bronchiGroup.add(ring);}
 
 oval(heartGroup,0xb97873,[.18,-.65,-.07],[.44,.66,.35],-.24);
 // Ascending aorta crosses into a short arch towards the patient's left (viewer right).
@@ -591,10 +605,7 @@ renderer.domElement.addEventListener('pointercancel',endDrag);
 
 function disposeProcedure(){for(const m of [scopeMesh,forcepsMesh])if(m){procedureGroup.remove(m);m.geometry.dispose();m.material.dispose();}scopeMesh=forcepsMesh=null;}
 function scopeCenterline(key){
-  const right=key[0]==='R';
-  const main=right?airway.rightMain:airway.leftMain;
-  const stop={RUL:3,RML:4,RLL:5,LUL:3,LLL:3}[key];
-  const sections=[airway.trachea,main.slice(0,stop),airway[key]];
+  const sections=routeSections(key)||routeSections('RUL');
   const points=[];
   for(const section of sections){
     const curve=new THREE.CatmullRomCurve3(section.map(p=>new THREE.Vector3(...p)));
@@ -612,8 +623,8 @@ function updateProcedure(){
   const target=l.mesh.position;
   const reach=.32;
   const gap=end.distanceTo(target);
-  const sampleAllowed=isNode||l.mode==='preset'||gap<=reach+l.size*.035;
-  let retreat=isNode?.12:.18,scopeEnd=end.clone(),cut=points.length-1;
+  const sampleAllowed=isNode||gap<=reach+l.size*.035;
+  let retreat=isNode?.12:segments[l.location]?.20:.18,scopeEnd=end.clone(),cut=points.length-1;
   while(cut>0&&retreat>0){const segment=points[cut].distanceTo(points[cut-1]);if(segment>=retreat){scopeEnd=points[cut].clone().lerp(points[cut-1],retreat/segment);retreat=0;}else{retreat-=segment;cut--;scopeEnd=points[cut].clone();}}
   const scopePath=[...points.slice(0,cut),scopeEnd];
   if(v>0){
@@ -633,7 +644,7 @@ function updateProcedure(){
   procedureGroup.visible=currentPreset==='scope';
   $('stepText').textContent=isNode?
     (v<90?`鏡身沿氣管前進至${l.location==='TR'?'氣管旁':'隆突下'}病灶附近。`:'TBNA 示意：細針從氣道壁直接伸出取樣。'):
-    (v===0?'鏡身從氣管開始，沿所選肺葉的支氣管前進。':v<31?'步驟 1：沿氣管前進。':v<65?'步驟 2：進入所選側主支氣管。':v<90?`步驟 3：到達${names[l.location]}支氣管。`:sampleAllowed?'步驟 4：由同肺葉支氣管短距離伸出取樣（示意）。':'自由設定位置離可見支氣管過遠；不畫長距離穿刺路徑。');
+    (v===0?'鏡身從氣管開始，沿所選肺段的支氣管前進。':v<31?'步驟 1：沿氣管前進。':v<65?'步驟 2：進入所選側主支氣管。':v<90?`步驟 3：到達${names[l.location]}支氣管。`:sampleAllowed?'步驟 4：由所選支氣管短距離伸出取樣（示意）。':'病灶離可見支氣管過遠；不畫長距離穿刺路徑。');
 }
 
 const labelData=[['RUL',[-1.17,.93,.46]],['RML',[-.69,-.35,.43]],['RLL',[-1.36,-1.07,.45]],['LUL',[1.21,.92,.45]],['LLL',[1.37,-1.02,.45]],['氣管',[0,1.54,.2]],['心臟',[.24,-.62,.5]]];

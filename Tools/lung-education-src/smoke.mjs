@@ -4,15 +4,13 @@ import { gunzipSync } from 'node:zlib';
 import * as THREE from 'three';
 import lungMeshData from './src/lung-mesh-data.js';
 import {compressionWeight} from './src/effusion-shape.js';
+import {airway,segments,fixedTargets,routeSections} from './src/airway-data.js';
+import airwayMeshData from './src/airway-mesh-data.js';
 
 const source = readFileSync(new URL('./src/main.js', import.meta.url), 'utf8');
 assert.equal(compressionWeight(1.2),0,'The apex stays expanded');
 assert.ok(compressionWeight(-.3)>.4,'The lower half of the upper lobe also compresses');
 assert.ok(compressionWeight(-1.4)>compressionWeight(-.3),'Dependent lung compresses more');
-const match = source.match(/const airway = (\{[\s\S]*?\n\});/);
-assert.ok(match, 'Airway centerlines not found');
-const airway = Function(`return (${match[1]})`)();
-
 const samePoint = (a, b) => a.every((coordinate, i) => Math.abs(coordinate - b[i]) < 1e-6);
 for (const side of ['rightMain', 'leftMain']) {
   assert.ok(samePoint(airway.trachea.at(-1), airway[side][0]), `${side} must begin at the carina`);
@@ -26,9 +24,7 @@ for (const [lobe, [main, index]] of Object.entries(connections)) {
   const curve = new THREE.CatmullRomCurve3(branch.map(point => new THREE.Vector3(...point)));
   new THREE.TubeGeometry(curve, 24, .068, 8, false).dispose();
 }
-const targetMatch=source.match(/const presetTargets=(\{[\s\S]*?\n\});/);
-assert.ok(targetMatch,'Preset lesion targets not found');
-const targets=Function(`return (${targetMatch[1]})`)();
+const targets=fixedTargets;
 const packed=gunzipSync(Buffer.from(lungMeshData,'base64'));
 const view=new DataView(packed.buffer,packed.byteOffset,packed.byteLength);
 assert.equal(packed.toString('ascii',0,5),'LUNG1');
@@ -39,13 +35,39 @@ for(let group=0;group<view.getUint8(5);group++){
   const target=targets[lobe];
   assert.ok(new THREE.Vector3(...airway[lobe].at(-1)).distanceTo(new THREE.Vector3(...target))<.32,`${lobe} target must stay near its lobar bronchus`);
   let nearest=Infinity;
+  const segmentDistances=Object.fromEntries(Object.entries(segments).filter(([,s])=>s.lobe===lobe).map(([key])=>[key,Infinity]));
   for(let i=0;i<vertices;i++){
-    const dx=view.getFloat32(offset,true)-target[0];
-    const dy=view.getFloat32(offset+4,true)-target[1];
-    const dz=view.getFloat32(offset+8,true)-target[2];
+    const x=view.getFloat32(offset,true),y=view.getFloat32(offset+4,true),z=view.getFloat32(offset+8,true);
+    const dx=x-target[0],dy=y-target[1],dz=z-target[2];
     nearest=Math.min(nearest,Math.hypot(dx,dy,dz));offset+=12;
+    for(const key of Object.keys(segmentDistances)){
+      const p=targets[key];segmentDistances[key]=Math.min(segmentDistances[key],Math.hypot(x-p[0],y-p[1],z-p[2]));
+    }
   }
   offset+=indices*4;
   assert.ok(nearest<.35,`${lobe} target must stay near its lobe surface (distance ${nearest.toFixed(3)})`);
+  for(const [key,distance] of Object.entries(segmentDistances))assert.ok(distance<.7,`${key} target must be inside or close to ${lobe} (distance ${distance.toFixed(3)})`);
 }
-console.log('Airway centerline and geometry smoke test passed');
+for(const [key,segment] of Object.entries(segments)){
+  assert.ok(samePoint(airway[segment.lobe][segment.at],segment.points[0]),`${key} must meet its lobar parent`);
+  const sections=routeSections(key);
+  assert.equal(sections.length,4,`${key} needs tracheal, main, lobar, and segmental route`);
+  for(let i=1;i<sections.length;i++)assert.ok(samePoint(sections[i-1].at(-1),sections[i][0]),`${key} route must be continuous`);
+  assert.ok(new THREE.Vector3(...sections.at(-1).at(-1)).distanceTo(new THREE.Vector3(...targets[key]))<.001,`${key} lesion and route must coincide`);
+}
+const airwayPacked=gunzipSync(Buffer.from(airwayMeshData,'base64'));
+assert.equal(airwayPacked.toString('ascii',0,5),'AIRW1');
+const airwayVertices=airwayPacked.readUInt32LE(8);
+assert.ok(airwayVertices>30000,'The unified airway mesh needs enough detail for segmental branches');
+const floats=new Float32Array(airwayPacked.buffer,airwayPacked.byteOffset+12,airwayVertices*6);
+const parents=Int32Array.from({length:airwayVertices/3},(_,i)=>i);
+const find=i=>{while(parents[i]!==i){parents[i]=parents[parents[i]];i=parents[i];}return i;};
+const seen=new Map();
+for(let i=0;i<airwayVertices;i++){
+  const point=[0,1,2].map(j=>Math.round(floats[i*6+j]*10000)).join(',');
+  const face=Math.floor(i/3);
+  if(seen.has(point))parents[find(face)]=find(seen.get(point));else seen.set(point,face);
+}
+assert.equal(new Set(parents.map((_,i)=>find(i))).size,1,'The airway must be one connected surface');
+assert.ok(!source.includes('new THREE.SphereGeometry(1,64,48)'),'No spherical effusion should remain');
+console.log('Airway segments, routes, unified mesh, and effusion contour smoke test passed');

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>肺部衛教模型｜初版</title>
-  <link rel="stylesheet" href="lung-education/style.css">
+  <link rel="stylesheet" href="lung-education/style.css?v=20261011segments1">
 </head>
 <body>
   <main class="app">
@@ -36,7 +36,7 @@
         <label class="switchrow"><span>顯示病灶</span><input id="showTumor" type="checkbox"></label>
         <div id="lesionTabs" class="lesion-tabs"></div>
         <div class="button-row"><button id="addLesion" class="small-button">＋ 增加病灶</button><button id="removeLesion" class="small-button">刪除目前病灶</button></div>
-        <p class="hint">選擇位置即使用固定示範點，支鏡可沿對應支氣管完成動畫。需要自訂肺內位置時再按「自由調整」。最多三處病灶。</p>
+        <p class="hint">可選肺葉或肺段的固定示範點；支鏡沿所選分支前進。需要自訂位置時再按「自由調整」。最多三處病灶。</p>
         <label class="field">病灶位置<select id="locationSelect">
           <option value="RUL">右上葉</option><option value="RML">右中葉</option><option value="RLL">右下葉</option><option value="LUL">左上葉</option><option value="LLL">左下葉</option>
           <option value="TR">氣管旁（TBNA）</option><option value="SC">隆突下（TBNA）</option>
@@ -48,7 +48,7 @@
         <label class="switchrow"><span>顯示胸水</span><input id="showEffusion" type="checkbox"></label>
         <label class="field">位置<select id="effusionSide"><option value="R">右側</option><option value="L">左側</option><option value="both">雙側</option></select></label>
         <label class="range-row"><span>示意量</span><output id="effusionValue">少量</output><input id="effusionAmount" type="range" min="1" max="3" value="1"></label>
-        <p class="hint">用藍色水位示意胸水；大量時同側肺下部向肺門縮小，包括上肺葉下半部，表示受壓萎陷。水位與範圍僅供衛教說明。</p>
+        <p class="hint">藍色胸水沿肺外緣顯示；大量時同側肺下部向肺門縮小，包括上肺葉下半部，表示受壓萎陷。水位與範圍僅供衛教說明。</p>
       </details>
       <details class="panel feature-panel" id="scopePanel"><summary>支氣管鏡示意</summary>
         <p id="stepText" class="step-text">鏡身沿氣管與支氣管腔前進；取樣鉗再由鏡身伸出。</p>
@@ -98,6 +98,6 @@
       if (box) { box.textContent = '3D 模型無法載入：' + (event.message || '請用最新版 Chrome 或 Edge 開啟'); box.classList.add('error'); }
     });
   </script>
-  <script type="module" src="lung-education/main.js"></script>
+  <script type="module" src="lung-education/main.js?v=20261011segments1"></script>
 </body>
 </html>
