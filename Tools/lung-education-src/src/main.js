@@ -624,7 +624,7 @@ function updateProcedure(){
   const reach=.32;
   const gap=end.distanceTo(target);
   const sampleAllowed=isNode||gap<=reach+l.size*.035;
-  let retreat=isNode?.12:segments[l.location]?.20:.18,scopeEnd=end.clone(),cut=points.length-1;
+  let retreat=isNode?.12:Math.max(.28,Math.min(.38,l.size*.065+.10)),scopeEnd=end.clone(),cut=points.length-1;
   while(cut>0&&retreat>0){const segment=points[cut].distanceTo(points[cut-1]);if(segment>=retreat){scopeEnd=points[cut].clone().lerp(points[cut-1],retreat/segment);retreat=0;}else{retreat-=segment;cut--;scopeEnd=points[cut].clone();}}
   const scopePath=[...points.slice(0,cut),scopeEnd];
   if(v>0){
@@ -638,7 +638,7 @@ function updateProcedure(){
       const extension=Math.min(scopeEnd.distanceTo(target),isNode ? .62 : .5)*(v-90)/10;
       const tip=scopeEnd.clone().addScaledVector(direction,extension);
       forcepsMesh=tube([scopeEnd.toArray(),tip.toArray()],isNode ? .014 : .014,isNode ? 0x405963 : 0xd2d0c5,procedureGroup);
-      forcepsMesh.material.depthTest=false;forcepsMesh.material.transparent=true;forcepsMesh.renderOrder=13;
+      forcepsMesh.material.depthTest=false;forcepsMesh.material.transparent=true;forcepsMesh.renderOrder=23;
     }
   }
   procedureGroup.visible=currentPreset==='scope';
