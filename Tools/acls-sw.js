@@ -1,4 +1,4 @@
-const CACHE_NAME = "acls-console-v3";
+const CACHE_NAME = "acls-console-v4";
 const APP_FILES = ["./acls.html", "./acls-manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
@@ -8,7 +8,7 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+    caches.keys().then((keys) => Promise.all(keys.filter((key) => key.startsWith("acls-console-") && key !== CACHE_NAME).map((key) => caches.delete(key))))
   );
   self.clients.claim();
 });
