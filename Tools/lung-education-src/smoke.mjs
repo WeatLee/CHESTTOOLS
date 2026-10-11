@@ -61,6 +61,12 @@ for(let group=0;group<view.getUint8(5);group++){
   for(const [key,distance] of Object.entries(segmentDistances))assert.ok(distance<.7,`${key} target must be inside or close to ${lobe} (distance ${distance.toFixed(3)})`);
 }
 const front=new THREE.Vector3(0,0,1);
+const rightUpperJunction=new THREE.Vector3(...airway.RUL.at(-1));
+const junctionHits=new THREE.Raycaster(rightUpperJunction,front,1e-5,10).intersectObject(lobeMeshes.RUL,false);
+let junctionCrossings=0,junctionLast=-1;
+for(const hit of junctionHits)if(Math.abs(hit.distance-junctionLast)>1e-4){junctionCrossings++;junctionLast=hit.distance;}
+assert.ok(junctionCrossings%2===1,'The right upper bronchial junction must stay inside the upper lobe at end expiration');
+assert.ok(junctionHits[0]?.distance>.085,'The right upper bronchial junction needs clearance for its tube wall');
 for(const [key,{lobe,points}] of Object.entries(segments)){
   const point=new THREE.Vector3(...points.at(-1));
   const ray=new THREE.Raycaster(point,front,1e-5,10);

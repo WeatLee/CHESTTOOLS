@@ -2,7 +2,7 @@ import { copyFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const base=process.cwd();
-const release='20261011collapse1';
+const release='20261011exhale1';
 let html=readFileSync(join(base,'index.html'),'utf8');
 html=html.replace('href="style.css"',`href="lung-education/style.css?v=${release}"`);
 html=html.replace('<script src="app.js"></script>',`<script type="module" src="lung-education/main.js?v=${release}"></script>`);
