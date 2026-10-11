@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import lungMeshData from './src/lung-mesh-data.js';
 import {compressionWeight,collapsedLungPosition,collapsedAirwayPosition} from './src/effusion-shape.js';
 import {airway,segments,fixedTargets,routeSections} from './src/airway-data.js';
+import {presetLesionPosition} from './src/lesion-placement.js';
 import airwayMeshData from './src/airway-mesh-data.js';
 
 const source = readFileSync(new URL('./src/main.js', import.meta.url), 'utf8');
@@ -105,6 +106,18 @@ for(const [key,segment] of Object.entries(segments)){
   assert.equal(sections.length,4,`${key} needs tracheal, main, lobar, and segmental route`);
   for(let i=1;i<sections.length;i++)assert.ok(samePoint(sections[i-1].at(-1),sections[i][0]),`${key} route must be continuous`);
   assert.ok(new THREE.Vector3(...sections.at(-1).at(-1)).distanceTo(new THREE.Vector3(...targets[key]))<.001,`${key} lesion and route must coincide`);
+}
+for(const key of Object.keys(fixedTargets).filter(key=>key!=='TR'&&key!=='SC')){
+  const sections=routeSections(key);
+  const route=sections.flatMap((section,i)=>{
+    const sampled=new THREE.CatmullRomCurve3(section.map(point=>new THREE.Vector3(...point))).getPoints(Math.max(12,section.length*8));
+    return i?sampled.slice(1):sampled;
+  });
+  for(const size of [1,3,5,8]){
+    const target=new THREE.Vector3(...presetLesionPosition(key,size));
+    const nearest=Math.min(...route.map(point=>point.distanceTo(target)));
+    assert.ok(nearest<=size*.065+.24,`${key} ${size} cm lesion must remain reachable from its selected bronchial route (${nearest.toFixed(3)})`);
+  }
 }
 const airwayPacked=gunzipSync(Buffer.from(airwayMeshData,'base64'));
 assert.equal(airwayPacked.toString('ascii',0,5),'AIRW1');

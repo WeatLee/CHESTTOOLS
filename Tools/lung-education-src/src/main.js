@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import audioData from './audio-data.js';
 import {collapsedLungPosition,collapsedAirwayPosition} from './effusion-shape.js';
 import {airway,segments,lobeNames,segmentNames,fixedTargets,routeSections} from './airway-data.js';
+import {presetLesionPosition} from './lesion-placement.js';
 if(audioData.broncho)window.privateAudioData=audioData;
 
 const $ = id => document.getElementById(id);
@@ -294,7 +295,7 @@ function populateLocationMenu(){
   select.replaceChildren();
   for(const lobe of Object.keys(lobeNames)){
     const group=document.createElement('optgroup');group.label=lobeNames[lobe];
-    const whole=document.createElement('option');whole.value=lobe;whole.textContent='整個肺葉（原示範點）';group.appendChild(whole);
+    const whole=document.createElement('option');whole.value=lobe;whole.textContent='整個肺葉（固定示範點）';group.appendChild(whole);
     for(const [key,segment] of Object.entries(segments))if(segment.lobe===lobe){
       const option=document.createElement('option');option.value=key;option.textContent=segment.label;group.appendChild(option);
     }
@@ -441,9 +442,9 @@ function syncLesionUI(){const l=activeLesion();$('locationSelect').value=l.locat
 function updateTumor(){
   const visible=$('showTumor').checked;
   for(const l of lesions){const radius=l.size*.065;
-    const pos=l.mode==='free'?l.point.clone().addScaledVector(l.normal,-.12):new THREE.Vector3(...presetTargets[l.location]);
+    const pos=l.mode==='free'?l.point.clone().addScaledVector(l.normal,-.12):new THREE.Vector3(...presetLesionPosition(l.location,l.size));
     compressPointForEffusion(pos,l.location[0],effusionStrength(l.location[0]));
-    l.mesh.position.copy(pos);l.mesh.scale.setScalar(radius);l.halo.position.copy(pos);l.halo.scale.setScalar(radius*1.18);
+    l.mesh.position.copy(pos);l.mesh.scale.setScalar(radius);l.halo.position.copy(pos);l.halo.scale.setScalar(radius*1.08);
     l.mesh.visible=visible;l.halo.visible=visible;l.halo.material.opacity=l===activeLesion() ? .22 : .08;
   }
   saveCase();updateProcedure();
@@ -667,15 +668,34 @@ function updateProcedure(){
   const v=+$('procedure').value,l=activeLesion(),isNode=l.location==='TR'||l.location==='SC';
   const points=(l.location==='TR'?new THREE.LineCurve3(new THREE.Vector3(0,2,.04),new THREE.Vector3(0,1.25,.04)).getPoints(44):
     l.location==='SC'?new THREE.CatmullRomCurve3(airway.trachea.map(p=>new THREE.Vector3(...p))).getPoints(48):scopeCenterline(l.location)).map(deformAirwayPoint);
-  const end=points[points.length-1];
   const target=l.mesh.position;
-  const reach=.32;
-  const gap=end.distanceTo(target);
-  const sampleAllowed=isNode||gap<=reach+l.size*.035;
-  // Keep the scope just outside the visible lesion, leaving a short metal
-  // forceps segment exposed across the air gap for every lesion size.
-  let retreat=isNode?.12:Math.max(.18,Math.min(.62,l.size*.065+.08)),scopeEnd=end.clone(),cut=points.length-1;
-  while(cut>0&&retreat>0){const segment=points[cut].distanceTo(points[cut-1]);if(segment>=retreat){scopeEnd=points[cut].clone().lerp(points[cut-1],retreat/segment);retreat=0;}else{retreat-=segment;cut--;scopeEnd=points[cut].clone();}}
+  const lesionRadius=l.size*.065;
+  const distances=points.map(point=>point.distanceTo(target));
+  const nearest=Math.min(...distances);
+  const sampleAllowed=isNode||nearest<=lesionRadius+.24;
+  let scopeEnd=points.at(-1).clone(),cut=points.length-1;
+  if(!isNode&&sampleAllowed){
+    // Stop at the first approach to the lesion surface. This keeps the scope
+    // inside its chosen bronchial route even when a large lesion moves inward.
+    const stopDistance=lesionRadius+.12;
+    const entering=distances.findIndex((distance,i)=>i>0&&distance<=stopDistance);
+    if(entering>0){
+      cut=entering;
+      let low=0,high=1;
+      for(let i=0;i<12;i++){
+        const mid=(low+high)/2;
+        const distance=points[cut-1].clone().lerp(points[cut],mid).distanceTo(target);
+        if(distance>stopDistance)low=mid;else high=mid;
+      }
+      scopeEnd=points[cut-1].clone().lerp(points[cut],(low+high)/2);
+    }else{
+      cut=distances.indexOf(nearest);
+      scopeEnd=points[cut].clone();
+    }
+  }else{
+    let retreat=isNode?.12:Math.max(.18,Math.min(.62,lesionRadius+.08));
+    while(cut>0&&retreat>0){const segment=points[cut].distanceTo(points[cut-1]);if(segment>=retreat){scopeEnd=points[cut].clone().lerp(points[cut-1],retreat/segment);retreat=0;}else{retreat-=segment;cut--;scopeEnd=points[cut].clone();}}
+  }
   const scopePath=[...points.slice(0,cut),scopeEnd];
   if(v>0){
     const travel=Math.min(1,v/90);
@@ -685,9 +705,10 @@ function updateProcedure(){
     scopeMesh.renderOrder=12;procedureGroup.add(scopeMesh);
     if(v>90&&sampleAllowed){
       const direction=target.clone().sub(scopeEnd).normalize();
-      const extension=Math.min(scopeEnd.distanceTo(target),isNode ? .62 : .5)*(v-90)/10;
+      const extension=Math.min(scopeEnd.distanceTo(target),isNode ? .62 : .34)*(v-90)/10;
       const tip=scopeEnd.clone().addScaledVector(direction,extension);
-      forcepsMesh=tube([scopeEnd.toArray(),tip.toArray()],isNode ? .014 : .018,isNode ? 0x405963 : 0x667984,procedureGroup);
+      forcepsMesh=tube([scopeEnd.toArray(),tip.toArray()],isNode ? .014 : .018,0xc5ced3,procedureGroup);
+      forcepsMesh.material.metalness=.58;forcepsMesh.material.roughness=.27;
       forcepsMesh.material.depthTest=false;forcepsMesh.material.transparent=true;forcepsMesh.renderOrder=23;
     }
   }

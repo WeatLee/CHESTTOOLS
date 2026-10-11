@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>肺部衛教模型｜初版</title>
-  <link rel="stylesheet" href="lung-education/style.css?v=20261011exhale1">
+  <link rel="stylesheet" href="lung-education/style.css?v=20261011lesionfit1">
 </head>
 <body>
   <main class="app">
@@ -36,7 +36,7 @@
         <label class="switchrow"><span>顯示病灶</span><input id="showTumor" type="checkbox"></label>
         <div id="lesionTabs" class="lesion-tabs"></div>
         <div class="button-row"><button id="addLesion" class="small-button">＋ 增加病灶</button><button id="removeLesion" class="small-button">刪除目前病灶</button></div>
-        <p class="hint">可選肺葉或肺段的固定示範點；支鏡沿所選分支前進。需要自訂位置時再按「自由調整」。最多三處病灶。</p>
+        <p class="hint">可選肺葉或肺段的固定示範點；較大的病灶會往肺內移，支鏡仍沿所選分支前進。需要自訂位置時再按「自由調整」。最多三處病灶。</p>
         <label class="field">病灶位置<select id="locationSelect">
           <option value="RUL">右上葉</option><option value="RML">右中葉</option><option value="RLL">右下葉</option><option value="LUL">左上葉</option><option value="LLL">左下葉</option>
           <option value="TR">氣管旁（TBNA）</option><option value="SC">隆突下（TBNA）</option>
@@ -98,6 +98,6 @@
       if (box) { box.textContent = '3D 模型無法載入：' + (event.message || '請用最新版 Chrome 或 Edge 開啟'); box.classList.add('error'); }
     });
   </script>
-  <script type="module" src="lung-education/main.js?v=20261011exhale1"></script>
+  <script type="module" src="lung-education/main.js?v=20261011lesionfit1"></script>
 </body>
 </html>
