@@ -35,7 +35,12 @@ for(const [key,r] of branches){
   const points=airway[key]||segments[key].points;
   const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
   const sampled=curve.getPoints(Math.max(12,Math.ceil(curve.getLength()/.035)));
-  for(let i=1;i<sampled.length;i++)stamp(sampled[i-1],sampled[i],r);
+  for(let i=1;i<sampled.length;i++){
+    // Segmental bronchi end close to the pleura. Narrow their last portion so
+    // a full-width terminal cap cannot break through the visible lung surface.
+    const u=(i-.5)/(sampled.length-1),fade=segments[key]?THREE.MathUtils.smoothstep(u,.68,1):0;
+    stamp(sampled[i-1],sampled[i],r*(1-.88*fade));
+  }
 }
 mc.update();
 if(mc.count>=260000*3)throw new Error('Increase MarchingCubes maxPolyCount');
