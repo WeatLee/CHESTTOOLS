@@ -442,7 +442,7 @@ function syncLesionUI(){const l=activeLesion();$('locationSelect').value=l.locat
 function updateTumor(){
   const visible=$('showTumor').checked;
   for(const l of lesions){const radius=l.size*.065;
-    const pos=l.mode==='free'?l.point.clone().addScaledVector(l.normal,-.12):new THREE.Vector3(...presetLesionPosition(l.location,l.size));
+    const pos=l.mode==='free'?l.point.clone().addScaledVector(l.normal,-Math.max(.12,radius+.045)):new THREE.Vector3(...presetLesionPosition(l.location,l.size));
     compressPointForEffusion(pos,l.location[0],effusionStrength(l.location[0]));
     l.mesh.position.copy(pos);l.mesh.scale.setScalar(radius);l.halo.position.copy(pos);l.halo.scale.setScalar(radius*1.08);
     l.mesh.visible=visible;l.halo.visible=visible;l.halo.material.opacity=l===activeLesion() ? .22 : .08;
