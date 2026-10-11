@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import audioData from './audio-data.js';
-import {compressionWeight} from './effusion-shape.js';
+import {collapsedLungPosition,collapsedAirwayPosition} from './effusion-shape.js';
 import {airway,segments,lobeNames,segmentNames,fixedTargets,routeSections} from './airway-data.js';
 if(audioData.broncho)window.privateAudioData=audioData;
 
@@ -76,34 +76,56 @@ function updateEffusion(){const value=+$('effusionAmount').value,side=$('effusio
   $('effusionValue').textContent=['','少量','中量','大量'][value];
   for(const mesh of effusionGroup.children)mesh.visible=$('showEffusion').checked&&mesh.userData.amount===value&&(side==='both'||side===mesh.userData.side);
   for(const [key,mesh] of Object.entries(lungMeshes)){
-    const affected=$('showEffusion').checked&&(side==='both'||side===key[0]);
-    deformLungForEffusion(mesh,key[0],affected ? value===3 ? 1 : value===2 ? .32 : 0 : 0);
+    deformLungForEffusion(mesh,key[0],effusionStrength(key[0]));
   }
+  deformAirwayForEffusion();
   updateTumor();
 }
+function effusionStrength(side){
+  if(!$('showEffusion').checked||!($('effusionSide').value==='both'||$('effusionSide').value===side))return 0;
+  return +$('effusionAmount').value===3?1:+$('effusionAmount').value===2?.32:0;
+}
 function compressPointForEffusion(point,side,strength){
+  return point.fromArray(collapsedLungPosition(point.x,point.y,point.z,side,strength));
+}
+function uncompressPointForEffusion(point,side,strength){
   if(!strength)return point;
-  const weight=compressionWeight(point.y)*strength;
-  const hilumX=side==='R' ? -.73 : .73;
-  point.x+=(hilumX-point.x)*.20*weight;
-  point.y+=.25*weight;
-  point.z*=1-.16*weight;
+  const compressed=point.clone();
+  for(let i=0;i<7;i++){
+    const projected=compressPointForEffusion(point.clone(),side,strength);
+    point.add(compressed.clone().sub(projected));
+  }
   return point;
 }
 function deformLungForEffusion(mesh,side,strength){
   const position=mesh.geometry.getAttribute('position');
   const base=mesh.userData.basePositions ||= new Float32Array(position.array);
   const current=position.array;
-  const hilumX=side==='R' ? -.73 : .73;
   for(let i=0;i<current.length;i+=3){
-    const weight=compressionWeight(base[i+1])*strength;
-    current[i]=base[i]+(hilumX-base[i])*.20*weight;
-    current[i+1]=base[i+1]+.25*weight;
-    current[i+2]=base[i+2]*(1-.16*weight);
+    const p=collapsedLungPosition(base[i],base[i+1],base[i+2],side,strength);
+    current[i]=p[0];current[i+1]=p[1];current[i+2]=p[2];
   }
   position.needsUpdate=true;
   mesh.geometry.computeVertexNormals();
   mesh.geometry.computeBoundingSphere();
+}
+function deformAirwayPoint(point){
+  return point.fromArray(collapsedAirwayPosition(point.x,point.y,point.z,effusionStrength('R'),effusionStrength('L')));
+}
+function deformAirwayForEffusion(){
+  const right=effusionStrength('R'),left=effusionStrength('L');
+  for(const mesh of bronchiGroup.children){
+    if(!mesh.userData.airwayDeformable)continue;
+    const position=mesh.geometry.getAttribute('position');
+    const base=mesh.userData.basePositions ||= new Float32Array(position.array);
+    const current=position.array;
+    for(let i=0;i<base.length;i+=3){
+      const p=collapsedAirwayPosition(base[i],base[i+1],base[i+2],right,left);
+      current[i]=p[0];current[i+1]=p[1];current[i+2]=p[2];
+    }
+    position.needsUpdate=true;
+    mesh.geometry.computeBoundingSphere();
+  }
 }
 
 // A broad diaphragmatic base and tapered apex give the lungs their characteristic silhouette.
@@ -298,14 +320,17 @@ async function loadAirwayMesh(){
   geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));
   geometry.setAttribute('normal',new THREE.BufferAttribute(normals,3));
   const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:bronze,roughness:.75,side:THREE.DoubleSide}));
+  mesh.userData.airwayDeformable=true;
   bronchiGroup.add(mesh);
   for(const old of guideTubes){bronchiGroup.remove(old);old.geometry.dispose();old.material.dispose();}
+  deformAirwayForEffusion();
 }
 const guideTubes=[];
 guideTubes.push(tube(airway.trachea,.115,bronze,bronchiGroup));
 for(const [key,radius] of [['rightMain',.103],['leftMain',.095],...['RUL','RML','RLL','LUL','LLL'].map(key=>[key,.064]),...Object.keys(segments).map(key=>[key,.038])]){
   guideTubes.push(tube(airway[key]||segments[key].points,radius,bronze,bronchiGroup));
 }
+for(const guide of guideTubes)guide.userData.airwayDeformable=true;
 loadAirwayMesh().catch(error=>console.error('Airway mesh fallback',error));
 for(let y=.85;y<1.96;y+=.115){const ring=new THREE.Mesh(new THREE.TorusGeometry(.123,.008,6,30),new THREE.MeshStandardMaterial({color:0xe2c5ad,roughness:1}));ring.rotation.x=Math.PI/2;ring.position.set(0,y,.04);bronchiGroup.add(ring);}
 
@@ -417,10 +442,7 @@ function updateTumor(){
   const visible=$('showTumor').checked;
   for(const l of lesions){const radius=l.size*.065;
     const pos=l.mode==='free'?l.point.clone().addScaledVector(l.normal,-.12):new THREE.Vector3(...presetTargets[l.location]);
-    const effSide=$('effusionSide').value;
-    const affected=$('showEffusion').checked&&(effSide==='both'||effSide===l.location[0]);
-    const amount=+$('effusionAmount').value;
-    compressPointForEffusion(pos,l.location[0],affected ? amount===3 ? 1 : amount===2 ? .32 : 0 : 0);
+    compressPointForEffusion(pos,l.location[0],effusionStrength(l.location[0]));
     l.mesh.position.copy(pos);l.mesh.scale.setScalar(radius);l.halo.position.copy(pos);l.halo.scale.setScalar(radius*1.18);
     l.mesh.visible=visible;l.halo.visible=visible;l.halo.material.opacity=l===activeLesion() ? .22 : .08;
   }
@@ -589,7 +611,7 @@ function setLesionHit(hit){
   const key=hit.object.userData.lobe;
   if(!key)return false;
   const l=activeLesion();l.location=key;l.mode='free';
-  l.point.copy(hit.point);
+  l.point.copy(uncompressPointForEffusion(lungGroup.worldToLocal(hit.point.clone()),key[0],effusionStrength(key[0])));
   l.normal.copy(hit.face.normal).normalize();
   const centerX=key[0]==='R'?-1.05:1.05;
   if(l.normal.dot(l.point.clone().sub(new THREE.Vector3(centerX,-.1,0)))<0)l.normal.negate();
@@ -643,14 +665,16 @@ function scopeCenterline(key){
 function updateProcedure(){
   disposeProcedure();
   const v=+$('procedure').value,l=activeLesion(),isNode=l.location==='TR'||l.location==='SC';
-  const points=l.location==='TR'?new THREE.LineCurve3(new THREE.Vector3(0,2,.04),new THREE.Vector3(0,1.25,.04)).getPoints(44):
-    l.location==='SC'?new THREE.CatmullRomCurve3(airway.trachea.map(p=>new THREE.Vector3(...p))).getPoints(48):scopeCenterline(l.location);
+  const points=(l.location==='TR'?new THREE.LineCurve3(new THREE.Vector3(0,2,.04),new THREE.Vector3(0,1.25,.04)).getPoints(44):
+    l.location==='SC'?new THREE.CatmullRomCurve3(airway.trachea.map(p=>new THREE.Vector3(...p))).getPoints(48):scopeCenterline(l.location)).map(deformAirwayPoint);
   const end=points[points.length-1];
   const target=l.mesh.position;
   const reach=.32;
   const gap=end.distanceTo(target);
   const sampleAllowed=isNode||gap<=reach+l.size*.035;
-  let retreat=isNode?.12:Math.max(.23,Math.min(.29,l.size*.065+.045)),scopeEnd=end.clone(),cut=points.length-1;
+  // Keep the scope just outside the visible lesion, leaving a short metal
+  // forceps segment exposed across the air gap for every lesion size.
+  let retreat=isNode?.12:Math.max(.18,Math.min(.62,l.size*.065+.08)),scopeEnd=end.clone(),cut=points.length-1;
   while(cut>0&&retreat>0){const segment=points[cut].distanceTo(points[cut-1]);if(segment>=retreat){scopeEnd=points[cut].clone().lerp(points[cut-1],retreat/segment);retreat=0;}else{retreat-=segment;cut--;scopeEnd=points[cut].clone();}}
   const scopePath=[...points.slice(0,cut),scopeEnd];
   if(v>0){
@@ -663,7 +687,7 @@ function updateProcedure(){
       const direction=target.clone().sub(scopeEnd).normalize();
       const extension=Math.min(scopeEnd.distanceTo(target),isNode ? .62 : .5)*(v-90)/10;
       const tip=scopeEnd.clone().addScaledVector(direction,extension);
-      forcepsMesh=tube([scopeEnd.toArray(),tip.toArray()],isNode ? .014 : .014,isNode ? 0x405963 : 0xd2d0c5,procedureGroup);
+      forcepsMesh=tube([scopeEnd.toArray(),tip.toArray()],isNode ? .014 : .018,isNode ? 0x405963 : 0x667984,procedureGroup);
       forcepsMesh.material.depthTest=false;forcepsMesh.material.transparent=true;forcepsMesh.renderOrder=23;
     }
   }

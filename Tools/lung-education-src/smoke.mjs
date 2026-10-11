@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import * as THREE from 'three';
 import lungMeshData from './src/lung-mesh-data.js';
-import {compressionWeight} from './src/effusion-shape.js';
+import {compressionWeight,collapsedLungPosition,collapsedAirwayPosition} from './src/effusion-shape.js';
 import {airway,segments,fixedTargets,routeSections} from './src/airway-data.js';
 import airwayMeshData from './src/airway-mesh-data.js';
 
@@ -11,6 +11,12 @@ const source = readFileSync(new URL('./src/main.js', import.meta.url), 'utf8');
 assert.equal(compressionWeight(1.2),0,'The apex stays expanded');
 assert.ok(compressionWeight(-.3)>.4,'The lower half of the upper lobe also compresses');
 assert.ok(compressionWeight(-1.4)>compressionWeight(-.3),'Dependent lung compresses more');
+assert.deepEqual(collapsedAirwayPosition(0,1.2,.04,1,0),[0,1.2,.04],'The upper trachea stays anchored');
+const lowerBronchus=[-1.45,-1.1,.2];
+const airwayCollapse=collapsedAirwayPosition(...lowerBronchus,1,0);
+const lungCollapse=collapsedLungPosition(...lowerBronchus,'R',1);
+assert.ok(airwayCollapse.every((value,i)=>Math.abs(value-lungCollapse[i])<1e-8),'Distal bronchi must follow the lung');
+assert.ok(airwayCollapse[0]>lowerBronchus[0]&&airwayCollapse[1]>lowerBronchus[1],'Dependent bronchi move inward and upward');
 const samePoint = (a, b) => a.every((coordinate, i) => Math.abs(coordinate - b[i]) < 1e-6);
 for (const side of ['rightMain', 'leftMain']) {
   assert.ok(samePoint(airway.trachea.at(-1), airway[side][0]), `${side} must begin at the carina`);
@@ -64,6 +70,28 @@ for(const [key,{lobe,points}] of Object.entries(segments)){
   assert.ok(crossings%2===1,`${key} terminal airway must be within its lung lobe`);
   const nearestFront=new THREE.Raycaster(point,front,1e-5,10).intersectObjects(Object.entries(lobeMeshes).filter(([name])=>name[0]===lobe[0]).map(([,mesh])=>mesh),false)[0];
   assert.ok(nearestFront?.distance>.043,`${key} terminal airway must not cross the front lung surface`);
+}
+for(const side of ['R','L']){
+  const collapsedMeshes={};
+  for(const [lobe,mesh] of Object.entries(lobeMeshes)){
+    if(lobe[0]!==side)continue;
+    const geometry=mesh.geometry.clone(),position=geometry.getAttribute('position');
+    for(let i=0;i<position.count;i++)position.setXYZ(i,...collapsedLungPosition(position.getX(i),position.getY(i),position.getZ(i),side,1));
+    geometry.computeBoundingSphere();
+    collapsedMeshes[lobe]=new THREE.Mesh(geometry,mesh.material);
+  }
+  for(const [key,{lobe,points}] of Object.entries(segments)){
+    if(lobe[0]!==side)continue;
+    const point=new THREE.Vector3(...collapsedAirwayPosition(...points.at(-1),side==='R'?1:0,side==='L'?1:0));
+    const inside=Object.values(collapsedMeshes).some(mesh=>{
+      const hits=new THREE.Raycaster(point,front,1e-5,10).intersectObject(mesh,false);
+      let crossings=0,last=-1;
+      for(const hit of hits)if(Math.abs(hit.distance-last)>1e-4){crossings++;last=hit.distance;}
+      return crossings%2===1;
+    });
+    assert.ok(inside,`${key} terminal airway must stay inside a massively collapsed lung`);
+  }
+  for(const mesh of Object.values(collapsedMeshes))mesh.geometry.dispose();
 }
 for(const [key,segment] of Object.entries(segments)){
   assert.ok(samePoint(airway[segment.lobe][segment.at],segment.points[0]),`${key} must meet its lobar parent`);
