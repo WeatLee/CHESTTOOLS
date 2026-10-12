@@ -280,6 +280,8 @@ add('PHRN', pick(/phrenic/i), { keep: below(chest.top) });
 // bottom sliver floats beside the trachea, so the left carotid is drawn in
 // code from the arch instead (main.js) and small pieces are dropped here.
 add('ARTS', listObj('arteries'), { keep: below(chest.top), adjust: mesh => dropSmallPieces(mesh, 100) });
+// Subclavian veins run from the jugular junction out to the shoulders, in front of the subclavian arteries.
+add('VEIN', listObj('veins'), { keep: below(chest.top) });
 
 const skeleton = firstPerName(listObj('skeleton'));
 const bones = skeleton.filter(file => !/costal cartilage/i.test(file.name));

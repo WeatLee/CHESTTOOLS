@@ -38,7 +38,7 @@ function procedureParts() {
 const organs = organParts(), proc = procedureParts();
 const obstacles = [
   ...['HEAR', 'NECA', 'NEJV', 'PULA', 'PULV'].map(k => [k, organs[k]]),
-  ...['AIRW', 'AZYG', 'ESOP', 'ARTS'].map(k => [k, proc[k]])
+  ...['AIRW', 'AZYG', 'ESOP', 'ARTS', 'VEIN'].map(k => [k, proc[k]])
 ];
 // Spatial hash for nearest-vertex queries.
 const CELL = .06, hash = new Map();

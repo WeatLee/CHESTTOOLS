@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>肺部 3D Procedure 模型｜初版</title>
-  <link rel="stylesheet" href="lung-procedure/style.css?v=20261012tbna9">
+  <link rel="stylesheet" href="lung-procedure/style.css?v=20261012tbna10">
 </head>
 <body>
   <main class="app">
@@ -23,7 +23,7 @@
         <details class="vessel-options"><summary>大血管分項</summary>
           <label class="switchrow"><span>主動脈（含降主動脈）</span><input id="showAorta" type="checkbox" checked></label>
           <label class="switchrow"><span>頸動脈與鎖骨下動脈</span><input id="showCarotids" type="checkbox" checked></label>
-          <label class="switchrow"><span>頸內靜脈 IJV／上腔靜脈</span><input id="showJugulars" type="checkbox" checked></label>
+          <label class="switchrow"><span>頸內與鎖骨下靜脈、上腔靜脈</span><input id="showJugulars" type="checkbox" checked></label>
           <label class="switchrow"><span>肺動脈</span><input id="showPulmArtery" type="checkbox" checked></label>
           <label class="switchrow"><span>肺靜脈</span><input id="showPulmVein" type="checkbox" checked></label>
         </details>
@@ -119,6 +119,6 @@
       if (box) { box.textContent = '3D 模型無法載入：' + (event.message || '請用最新版 Chrome 或 Edge 開啟'); box.classList.add('error'); }
     });
   </script>
-  <script type="module" src="lung-procedure/main.js?v=20261012tbna9"></script>
+  <script type="module" src="lung-procedure/main.js?v=20261012tbna10"></script>
 </body>
 </html>

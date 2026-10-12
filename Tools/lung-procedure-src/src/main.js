@@ -45,6 +45,8 @@ const mediastinumGroup = new THREE.Group(); scene.add(mediastinumGroup);
 // Left common carotid and both subclavian trunks; kept apart from heartGroup,
 // which is rebuilt when the heart and great vessel meshes finish loading.
 const archBranchGroup = new THREE.Group(); scene.add(archBranchGroup);
+// Subclavian veins, shown with the jugular veins.
+const subclavianVeinGroup = new THREE.Group(); scene.add(subclavianVeinGroup);
 const diaphragmGroup = new THREE.Group(); scene.add(diaphragmGroup);
 const skeletonGroup = new THREE.Group(); scene.add(skeletonGroup);
 const skinGroup = new THREE.Group(); scene.add(skinGroup);
@@ -361,11 +363,12 @@ async function loadProcedureMeshes(){
   place('AIRW',bronchiGroup,matte(bronze)).userData.airwayDeformable=true;
   place('ESOP',mediastinumGroup,matte(0xc98f7c),'esophagus');
   place('AZYG',mediastinumGroup,matte(0x6f8aa6),'azygos');
+  place('VEIN',subclavianVeinGroup,matte(0x7894a8),'subclavian veins');
   place('ARTS',archBranchGroup,new THREE.MeshStandardMaterial({color:0xb97370,roughness:1,side:THREE.DoubleSide}),'arch branches');
   // The BodyParts3D left common carotid is the neck part only (it starts 1.7
   // units above the arch), so the chest part is drawn here from the arch up
-  // beside the trachea, ending level with the right carotid.
-  const leftCarotid=tube([[.18,.91,-.08],[.22,1.31,-.06],[.25,1.78,-.05],[.27,2.15,-.05],[.28,2.5,-.05]],.042,0xb97370,archBranchGroup);
+  // beside the trachea, ending level with the right carotid (y 1.84).
+  const leftCarotid=tube([[.18,.91,-.08],[.22,1.31,-.06],[.25,1.78,-.05],[.255,1.86,-.05]],.042,0xb97370,archBranchGroup);
   leftCarotid.material.roughness=1;leftCarotid.userData.part='left carotid';
   place('DIAP',diaphragmGroup,new THREE.MeshStandardMaterial({color:0xb5776b,roughness:.9,side:THREE.DoubleSide,transparent:true,opacity:.55,depthWrite:false}));
   place('VAGN',nerveGroup,matte(0xe4c98c),'vagus');
@@ -518,6 +521,7 @@ function updateView(){
   // The esophagus lies right behind station 7; keep it as a see-through landmark during EBUS-TBNA.
   for(const mesh of mediastinumGroup.children)if(mesh.userData.part==='esophagus'){mesh.material.transparent=tbna.active;mesh.material.opacity=tbna.active?.35:1;mesh.material.depthWrite=!tbna.active;mesh.material.needsUpdate=true;}
   archBranchGroup.visible=$('showHeart').checked&&$('showCarotids').checked;
+  subclavianVeinGroup.visible=$('showHeart').checked&&$('showJugulars').checked;
   diaphragmGroup.visible=$('showDiaphragm').checked;
   skeletonGroup.visible=$('showSkeleton').checked;
   // The exterior turns see-through whenever inner layers are the point.

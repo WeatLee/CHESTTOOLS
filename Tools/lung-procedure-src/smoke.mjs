@@ -34,7 +34,7 @@ for (let at = 6, g = 0; g < packed[5]; g++) {
   assert.ok(nv > 100 && ni % 3 === 0 && largest < nv, `${key} must hold valid geometry`);
   parts[key] = { origin, max, nv };
 }
-for (const key of ['AIRW', 'ESOP', 'DIAP', 'AZYG', 'VAGN', 'PHRN', 'ARTS', 'BONE', 'CART', 'SKIN', 'SKCW'])assert.ok(parts[key], `${key} must be packed`);
+for (const key of ['AIRW', 'ESOP', 'DIAP', 'AZYG', 'VAGN', 'PHRN', 'ARTS', 'VEIN', 'BONE', 'CART', 'SKIN', 'SKCW'])assert.ok(parts[key], `${key} must be packed`);
 const chestTop = (1440 - 1238) * .0136, chestBottom = (1015 - 1238) * .0136, chestHalf = 172 * .0136;
 assert.ok(parts.SKIN.origin[1] >= chestBottom - .01 && parts.SKIN.max[1] <= chestTop + .01, 'The exterior is cropped to the chest');
 assert.ok(Math.max(-parts.SKIN.origin[0], parts.SKIN.max[0]) <= chestHalf + .01, 'The arms are cut at the shoulders');
