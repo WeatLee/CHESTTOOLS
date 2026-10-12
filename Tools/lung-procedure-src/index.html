@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>肺部 3D Procedure 模型｜初版</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <aside class="sidebar">
+      <div class="brand"><span class="brandmark">✦</span><div><small>Procedure 教學模型 · 初版</small><h1>肺部 3D Procedure 模型</h1></div></div>
+      <p class="intro">拖曳旋轉模型，滾輪縮放。選擇講解情境後，可調整各層顯示。</p>
+      <section class="panel"><h2>講解情境</h2><div class="preset-grid">
+        <button data-preset="natural" class="preset active">自然外觀</button>
+        <button data-preset="lobes" class="preset">五肺葉</button>
+        <button data-preset="inside" class="preset">看內部</button>
+      </div></section>
+      <details class="panel feature-panel" open><summary>顯示構造</summary>
+        <label class="switchrow"><span>肺葉</span><input id="showLungs" type="checkbox" checked></label>
+        <label class="switchrow"><span>支氣管</span><input id="showBronchi" type="checkbox" checked></label>
+        <label class="switchrow"><span>心臟與大血管</span><input id="showHeart" type="checkbox" checked></label>
+        <details class="vessel-options"><summary>大血管分項</summary>
+          <label class="switchrow"><span>主動脈（含降主動脈）</span><input id="showAorta" type="checkbox" checked></label>
+          <label class="switchrow"><span>頸動脈與鎖骨下動脈</span><input id="showCarotids" type="checkbox" checked></label>
+          <label class="switchrow"><span>頸內靜脈 IJV／上腔靜脈</span><input id="showJugulars" type="checkbox" checked></label>
+          <label class="switchrow"><span>肺動脈</span><input id="showPulmArtery" type="checkbox" checked></label>
+          <label class="switchrow"><span>肺靜脈</span><input id="showPulmVein" type="checkbox" checked></label>
+        </details>
+        <label class="switchrow"><span>食道與奇靜脈</span><input id="showMediastinum" type="checkbox"></label>
+        <label class="switchrow"><span>橫膈</span><input id="showDiaphragm" type="checkbox"></label>
+        <label class="switchrow"><span>迷走神經與膈神經</span><input id="showNerves" type="checkbox"></label>
+        <label class="switchrow"><span>構造名稱</span><input id="showLabels" type="checkbox"></label>
+        <label class="range-row"><span>肺葉透明度</span><output id="opacityValue">100%</output><input id="opacity" type="range" min="0" max="100" value="100"></label>
+      </details>
+      <details class="panel feature-panel"><summary>骨骼與外觀</summary>
+        <label class="switchrow"><span>骨骼</span><input id="showSkeleton" type="checkbox"></label>
+        <label class="switchrow"><span>男性外觀（胸部）</span><input id="showSkin" type="checkbox"></label>
+        <p class="hint">同時開啟骨骼時，外觀自動變透明。右膈神經為示意路徑；肌肉未呈現。</p>
+      </details>
+      <details class="panel feature-panel"><summary>放置病灶 <span class="badge">示範案例</span></summary>
+        <label class="switchrow"><span>顯示病灶</span><input id="showTumor" type="checkbox"></label>
+        <div id="lesionTabs" class="lesion-tabs"></div>
+        <div class="button-row"><button id="addLesion" class="small-button">＋ 增加病灶</button><button id="removeLesion" class="small-button">刪除目前病灶</button></div>
+        <p class="hint">可選肺葉或肺段的固定示範點；較大的病灶會往肺內移，支鏡仍沿所選分支前進。需要自訂位置時再按「自由調整」。最多三處病灶。</p>
+        <label class="field">病灶位置<select id="locationSelect">
+          <option value="RUL">右上葉</option><option value="RML">右中葉</option><option value="RLL">右下葉</option><option value="LUL">左上葉</option><option value="LLL">左下葉</option>
+          <option value="TR">氣管旁（TBNA）</option><option value="SC">隆突下（TBNA）</option>
+        </select></label>
+        <button id="placeBtn" class="action">自由調整肺內位置</button><p id="placementState" class="hint">目前：固定示範位置</p>
+        <label class="range-row"><span>病灶直徑</span><output id="sizeValue">3.0 cm</output><input id="size" type="range" min="1" max="8" step="0.5" value="3"></label>
+      </details>
+      <details class="panel feature-panel" id="effusionPanel"><summary>胸水示意</summary>
+        <label class="switchrow"><span>顯示胸水</span><input id="showEffusion" type="checkbox"></label>
+        <label class="field">位置<select id="effusionSide"><option value="R">右側</option><option value="L">左側</option><option value="both">雙側</option></select></label>
+        <label class="range-row"><span>示意量</span><output id="effusionValue">少量</output><input id="effusionAmount" type="range" min="1" max="3" value="1"></label>
+        <p class="hint">藍色胸水沿肺外緣顯示；大量時同側肺下部向肺門縮小，包括上肺葉下半部，表示受壓萎陷。水位與範圍僅供衛教說明。</p>
+      </details>
+      <details class="panel feature-panel" id="drainPanel"><summary>胸水引流（Pigtail）</summary>
+        <label class="field">引流側<select id="drainSide"><option value="R">右側</option><option value="L">左側</option></select></label>
+        <p id="drainStep" class="step-text">置入前：大量胸水，同側肺下部受壓塌陷。</p>
+        <input id="drainProgress" type="range" min="0" max="100" step="any" value="0" aria-label="引流進度">
+        <div class="button-row"><button id="drainPlay" class="small-button">▶ 播放</button><button id="drainReset" class="small-button">重播</button><button id="drainExit" class="small-button">結束示意</button></div>
+        <p class="hint">大量胸水時，於第 7 肋間後腋線、沿第 8 肋上緣置入。位置、角度與引流速度皆為示意，實際依超音波定位與臨床判斷。</p>
+      </details>
+      <details class="panel feature-panel" id="tbnaPanel"><summary>EBUS-TBNA 淋巴結採樣</summary>
+        <label class="field">淋巴結站<select id="tbnaStation"></select></label>
+        <p id="tbnaDescription" class="hint"></p>
+        <p id="tbnaStep" class="step-text">步驟 1：EBUS 鏡身經口進入氣管。</p>
+        <input id="tbnaProgress" type="range" min="0" max="100" step="any" value="0" aria-label="TBNA 進度">
+        <div class="button-row"><button id="tbnaPlay" class="small-button">▶ 播放</button><button id="tbnaReset" class="small-button">重播</button><button id="tbnaExit" class="small-button">結束示意</button></div>
+        <p class="hint">淋巴結站依 IASLC 分區；位置、大小與穿刺路徑為示意。實際穿刺前以即時超音波與都卜勒確認血管。</p>
+      </details>
+      <details class="panel feature-panel" id="scopePanel"><summary>支氣管鏡示意</summary>
+        <p id="stepText" class="step-text">鏡身沿氣管與支氣管腔前進；取樣鉗再由鏡身伸出。</p>
+        <input id="procedure" type="range" min="0" max="100" step="any" value="0">
+        <div class="button-row"><button id="playBtn" class="small-button">▶ 播放</button><button id="resetProcedure" class="small-button">重播</button></div>
+      </details>
+      <p class="footnote">目前為標準解剖與程序概念原型。位置和器械路徑可由醫師在後續版本進一步校正。肺部外形改作自 <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/" target="_blank" rel="noopener">BodyParts3D</a>，採 CC BY-SA 2.1 JP 授權。</p>
+      <details class="panel feature-panel"><summary>呼吸音與聽診</summary>
+        <label class="switchrow"><span>呼吸動畫</span><input id="idleBreathing" type="checkbox" checked></label>
+        <label class="switchrow"><span>一般呼吸音（合成示意）</span><input id="breathSound" type="checkbox" checked></label>
+        <label id="breathVolumeRow" class="range-row"><span>音量</span><output id="breathVolumeValue">100%</output><input id="breathVolume" type="range" min="0" max="100" value="100"></label>
+        <button id="auscultationMode" class="action" type="button" aria-pressed="false">🩺 開啟聽診</button>
+        <p id="auscultationReadout" class="hint" aria-live="polite">開啟後將聽診器移到氣管或肺部。</p>
+        <label class="field">聽診音類型<select id="auscultationSound">
+          <option value="normal">正常呼吸音（依位置）</option>
+          <option value="wheeze">Wheezing（真實錄音）</option>
+          <option value="fine">Fine crackles（真實錄音）</option>
+          <option value="coarse">Coarse crackles（真實錄音）</option>
+          <option value="stridor">Stridor（真實錄音）</option>
+        </select></label>
+        <p class="hint">預設示範音約 5 秒；匯入個人音檔後，改用您的錄音。氣管區正常音為合成示意；支氣管肺泡區若未匯入錄音，也使用合成示意音。Stridor 只在頸部與上段氣管聽得到；兩側肺野改聽正常呼吸音。</p>
+        <details class="sound-credits"><summary>使用我的六段短音檔</summary>
+          <p>選取您的六個短 MP3，可一次多選。檔案只儲存在這個瀏覽器，不會上傳到網站；換裝置或清除網站資料後需重新選取。</p>
+          <input id="personalAudioFiles" type="file" accept=".mp3,audio/mpeg" multiple aria-label="選取六段個人聽診音檔">
+          <p id="personalAudioStatus" aria-live="polite">尚未載入個人音檔。</p>
+          <button id="clearPersonalAudio" class="small-button" type="button">清除本機音檔</button>
+        </details>
+        <details class="sound-credits"><summary>MEDZCOOL 原始示範影片（YouTube）</summary>
+          <p><a href="https://www.youtube.com/watch?v=VtnMRG0ORLs" target="_blank" rel="noopener">Vesicular breath sounds</a> · <a href="https://www.youtube.com/watch?v=LHqqvrm2j6g" target="_blank" rel="noopener">Fine crackles</a> · <a href="https://www.youtube.com/watch?v=JSdEK79J4dw" target="_blank" rel="noopener">Stridor</a></p>
+          <p>連結會開啟原作者的影片；影片聲音不會複製到 Chesttools。</p>
+        </details>
+        <details class="sound-credits"><summary>聽診音來源與授權</summary><p>正常肺泡音、fine crackles、coarse crackles：<a href="https://github.com/SJTU-YONGFU-RESEARCH-GRP/SPRSound" target="_blank" rel="noopener">SPRSound，上海兒童醫學中心</a>，<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>。Wheezing：<a href="https://commons.wikimedia.org/wiki/File:Wheeze2O.ogg" target="_blank" rel="noopener">James Heilman, MD</a>，<a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a>。Stridor：<a href="https://commons.wikimedia.org/wiki/File:Stridor_2OGG.ogg" target="_blank" rel="noopener">James Heilman, MD；Ian Furst 後製</a>，<a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a>。均從原錄音截取約 5 秒；fine、coarse 依事件標註選段並提高音量、壓縮峰值，僅供衛教與教學示意。</p></details>
+        <p class="hint">開啟聽診後，原呼吸音與肺部起伏暫停，僅播放聽診音；結束後恢復。支氣管鏡展示時聽診暫停。聽診位置為教學示意。</p>
+      </details>
+    </aside>
+    <section class="viewer">
+      <div class="topbar"><div><strong>肺部立體模型</strong><span>正面視角 · 右肺在畫面左側</span></div><button id="resetView">重設視角</button></div>
+      <div id="viewport"></div><div id="labels"></div>
+      <div id="loadingStatus" class="loading-status" role="status">模型載入中…</div>
+      <div class="legend"><span><i class="dot tumor-dot"></i> 病灶</span><span><i class="dot bronchus-dot"></i> 支氣管</span><span><i class="dot artery-dot"></i> 動脈</span><span><i class="dot vein-dot"></i> 靜脈</span></div>
+      <div id="toast" class="toast" aria-live="polite"></div>
+    </section>
+  </main>
+  <script>
+    window.addEventListener('error', function (event) {
+      var box = document.getElementById('loadingStatus');
+      if (box) { box.textContent = '3D 模型無法載入：' + (event.message || '請用最新版 Chrome 或 Edge 開啟'); box.classList.add('error'); }
+    });
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>

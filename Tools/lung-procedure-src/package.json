@@ -1,0 +1,16 @@
+{
+  "name": "lung-procedure-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "node build-audio-data.mjs && esbuild ./src/main.js --bundle --minify --format=iife --outfile=app.js",
+    "build:web": "node clean-web.mjs && node build-audio-data.mjs && esbuild ./src/main.js --bundle --splitting --minify --format=esm --outdir=web/lung-procedure --entry-names=main --chunk-names=chunks/[name]-[hash] && node package-web.mjs",
+    "test": "node smoke.mjs"
+  },
+  "license": "SEE LICENSE IN THIRD_PARTY_NOTICES.txt",
+  "type": "module",
+  "dependencies": {
+    "esbuild": "^0.28.2",
+    "three": "^0.186.1"
+  }
+}
