@@ -4,6 +4,7 @@
 // Run: node build-airway-routes.mjs PATH_TO/body-parts-source/procedure-subset
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { loadLungVolume } from './lung-volume.mjs';
 
 const root = process.argv[2];
 if (!root) throw new Error('Usage: node build-airway-routes.mjs PATH_TO_PROCEDURE_SUBSET');
@@ -174,6 +175,7 @@ function smooth(path, every = 5) {
   return out.map(toScene);
 }
 
+const lung = loadLungVolume(root);
 const routes = {}, report = [];
 Object.keys(segmentTrees).forEach((key, n) => {
   // The tip is the reachable voxel lying farthest along the segment's main
@@ -187,11 +189,20 @@ Object.keys(segmentTrees).forEach((key, n) => {
   const centroid = [0, 1, 2].map(k => members.reduce((s, idx) => s + toMm(idx)[k], 0) / voxels);
   const axis = centroid.map((v, k) => v - entry[k]);
   const reach = idx => toMm(idx).reduce((s, v, k) => s + (v - entry[k]) * axis[k], 0);
-  const best = members.reduce((a, b) => reach(a) > reach(b) ? a : b);
+  // Some BodyParts3D segment pieces stick out of the lung surface (a few mm
+  // to 16 mm). A tip out there would put the lesion marker and the scope end
+  // outside the lung, so the tip must lie within 2 mm of the lung volume; when
+  // a piece never gets that close (RS7 hugs the mediastinum), take the
+  // voxels nearest to the lung instead.
+  const outside = members.map(idx => lung.distance(toMm(idx)));
+  const nearest = Math.min(...outside);
+  const limit = nearest <= 2 ? 2 : nearest + 2;
+  const candidates = members.filter((_, i) => outside[i] <= limit);
+  const best = candidates.reduce((a, b) => reach(a) > reach(b) ? a : b);
   const path = trace(best);
   const bridged = path.filter(p => { const idx = at(...p.map((v, k) => Math.floor((v - lo[k]) / step))); return !label[idx]; }).length;
   routes[key] = smooth(path);
-  report.push(`${key.padEnd(5)} voxels ${String(voxels).padStart(6)} path ${String(path.length).padStart(4)} mm, outside lumen ${bridged} mm`);
+  report.push(`${key.padEnd(5)} voxels ${String(voxels).padStart(6)} path ${String(path.length).padStart(4)} mm, outside lumen ${bridged} mm, tip ${lung.distance(toMm(best))} mm from lung${nearest > 2 ? ' (piece never enters the lung)' : ''}`);
 });
 
 // Equally central voxels let left and right paths drift a few millimetres

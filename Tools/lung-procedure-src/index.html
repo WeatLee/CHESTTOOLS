@@ -50,6 +50,19 @@
         <button id="placeBtn" class="action">自由調整肺內位置</button><p id="placementState" class="hint">目前：固定示範位置</p>
         <label class="range-row"><span>病灶直徑</span><output id="sizeValue">3.0 cm</output><input id="size" type="range" min="1" max="8" step="0.5" value="3"></label>
       </details>
+      <details class="panel feature-panel" id="scopePanel"><summary>支氣管鏡示意</summary>
+        <p id="stepText" class="step-text">鏡身沿氣管與支氣管腔前進；取樣鉗再由鏡身伸出。</p>
+        <input id="procedure" type="range" min="0" max="100" step="any" value="0">
+        <div class="button-row"><button id="playBtn" class="small-button">▶ 播放</button><button id="resetProcedure" class="small-button">重播</button></div>
+      </details>
+      <details class="panel feature-panel" id="tbnaPanel"><summary>EBUS-TBNA 淋巴結採樣</summary>
+        <label class="field">淋巴結站<select id="tbnaStation"></select></label>
+        <p id="tbnaDescription" class="hint"></p>
+        <p id="tbnaStep" class="step-text">步驟 1：EBUS 鏡身經口進入氣管。</p>
+        <input id="tbnaProgress" type="range" min="0" max="100" step="any" value="0" aria-label="TBNA 進度">
+        <div class="button-row"><button id="tbnaPlay" class="small-button">▶ 播放</button><button id="tbnaReset" class="small-button">重播</button><button id="tbnaExit" class="small-button">結束示意</button></div>
+        <p class="hint">示範開始時預設隱藏心臟、大血管、食道與奇靜脈，讓淋巴結看得清楚；需要時可在「顯示構造」重新打開，結束示意後恢復原設定。淋巴結站依 IASLC 分區；位置、大小與穿刺路徑為示意。實際穿刺前以即時超音波與都卜勒確認血管。</p>
+      </details>
       <details class="panel feature-panel" id="effusionPanel"><summary>胸水示意</summary>
         <label class="switchrow"><span>顯示胸水</span><input id="showEffusion" type="checkbox"></label>
         <label class="field">位置<select id="effusionSide"><option value="R">右側</option><option value="L">左側</option><option value="both">雙側</option></select></label>
@@ -62,19 +75,6 @@
         <input id="drainProgress" type="range" min="0" max="100" step="any" value="0" aria-label="引流進度">
         <div class="button-row"><button id="drainPlay" class="small-button">▶ 播放</button><button id="drainReset" class="small-button">重播</button><button id="drainExit" class="small-button">結束示意</button></div>
         <p class="hint">大量胸水時，於第 7 肋間後腋線、沿第 8 肋上緣置入。位置、角度與引流速度皆為示意，實際依超音波定位與臨床判斷。</p>
-      </details>
-      <details class="panel feature-panel" id="tbnaPanel"><summary>EBUS-TBNA 淋巴結採樣</summary>
-        <label class="field">淋巴結站<select id="tbnaStation"></select></label>
-        <p id="tbnaDescription" class="hint"></p>
-        <p id="tbnaStep" class="step-text">步驟 1：EBUS 鏡身經口進入氣管。</p>
-        <input id="tbnaProgress" type="range" min="0" max="100" step="any" value="0" aria-label="TBNA 進度">
-        <div class="button-row"><button id="tbnaPlay" class="small-button">▶ 播放</button><button id="tbnaReset" class="small-button">重播</button><button id="tbnaExit" class="small-button">結束示意</button></div>
-        <p class="hint">淋巴結站依 IASLC 分區；位置、大小與穿刺路徑為示意。實際穿刺前以即時超音波與都卜勒確認血管。</p>
-      </details>
-      <details class="panel feature-panel" id="scopePanel"><summary>支氣管鏡示意</summary>
-        <p id="stepText" class="step-text">鏡身沿氣管與支氣管腔前進；取樣鉗再由鏡身伸出。</p>
-        <input id="procedure" type="range" min="0" max="100" step="any" value="0">
-        <div class="button-row"><button id="playBtn" class="small-button">▶ 播放</button><button id="resetProcedure" class="small-button">重播</button></div>
       </details>
       <p class="footnote">目前為標準解剖與程序概念原型。位置和器械路徑可由醫師在後續版本進一步校正。肺部外形改作自 <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/" target="_blank" rel="noopener">BodyParts3D</a>，採 CC BY-SA 2.1 JP 授權。</p>
       <details class="panel feature-panel"><summary>呼吸音與聽診</summary>

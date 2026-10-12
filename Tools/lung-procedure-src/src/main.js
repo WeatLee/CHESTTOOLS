@@ -362,6 +362,11 @@ async function loadProcedureMeshes(){
   place('ESOP',mediastinumGroup,matte(0xc98f7c),'esophagus');
   place('AZYG',mediastinumGroup,matte(0x6f8aa6),'azygos');
   place('ARTS',archBranchGroup,new THREE.MeshStandardMaterial({color:0xb97370,roughness:1,side:THREE.DoubleSide}),'arch branches');
+  // The BodyParts3D left common carotid is the neck part only (it starts 1.7
+  // units above the arch), so the chest part is drawn here from the arch up
+  // beside the trachea, ending level with the right carotid.
+  const leftCarotid=tube([[.18,.91,-.08],[.22,1.31,-.06],[.25,1.78,-.05],[.27,2.15,-.05],[.28,2.5,-.05]],.042,0xb97370,archBranchGroup);
+  leftCarotid.material.roughness=1;leftCarotid.userData.part='left carotid';
   place('DIAP',diaphragmGroup,new THREE.MeshStandardMaterial({color:0xb5776b,roughness:.9,side:THREE.DoubleSide,transparent:true,opacity:.55,depthWrite:false}));
   place('VAGN',nerveGroup,matte(0xe4c98c),'vagus');
   place('PHRN',nerveGroup,matte(0xf0d79a),'phrenic');
@@ -480,7 +485,7 @@ function restoreCase(){try{const v=JSON.parse(localStorage.getItem('lungDemoCase
 function renderLesionTabs(){const box=$('lesionTabs');box.replaceChildren();lesions.forEach((l,i)=>{const b=document.createElement('button');b.className='lesion-tab'+(i===activeIndex?' active':'');b.textContent=`病灶 ${i+1}`;b.addEventListener('click',()=>{if(placement)togglePlacement();activeIndex=i;syncLesionUI();updateTumor();});box.appendChild(b);});$('addLesion').disabled=lesions.length>=3;$('removeLesion').disabled=lesions.length<=1;}
 function syncLesionUI(){const l=activeLesion();$('locationSelect').value=l.location;$('size').value=l.size;$('sizeValue').textContent=l.size.toFixed(1)+' cm';$('placeBtn').hidden=l.location==='TR'||l.location==='SC';$('placementState').textContent=l.mode==='free'?'目前：自由設定位置':'目前：固定示範位置';renderLesionTabs();}
 function updateTumor(){
-  const visible=$('showTumor').checked;
+  const visible=$('showTumor').checked||currentPreset==='scope';
   for(const l of lesions){const radius=l.size*.065;
     const pos=l.mode==='free'?l.point.clone().addScaledVector(l.normal,-Math.max(.12,radius+.045)):new THREE.Vector3(...presetLesionPosition(l.location,l.size));
     compressPointForEffusion(pos,l.location[0],effusionStrength(l.location[0]));
@@ -524,14 +529,19 @@ function updateView(){
   $('labels').style.display=$('showLabels').checked?'block':'none';
   updateTumor();
 }
-// The body views need the camera farther out than the lung-only views.
-const views={chest:{position:[0,.15,7.9],target:[0,-.1,0]},body:{position:[0,.4,11.6],target:[0,0,0]}};
+// One default view; showing bones or the exterior never rescales the model.
+const views={chest:{position:[0,.15,7.9],target:[0,-.1,0]}};
 function setView(name){const v=views[name];camera.position.set(...v.position);controls.target.set(...v.target);controls.update();}
-const bodyShown=()=>$('showSkin').checked||$('showSkeleton').checked;
+// While the scope demo runs, the lesion is always shown (the active lesion, or
+// the default one when none was placed); the earlier setting returns afterwards.
+let tumorBeforeScope=null;
 function preset(name){
   if(drain.active)stopDrain();
   if(tbna.active)stopTbna();
-  currentPreset=name;document.querySelectorAll('.preset').forEach(b=>b.classList.toggle('active',b.dataset.preset===name));
+  const wasScope=currentPreset==='scope';
+  currentPreset=name;
+  if(name==='scope'){if(!wasScope)tumorBeforeScope=$('showTumor').checked;$('showTumor').checked=true;}
+  else if(wasScope&&tumorBeforeScope!==null){$('showTumor').checked=tumorBeforeScope;tumorBeforeScope=null;}document.querySelectorAll('.preset').forEach(b=>b.classList.toggle('active',b.dataset.preset===name));
   $('opacity').value= name==='inside'||name==='scope'?18:100;$('showLungs').checked=true;$('showBronchi').checked=true;
   $('showHeart').checked=name!=='inside'&&name!=='scope';$('showNerves').checked=false;
   $('showMediastinum').checked=name==='inside';
@@ -540,11 +550,6 @@ function preset(name){
 }
 document.querySelectorAll('.preset').forEach(b=>b.addEventListener('click',()=>preset(b.dataset.preset)));
 for(const id of ['showLungs','showBronchi','showHeart','showAorta','showCarotids','showJugulars','showPulmArtery','showPulmVein','showNerves','showLabels','opacity','showMediastinum','showDiaphragm','showSkeleton','showSkin'])$(id).addEventListener('input',updateView);
-// Step back to fit the chest wall when it appears, and in again when it goes.
-for(const id of ['showSkeleton','showSkin'])$(id).addEventListener('input',()=>{
-  const distance=camera.position.distanceTo(controls.target);
-  if(bodyShown()&&distance<10.5)setView('body');else if(!bodyShown()&&distance>9)setView('chest');
-});
 function updateBreathVolumeLabel(){$('breathVolumeValue').textContent=$('breathVolume').value+'%';}
 $('breathVolume').addEventListener('input',updateBreathVolumeLabel);
 $('breathSound').addEventListener('change',async()=>{
@@ -674,7 +679,7 @@ $('addLesion').addEventListener('click',()=>{if(lesions.length>=3)return;if(plac
 $('removeLesion').addEventListener('click',()=>{if(lesions.length<=1)return;if(placement)togglePlacement();const [l]=lesions.splice(activeIndex,1);scene.remove(l.mesh,l.halo);l.mesh.geometry.dispose();l.mesh.material.dispose();l.halo.geometry.dispose();l.halo.material.dispose();activeIndex=Math.min(activeIndex,lesions.length-1);syncLesionUI();updateTumor();});
 function togglePlacement(){placement=!placement;if(placement&&auscultation)setAuscMode(false);$('placeBtn').classList.toggle('on',placement);$('placeBtn').textContent=placement?'完成調整':'自由調整肺內位置';renderer.domElement.style.cursor=placement?'crosshair':'grab';controls.enabled=!placement;if(placement)toast('點選或拖曳肺葉位置');}
 $('placeBtn').addEventListener('click',togglePlacement);
-$('resetView').addEventListener('click',()=>setView(bodyShown()?'body':'chest'));
+$('resetView').addEventListener('click',()=>setView('chest'));
 $('procedure').addEventListener('input',()=>{
   const progress=$('procedure').value;
   if(currentPreset!=='scope'){
@@ -810,7 +815,7 @@ const drainPaths={
   L:{outside:[2.6,-1.30,-.45],skin:[2.143,-1.241,-.451],rib:[1.745,-1.241,-.451],pleura:[1.60,-1.20,-.44],coil:[1.48,-1.00,-.38],wall:[1.59,-1.00,-.38]}
 };
 let drainPlaying=false,drainCatheter=null,drainLastFill=-1;
-const drainGroup=new THREE.Group();scene.add(drainGroup);
+const drainGroup=new THREE.Group();drainGroup.visible=false;scene.add(drainGroup);
 const drainDrops=Array.from({length:5},()=>{const drop=new THREE.Mesh(new THREE.SphereGeometry(.026,10,8),new THREE.MeshBasicMaterial({color:0x4f93ad,depthTest:false,transparent:true}));drop.renderOrder=46;drainGroup.add(drop);return drop;});
 function drainRoute(side){
   const p=drainPaths[side],v=a=>new THREE.Vector3(...a);
@@ -886,7 +891,7 @@ function stopDrain(){
 $('drainProgress').addEventListener('input',()=>{startDrain();drainPlaying=false;$('drainPlay').textContent='▶ 播放';updateDrain();});
 $('drainPlay').addEventListener('click',()=>{startDrain();if(+$('drainProgress').value>=100)$('drainProgress').value=0;drainPlaying=!drainPlaying;$('drainPlay').textContent=drainPlaying?'Ⅱ 暫停':'▶ 播放';});
 $('drainReset').addEventListener('click',()=>{startDrain();$('drainProgress').value=0;drainPlaying=false;$('drainPlay').textContent='▶ 播放';updateDrain();});
-$('drainExit').addEventListener('click',()=>{if(drain.active){stopDrain();$('opacity').value=100;updateView();setView(bodyShown()?'body':'chest');}});
+$('drainExit').addEventListener('click',()=>{if(drain.active){stopDrain();$('opacity').value=100;updateView();setView('chest');}});
 // Opening the panel or switching sides plays the demonstration from the start.
 function playDrainFromStart(){drain.active=false;startDrain();$('drainProgress').value=0;drainPlaying=true;$('drainPlay').textContent='Ⅱ 暫停';updateDrain();}
 $('drainSide').addEventListener('change',playDrainFromStart);
@@ -959,29 +964,37 @@ function updateTbna(){
     v<60?'步驟 2：超音波探頭貼住氣道壁，找到淋巴結（淺色扇形為超音波視野）。':
     v<85?'步驟 3：穿刺針經氣道壁刺入淋巴結。':'步驟 4：在淋巴結內來回抽吸取樣（示意）。';
 }
-function startTbna(){
-  if(tbna.active)return;
-  if(drain.active)stopDrain();
-  if(currentPreset==='scope')preset('natural');
-  tbna.active=true;
-  $('opacity').value=15;$('showHeart').checked=true;$('showBronchi').checked=true;$('showMediastinum').checked=true;
+// The heart, great vessels, esophagus and azygos hide the nodes, so the demo
+// starts with them off (turn them on again under 顯示構造). The earlier
+// settings come back when the demo ends.
+let tbnaSaved=null;
+function aimTbna(){
   // Right and left stations are seen front-obliquely from their own side; the
   // subcarinal node sits behind the great vessels, so it is seen from behind right.
   const key=$('tbnaStation').value,node=stations[key].node;
   const direction=key==='7'?[-.75,.2,-.62]:key.includes('L')?[.6,.25,.76]:[-.6,.25,.76];
   controls.target.set(node[0]*.5,.8,-.25);
   camera.position.set(controls.target.x+direction[0]*4.4,controls.target.y+direction[1]*4.4,controls.target.z+direction[2]*4.4);controls.update();
-  updateView();updateTbna();
+}
+function startTbna(){
+  if(tbna.active)return;
+  if(drain.active)stopDrain();
+  if(currentPreset==='scope')preset('natural');
+  tbna.active=true;
+  tbnaSaved={opacity:$('opacity').value,heart:$('showHeart').checked,mediastinum:$('showMediastinum').checked};
+  $('opacity').value=15;$('showBronchi').checked=true;$('showHeart').checked=false;$('showMediastinum').checked=false;
+  aimTbna();updateView();updateTbna();
 }
 function stopTbna(){
   tbna.active=false;tbnaPlaying=false;$('tbnaPlay').textContent='▶ 播放';
+  if(tbnaSaved){$('opacity').value=tbnaSaved.opacity;$('showHeart').checked=tbnaSaved.heart;$('showMediastinum').checked=tbnaSaved.mediastinum;tbnaSaved=null;}
   updateTbna();updateView();
 }
-function playTbnaFromStart(){tbna.active=false;startTbna();$('tbnaProgress').value=0;tbnaPlaying=true;$('tbnaPlay').textContent='Ⅱ 暫停';updateTbna();}
+function playTbnaFromStart(){if(!tbna.active)startTbna();else aimTbna();$('tbnaProgress').value=0;tbnaPlaying=true;$('tbnaPlay').textContent='Ⅱ 暫停';updateTbna();}
 $('tbnaProgress').addEventListener('input',()=>{startTbna();tbnaPlaying=false;$('tbnaPlay').textContent='▶ 播放';updateTbna();});
 $('tbnaPlay').addEventListener('click',()=>{startTbna();if(+$('tbnaProgress').value>=100)$('tbnaProgress').value=0;tbnaPlaying=!tbnaPlaying;$('tbnaPlay').textContent=tbnaPlaying?'Ⅱ 暫停':'▶ 播放';});
 $('tbnaReset').addEventListener('click',()=>{startTbna();$('tbnaProgress').value=0;tbnaPlaying=false;$('tbnaPlay').textContent='▶ 播放';updateTbna();});
-$('tbnaExit').addEventListener('click',()=>{if(tbna.active){stopTbna();$('opacity').value=100;$('showMediastinum').checked=false;updateView();setView(bodyShown()?'body':'chest');}});
+$('tbnaExit').addEventListener('click',()=>{if(tbna.active){stopTbna();setView('chest');}});
 $('tbnaStation').addEventListener('change',playTbnaFromStart);
 $('tbnaPanel').addEventListener('toggle',()=>{if($('tbnaPanel').open)playTbnaFromStart();});
 

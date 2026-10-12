@@ -5,6 +5,7 @@ import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { voxelize } from './voxelize.mjs';
+import { loadLungVolume } from './lung-volume.mjs';
 import { aortaPoints, aortaRadius } from './src/aorta-path.js';
 import { routes } from './src/airway-routes.js';
 
@@ -168,6 +169,26 @@ function pushOut(mesh, rules, label) {
   return { positions: mesh.positions.map((p, i) => p.map((v, k) => v + disp[i][k])), indices: mesh.indices };
 }
 
+// BodyParts3D crops leave stray slivers (the bottom of the neck-only left
+// carotid, 4-vertex specks of esophagus), which float as dots. Drop connected
+// pieces with fewer than minVertices vertices.
+function dropSmallPieces(mesh, minVertices) {
+  const parent = mesh.positions.map((_, i) => i);
+  const find = a => { while (parent[a] !== a) { parent[a] = parent[parent[a]]; a = parent[a]; } return a; };
+  for (let i = 0; i < mesh.indices.length; i += 3) {
+    const a = find(mesh.indices[i]);
+    parent[find(mesh.indices[i + 1])] = a;
+    parent[find(mesh.indices[i + 2])] = find(a);
+  }
+  const size = new Map();
+  for (const v of new Set(mesh.indices)) size.set(find(v), (size.get(find(v)) || 0) + 1);
+  const indices = [];
+  for (let i = 0; i < mesh.indices.length; i += 3) if (size.get(find(mesh.indices[i])) >= minVertices) indices.push(mesh.indices[i], mesh.indices[i + 1], mesh.indices[i + 2]);
+  const kept = mesh.indices.length / 3 - indices.length / 3;
+  if (kept) console.log(`dropped ${kept} triangles in pieces under ${minVertices} vertices`);
+  return crop({ positions: mesh.positions, indices }, () => true);
+}
+
 function firstPerName(files) {
   const seen = new Set();
   return files.filter(file => !seen.has(file.name) && seen.add(file.name));
@@ -186,7 +207,17 @@ function add(key, files, { cell = 0, keep = null, planes = null, adjust = null }
 }
 
 const airway = listObj('airway').filter(file => !['FJ6588', 'FJ2539'].includes(file.id));
-add('AIRW', airway, { cell: 0.9 });
+// Ten right-lung segment pieces stick out of the lung surface by 3-16 mm (the
+// BodyParts3D parts come from different models). They showed as cream dots at
+// the apex and tubes through the base. Trim peripheral triangles with a vertex
+// 1 mm or more outside the lungs; after the pieces are welded, isolated stubs
+// of fewer than 30 vertices are dropped. The trachea and main bronchi stay whole.
+const lungVolume = loadLungVolume(root);
+const isCentral = file => /^(Trachea|Left main bronchus|Right main bronchus)/.test(file.name);
+const peripheral = merge(airway.filter(file => !isCentral(file)).map(file => readObj(file.path)));
+const trimmed = crop(peripheral, p => lungVolume.distance(p) < 1);
+console.log(`AIRW trimmed ${(peripheral.indices.length - trimmed.indices.length) / 3} of ${peripheral.indices.length / 3} peripheral triangles outside the lungs`);
+groups.push({ key: 'AIRW', mesh: dropSmallPieces(decimate(merge([merge(airway.filter(isCentral).map(file => readObj(file.path))), trimmed]), 0.9), 30) });
 
 const airwayVoxels = voxelize(airway.map(file => readObj(file.path)));
 const vertebraFiles = firstPerName(listObj('skeleton')).filter(file => /vertebra/i.test(file.name));
@@ -239,13 +270,16 @@ const azygosRules = [
 
 const mediastinum = listObj('mediastinum');
 const pick = pattern => mediastinum.filter(file => pattern.test(file.name));
-add('ESOP', pick(/^Esophagus$/), { keep: below(chest.top) });
+add('ESOP', pick(/^Esophagus$/), { keep: below(chest.top), adjust: mesh => dropSmallPieces(mesh, 20) });
 add('DIAP', pick(/^Diaphragm$/), { cell: 3 });
 add('AZYG', pick(/azygos/i), { cell: 1.5, adjust: mesh => pushOut(mesh, azygosRules, 'AZYG') });
-add('VAGN', pick(/vagus/i), { cell: 1.5, keep: below(chest.top) });
+add('VAGN', pick(/vagus/i), { cell: 1.5, keep: below(chest.top), adjust: mesh => dropSmallPieces(mesh, 20) });
 add('PHRN', pick(/phrenic/i), { keep: below(chest.top) });
 
-add('ARTS', listObj('arteries'), { keep: below(chest.top) });
+// The neck-only left common carotid starts above the arch by 1.7 units; its
+// bottom sliver floats beside the trachea, so the left carotid is drawn in
+// code from the arch instead (main.js) and small pieces are dropped here.
+add('ARTS', listObj('arteries'), { keep: below(chest.top), adjust: mesh => dropSmallPieces(mesh, 100) });
 
 const skeleton = firstPerName(listObj('skeleton'));
 const bones = skeleton.filter(file => !/costal cartilage/i.test(file.name));

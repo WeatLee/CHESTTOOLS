@@ -79,6 +79,9 @@ for (const [key, segment] of Object.entries(segments)) {
   assert.ok(distance(route.at(-1), fixedTargets[key]) < 1e-9, `${key} lesion and route must coincide`);
   const tip = route.at(-1), lobe = lobeMeshes[segment.lobe];
   assert.ok(inside(tip, lobe) || nearestSurface(tip, lobe) < .3, `${key} tip must lie in or beside its lobe`);
+  // Some BodyParts3D segment pieces poke out of the lung; a route tip (and the lesion marker placed on it) must not.
+  const sideLungs = Object.entries(lobeMeshes).filter(([name]) => name[0] === segment.lobe[0]).map(([, mesh]) => mesh);
+  assert.ok(sideLungs.some(mesh => inside(tip, mesh)) || Math.min(...sideLungs.map(mesh => nearestSurface(tip, mesh))) < .04, `${key} tip must lie inside the lung (within 3 mm)`);
   assert.ok(key[0] === 'R' ? tip[0] < 0 : tip[0] > 0, `${key} must stay on its own side`);
 }
 for (const lobe of Object.keys(lobeRoutes)) assert.equal(segments[lobeRoutes[lobe]].lobe, lobe, `${lobe} must follow one of its own segments`);
