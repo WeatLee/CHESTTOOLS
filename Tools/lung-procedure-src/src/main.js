@@ -948,10 +948,10 @@ function updateTbna(){
     // A 60° fan from the probe toward the node, in the plane of scope and node.
     const tangent=route.length>1?route.at(-1).clone().sub(route.at(-2)).normalize():new THREE.Vector3(0,-1,0);
     const normal=new THREE.Vector3().crossVectors(tangent,toward).normalize();
-    const fan=new THREE.CircleGeometry(.42,32,-Math.PI/6,Math.PI/3);
+    const fan=new THREE.CircleGeometry(.62,32,-Math.PI/6,Math.PI/3);
     const basis=new THREE.Matrix4().makeBasis(toward,new THREE.Vector3().crossVectors(normal,toward),normal);
     fan.applyMatrix4(basis);fan.translate(wall.x,wall.y,wall.z);
-    tbnaFan=new THREE.Mesh(fan,new THREE.MeshBasicMaterial({color:0x6fb3cf,transparent:true,opacity:Math.min(.38,(v-35)/45),side:THREE.DoubleSide,depthTest:false,depthWrite:false}));
+    tbnaFan=new THREE.Mesh(fan,new THREE.MeshBasicMaterial({color:0x1b9ad6,transparent:true,opacity:Math.min(.6,(v-35)/35),side:THREE.DoubleSide,depthTest:false,depthWrite:false}));
     tbnaFan.renderOrder=13;tbnaGroup.add(tbnaFan);
   }
   if(v>60){

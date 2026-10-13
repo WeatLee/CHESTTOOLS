@@ -1,0 +1,15 @@
+{
+  "name": "lung-showcase",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build:web": "node clean-web.mjs && esbuild ./src/entry.js --bundle --splitting --minify --format=esm --outdir=web/lung-showcase --entry-names=main --chunk-names=chunks/[name]-[hash] && node package-web.mjs",
+    "test": "node smoke.mjs"
+  },
+  "license": "SEE LICENSE IN THIRD_PARTY_NOTICES.txt",
+  "type": "module",
+  "dependencies": {
+    "esbuild": "^0.28.2",
+    "three": "^0.186.1"
+  }
+}
