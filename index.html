@@ -24,10 +24,12 @@
             background: white; padding: 20px;
             border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             text-decoration: none; display: block; color: #333;
+            width: 100%; min-height: 180px; height: var(--card-height, auto); flex: none;
             transition: 0.3s;
         }
         .card:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
-        .card h2 { margin-top: 0; color: #3498db; }
+        .card h2 { margin: 0; color: #3498db; font-size: 24px; line-height: 1.3; }
+        .card p { margin: 12px 0 0; line-height: 1.6; }
         .card.acls { background: #0d171c; color: #dbe8ec; border-left: 5px solid #ff4b4b; }
         .card.acls h2 { color: #ff7b7b; }
         .card.acls p { color: #91a3aa; }
@@ -70,8 +72,7 @@
                 </a>
 
                 <a href="Tools/date-calc.html?v=20261003" class="card">
-                    <div class="icon">📅</div>
-                    <h2>日期追蹤計算</h2>
+                    <h2>📅 日期追蹤計算</h2>
                     <p>快速推算 28, 56, 84, 90 天後的日期</p>
                 </a>
 
@@ -79,11 +80,6 @@
                 <a href="Tools/slide-straightener.html?v=20261004" class="card" style="border-left:5px solid #087f91">
                     <h2>📐 投影片照片拉正</h2>
                     <p>多張照片逐張自動找四角、精準修正並輸出圖片；可安裝為 App</p>
-                </a>
-
-                <a href="Tools/nurse.html" class="card">
-                    <h2>醫療現況模擬器</h2>
-                    <p>醫療困境</p>
                 </a>
 
                 <a href="Tools/abg-calc.html?v=20261003" class="card">
@@ -135,6 +131,19 @@
         <a href="https://weatlee.github.io/CHESTTOOLS/">weatlee.github.io/CHESTTOOLS/</a>
     </dialog>
     <script>
+    (() => {
+        const cards = [...document.querySelectorAll('.card')];
+        const columns = document.querySelector('.card-columns');
+        const sizeCards = () => {
+            columns.style.removeProperty('--card-height');
+            const height = Math.ceil(Math.max(...cards.map(card => card.getBoundingClientRect().height)));
+            columns.style.setProperty('--card-height', height + 'px');
+        };
+        sizeCards();
+        window.addEventListener('resize', sizeCards);
+        if (document.fonts) document.fonts.ready.then(sizeCards);
+    })();
+
     (() => {
         const dialog = document.getElementById('share-tools-dialog');
         document.getElementById('share-tools-button').addEventListener('click', () => dialog.showModal());
