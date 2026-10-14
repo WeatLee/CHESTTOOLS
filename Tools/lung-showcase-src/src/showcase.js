@@ -52,9 +52,20 @@ export function startShowcase(api) {
       steps.appendChild(item);
     });
   }
+  const nowStep = $('nowStep'), dock = $('dock'), panel = $('panel'), stepsToggle = $('stepsToggle');
+  let shownStep = -1;
+  function showNow(demo, index) {
+    if (index === shownStep) return;
+    shownStep = index;
+    const step = demo.steps[index];
+    nowStep.querySelector('.n').textContent = String(index + 1);
+    nowStep.querySelector('.t').textContent = step.title;
+    nowStep.querySelector('.d').textContent = step.text;
+  }
   function highlight(demo, progress) {
     let active = 0;
     demo.steps.forEach((step, index) => { if (progress >= step.at) active = index; });
+    showNow(demo, active);
     [...steps.children].forEach((item, index) => {
       item.classList.toggle('active', index === active);
       item.classList.toggle('done', index < active);
@@ -99,6 +110,9 @@ export function startShowcase(api) {
       $('demoWhen').textContent = demo.when;
       $('extra').replaceChildren();
       document.querySelector('.player').hidden=!!demo.noPlayer;
+      dock.hidden = !!(demo.noPlayer || demo.staticSteps);
+      stepsToggle.hidden = !!demo.staticSteps;
+      shownStep = -1;
       steps.classList.toggle('plain',!!demo.staticSteps);
       $('pip').hidden = true;
       $('ctPanel').hidden = true;
@@ -135,6 +149,20 @@ export function startShowcase(api) {
     demo.seek ? demo.seek(ctx, +seek.value) : ctx.setVal(demo.slider, seek.value);
   });
   $('viewReset').addEventListener('click', () => DEMOS[current]?.camera ? api.setCamera(...DEMOS[current].camera) : api.resetView());
+
+  // On a phone the player moves under the picture and stays there; on a wide screen it sits in the panel.
+  const phone = matchMedia('(max-width:959px)');
+  const placePlayer = () => {
+    const player = document.querySelector('.player');
+    if (phone.matches) dock.appendChild(player); else panel.insertBefore(player, stepsToggle);
+  };
+  phone.addEventListener('change', placePlayer);
+  placePlayer();
+  stepsToggle.addEventListener('click', () => {
+    const open = panel.classList.toggle('show-steps');
+    stepsToggle.textContent = open ? '收起步驟 ▴' : '看全部步驟 ▾';
+    stepsToggle.setAttribute('aria-expanded', String(open));
+  });
 
   // The hint about gestures fades after the first touch or drag.
   const hint = document.querySelector('.gesture-hint');
