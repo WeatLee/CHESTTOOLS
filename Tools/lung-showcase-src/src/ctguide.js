@@ -315,7 +315,7 @@ export function createCtDemo() {
     title: '電腦斷層（CT）導引穿刺切片',
     when: '當腫瘤長在肺的外圍、靠近胸壁，支氣管鏡不容易到達時，醫師會在電腦斷層的導引下，用細針從胸壁穿刺取樣。檢查時病人躺在檢查台上，醫師邊看影像邊調整針的方向。',
     camera: [[-6.8, 1.7, 5.8], [-.3, -.2, 0]],
-    pictures: [{ src: 'lung-showcase/images/ct-table.webp', caption: '病人躺在檢查台上，醫師看著影像引導針進入' }],
+    pictures: [{ src: 'lung-showcase/images/ct-table.svg', caption: '病人躺在檢查台上，醫師看著影像引導針進入' }],
     steps: [
       { at: 0, title: '檢查前掃描', text: '病人躺在檢查台上，皮膚貼上有刻度的標記貼。先做電腦斷層掃描，找到腫瘤（黃色）的位置。' },
       { at: 12, title: '規劃安全的針道', text: `在影像上選一條最短、又能避開肋骨、大血管和心臟的路徑，量出皮膚到腫瘤約 ${depthCm} 公分。` },

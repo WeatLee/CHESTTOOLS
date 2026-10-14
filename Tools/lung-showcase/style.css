@@ -40,10 +40,11 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .pip{position:absolute;right:10px;bottom:30px;width:38%;max-width:200px;aspect-ratio:1;border-radius:50%;overflow:hidden;border:3px solid #fffffff0;box-shadow:0 4px 18px #1c2e2c40;background:#222;z-index:5}
 .pip canvas{width:100%;height:100%;display:block}
 .pip span{position:absolute;left:0;right:0;bottom:6%;text-align:center;font-size:11px;color:#fff;text-shadow:0 1px 3px #000}
-.ctpanel{position:absolute;left:10px;bottom:30px;width:46%;max-width:300px;aspect-ratio:1;border-radius:12px;overflow:hidden;border:2px solid #fffffff0;box-shadow:0 4px 18px #1c2e2c40;background:#000;z-index:5;transition:width .25s,max-width .25s}
-.ctpanel.big{width:min(94%,520px);max-width:none;left:50%;transform:translateX(-50%);bottom:38px}
+.ctpanel{position:absolute;right:10px;bottom:30px;width:36%;min-width:110px;max-width:300px;aspect-ratio:1;border-radius:12px;overflow:hidden;border:2px solid #fffffff0;box-shadow:0 4px 18px #1c2e2c40;background:#000;z-index:5;transition:width .25s,max-width .25s}
+.ctpanel.big{width:min(94%,520px);max-width:none;right:auto;left:50%;transform:translateX(-50%);bottom:38px}
 .ctpanel canvas{width:100%;height:100%;display:block}
 .ctpanel span{position:absolute;left:0;right:0;bottom:4px;text-align:center;font-size:11px;color:#dfe8e6;text-shadow:0 1px 3px #000;pointer-events:none}
+@media (max-width:959px){.ctpanel:not(.big) span{display:none}}
 
 /* panel */
 .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
