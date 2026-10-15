@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>肺部 3D 衛教展示｜示意圖</title>
   <meta name="description" content="肺部 3D 衛教展示：支氣管鏡切片、EBUS-TBNA、胸腔引流、呼吸音與電腦斷層導引穿刺的示意動畫。所有內容皆為示意圖，非實際病情。">
-  <link rel="stylesheet" href="lung-showcase/style.css?v=20261014-mv7kbaqe">
+  <link rel="stylesheet" href="lung-showcase/style.css?v=20261015-mv90x314">
 </head>
 <body>
   <div class="app">
@@ -14,6 +14,7 @@
     </header>
     <nav id="tabs" class="tabs" aria-label="展示項目"></nav>
     <main class="stage">
+      <div class="sticky-top" id="stickyTop">
       <section class="viewer" id="viewer">
         <div id="viewport"></div>
         <div id="labels"></div>
@@ -25,6 +26,10 @@
         <button id="viewReset" class="icon-btn" type="button" aria-label="重設視角" title="重設視角">⟲</button>
         <p class="gesture-hint">單指拖曳旋轉，雙指縮放</p>
       </section>
+      <div class="dock" id="dock">
+        <div id="nowStep" class="nowstep" aria-live="polite"><span class="n">1</span><div><div class="t"></div><div class="d"></div></div></div>
+      </div>
+      </div>
       <section class="panel" id="panel">
         <div class="demo-head"><span id="demoNo" class="demo-no">1</span><h2 id="demoTitle"></h2></div>
         <p id="demoWhen" class="when"></p>
@@ -33,6 +38,7 @@
           <button id="btnReplay" type="button">↺ 重播</button>
           <input id="seek" type="range" min="0" max="100" step="any" value="0" aria-label="播放進度">
         </div>
+        <button id="stepsToggle" class="steps-toggle" type="button" aria-expanded="false">看全部步驟 ▾</button>
         <ol id="steps" class="steps"></ol>
         <div id="extra"></div>
         <p class="disclaimer">本頁所有示範均為<strong>示意圖</strong>，用來說明檢查或處置的大致流程，<strong>並非實際病情、實際病人影像或實際手術畫面</strong>。實際作法、位置與風險會依每位病人的狀況而不同，請與您的醫師討論。</p>
@@ -145,6 +151,6 @@
       if (box) { box.textContent = '3D 模型無法載入：' + (event.message || '請用最新版 Chrome、Edge 或 Safari 開啟，並按 Ctrl+F5 重新整理'); box.classList.add('error'); }
     });
   </script>
-  <script type="module" src="lung-showcase/main.js?v=20261014-mv7kbaqe"></script>
+  <script type="module" src="lung-showcase/main.js?v=20261015-mv90x314"></script>
 </body>
 </html>
