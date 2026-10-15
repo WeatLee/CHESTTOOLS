@@ -13,7 +13,7 @@ const pictures = {
   tbna: [{ src: 'lung-showcase/images/tbna-room.webp', caption: '超音波支氣管鏡檢查的情形' }],
   drain: [{ src: 'lung-showcase/images/pigtail-bedside.webp', caption: '床邊放置胸腔引流管的情形' }],
   sound: [{ src: 'lung-showcase/images/auscultation.webp', caption: '用聽診器聽診的情形' }],
-  ct: [{ src: 'lung-showcase/images/ct-table.svg', caption: '病人躺在檢查台上，醫師看著影像引導針進入' }]
+  ct: [{ src: 'lung-showcase/images/ct-table.webp', caption: 'AI 生成之示意圖：病人躺在檢查台上，醫師看著影像引導針進入' }]
 };
 
 // Demos driven by one of the engine's built-in players (slider, play and reset buttons).

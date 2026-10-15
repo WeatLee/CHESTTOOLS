@@ -82,11 +82,12 @@ export function startShowcase(api) {
       figure.hidden = true;
       const image = new Image();
       image.alt = picture.caption;
-      image.loading = 'lazy';
+      image.loading = 'eager';
       image.addEventListener('load', () => { figure.hidden = false; });
       image.src = picture.src;
       const caption = document.createElement('figcaption');
       caption.textContent = `${picture.caption}（示意圖，非實際病情）`;
+      if (picture.credit) { const credit = document.createElement('small'); credit.className = 'credit'; credit.textContent = picture.credit; caption.append(document.createElement('br'), credit); }
       figure.append(image, caption);
       gallery.appendChild(figure);
     }
@@ -158,6 +159,16 @@ export function startShowcase(api) {
   };
   phone.addEventListener('change', placePlayer);
   placePlayer();
+  // The picture is large on the first screen and shrinks after the first scroll (with a gap so it never flickers).
+  const stickyTop = $('stickyTop');
+  let compact = false;
+  const syncCompact = () => {
+    const y = window.scrollY;
+    const next = phone.matches && (compact ? y > 40 : y > 140);
+    if (next !== compact) { compact = next; stickyTop.classList.toggle('compact', compact); }
+  };
+  window.addEventListener('scroll', syncCompact, { passive: true });
+  phone.addEventListener('change', syncCompact);
   stepsToggle.addEventListener('click', () => {
     const open = panel.classList.toggle('show-steps');
     stepsToggle.textContent = open ? '收起步驟 ▴' : '看全部步驟 ▾';
