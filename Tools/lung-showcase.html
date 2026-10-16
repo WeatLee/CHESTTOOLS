@@ -5,12 +5,16 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>肺部 3D 衛教展示｜示意圖</title>
   <meta name="description" content="肺部 3D 衛教展示：支氣管鏡切片、EBUS-TBNA、胸腔引流、呼吸音與電腦斷層導引穿刺的示意動畫。所有內容皆為示意圖，非實際病情。">
-  <link rel="stylesheet" href="lung-showcase/style.css?v=20261015-mv90x314">
+  <link rel="stylesheet" href="lung-showcase/style.css?v=20261016-mvb511pf">
 </head>
 <body>
   <div class="app">
     <header class="top">
       <div class="brand"><span class="mark">✦</span><div><h1>肺部 3D 衛教展示</h1><p>所有內容皆為示意圖，非實際病情</p></div></div>
+      <div id="voicebar" class="voicebar" role="group" aria-label="語音導覽">
+        <button id="voiceToggle" type="button" aria-pressed="false">🔇 語音：關</button>
+        <label>語言 <select id="voiceLang" aria-label="語音與步驟文字語言"></select></label>
+      </div>
     </header>
     <nav id="tabs" class="tabs" aria-label="展示項目"></nav>
     <main class="stage">
@@ -151,6 +155,6 @@
       if (box) { box.textContent = '3D 模型無法載入：' + (event.message || '請用最新版 Chrome、Edge 或 Safari 開啟，並按 Ctrl+F5 重新整理'); box.classList.add('error'); }
     });
   </script>
-  <script type="module" src="lung-showcase/main.js?v=20261015-mv90x314"></script>
+  <script type="module" src="lung-showcase/main.js?v=20261016-mvb511pf"></script>
 </body>
 </html>
