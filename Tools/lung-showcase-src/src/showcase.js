@@ -32,15 +32,6 @@ export function startShowcase(api) {
       if (!demo.staticSteps) highlight(demo, progressOf(demo)); // re-shows the caption and, with voice on, reads it
     }
   });
-  // Pauses a running animation for the length of a clip; the returned function restarts it.
-  const pauseForVoice = demo => () => {
-    if (demo.staticSteps || !isPlaying(demo)) return null;
-    demo.pause ? demo.pause(ctx) : ctx.click(demo.play);
-    return () => {
-      if (DEMOS[current] !== demo || isPlaying(demo) || progressOf(demo) >= 99.9) return;
-      demo.resume ? demo.resume(ctx) : ctx.click(demo.play);
-    };
-  };
 
   // ---- tabs ----
   DEMOS.forEach((demo, index) => {
@@ -86,7 +77,7 @@ export function startShowcase(api) {
     nowStep.querySelector('.n').textContent = String(index + 1);
     nowStep.querySelector('.t').textContent = words.t;
     nowStep.querySelector('.d').textContent = words.d;
-    voice.stepChanged(demo, index, pauseForVoice(demo));
+    voice.stepChanged(demo, index, isPlaying(demo));
   }
   function highlight(demo, progress) {
     let active = 0;
@@ -162,10 +153,9 @@ export function startShowcase(api) {
   btnPlay.addEventListener('click', () => {
     const demo = DEMOS[current];
     if (!demo) return;
-    voice.stop();
-    if (isPlaying(demo)) { demo.pause ? demo.pause(ctx) : ctx.click(demo.play); return; }
-    if (progressOf(demo) >= 99.9) demo.replay ? demo.replay(ctx) : (ctx.click(demo.reset), ctx.click(demo.play));
-    else demo.resume ? demo.resume(ctx) : ctx.click(demo.play);
+    if (isPlaying(demo)) { voice.pauseAudio(); demo.pause ? demo.pause(ctx) : ctx.click(demo.play); return; }
+    if (progressOf(demo) >= 99.9) { voice.stop(); shownStep = -1; demo.replay ? demo.replay(ctx) : (ctx.click(demo.reset), ctx.click(demo.play)); }
+    else { voice.resumeAudio(); demo.resume ? demo.resume(ctx) : ctx.click(demo.play); }
   });
   $('btnReplay').addEventListener('click', () => {
     const demo = DEMOS[current];
@@ -217,13 +207,32 @@ export function startShowcase(api) {
     if (!box.isConnected) $('viewer').appendChild(box);
   });
 
+  // With voice on, the animation runs while a step is being read but stops just before the next step
+  // until the clip has finished; then it carries on and the next step's clip starts.
+  let lastProgress = 0;
+  function holdForVoice(demo, progress) {
+    const step = Math.max(0, progress - lastProgress); // progress made since the previous frame
+    lastProgress = progress;
+    if (!voice.state.on || !voice.busy() || voice.holding() || !isPlaying(demo)) return;
+    const next = demo.steps.find(step => step.at > progress);
+    if (!next || progress + 2 * step < next.at - 0.2) return; // stop a couple of frames early, also on slow phones
+    demo.pause ? demo.pause(ctx) : ctx.click(demo.play);
+    voice.afterClip(() => {
+      if (DEMOS[current] !== demo || isPlaying(demo)) return;
+      demo.resume ? demo.resume(ctx) : ctx.click(demo.play);
+    });
+  }
+
   // ---- per-frame UI sync ----
   function frame() {
     const demo = DEMOS[current];
     if (demo && !entering) {
       const progress = progressOf(demo);
       if (document.activeElement !== seek) seek.value = String(progress);
-      if (!demo.staticSteps) highlight(demo, progress);
+      if (!demo.staticSteps) {
+        highlight(demo, progress);
+        holdForVoice(demo, progress);
+      }
       btnPlay.textContent = isPlaying(demo) ? '⏸ 暫停' : progress >= 99.9 ? '↻ 再看一次' : '▶ 播放';
       demo.frame?.(ctx, progress);
     }
