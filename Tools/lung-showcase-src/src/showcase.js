@@ -3,6 +3,7 @@
 // each demo here sets those controls, so the animations stay identical to the
 // Procedure page while this page shows only captions and a play button.
 import { DEMOS } from './demos.js';
+import { createVoice } from './voice.js';
 
 const $ = id => document.getElementById(id);
 const fire = (element, type) => element.dispatchEvent(new Event(type, { bubbles: true }));
@@ -20,6 +21,26 @@ export function startShowcase(api) {
   let current = -1;
   let entering = false;
   const tabs = $('tabs'), steps = $('steps'), seek = $('seek'), btnPlay = $('btnPlay');
+
+  // ---- voice (narration of the step captions; see voice.js) ----
+  const voice = createVoice({
+    onLangChange() {
+      const demo = DEMOS[current];
+      if (!demo) return;
+      renderSteps(demo);
+      shownStep = -1;
+      if (!demo.staticSteps) highlight(demo, progressOf(demo)); // re-shows the caption and, with voice on, reads it
+    }
+  });
+  // Pauses a running animation for the length of a clip; the returned function restarts it.
+  const pauseForVoice = demo => () => {
+    if (demo.staticSteps || !isPlaying(demo)) return null;
+    demo.pause ? demo.pause(ctx) : ctx.click(demo.play);
+    return () => {
+      if (DEMOS[current] !== demo || isPlaying(demo) || progressOf(demo) >= 99.9) return;
+      demo.resume ? demo.resume(ctx) : ctx.click(demo.play);
+    };
+  };
 
   // ---- tabs ----
   DEMOS.forEach((demo, index) => {
@@ -47,8 +68,11 @@ export function startShowcase(api) {
     demo.steps.forEach((step, index) => {
       const item = document.createElement('li');
       item.dataset.index = String(index);
-      item.innerHTML = `<span class="n">${index + 1}</span><div><div class="t">${step.title}</div><div class="d">${step.text}</div></div>`;
-      if (!demo.staticSteps) item.addEventListener('click', () => demo.seek?.(ctx, step.at + 0.5));
+      const words = voice.caption(demo, index);
+      item.lang = words.lang;
+      item.innerHTML = `<span class="n">${index + 1}</span><div><div class="t">${words.t}</div><div class="d">${words.d}</div></div>`;
+      if (demo.staticSteps) item.addEventListener('click', () => voice.speak(demo, index));
+      else item.addEventListener('click', () => demo.seek?.(ctx, step.at + 0.5));
       steps.appendChild(item);
     });
   }
@@ -57,10 +81,12 @@ export function startShowcase(api) {
   function showNow(demo, index) {
     if (index === shownStep) return;
     shownStep = index;
-    const step = demo.steps[index];
+    const words = voice.caption(demo, index);
+    nowStep.lang = words.lang;
     nowStep.querySelector('.n').textContent = String(index + 1);
-    nowStep.querySelector('.t').textContent = step.title;
-    nowStep.querySelector('.d').textContent = step.text;
+    nowStep.querySelector('.t').textContent = words.t;
+    nowStep.querySelector('.d').textContent = words.d;
+    voice.stepChanged(demo, index, pauseForVoice(demo));
   }
   function highlight(demo, progress) {
     let active = 0;
@@ -98,6 +124,7 @@ export function startShowcase(api) {
     if (entering) return;
     entering = true;
     try {
+      voice.stop();
       const previous = DEMOS[current];
       previous?.exit?.(ctx);
       current = index;
@@ -135,6 +162,7 @@ export function startShowcase(api) {
   btnPlay.addEventListener('click', () => {
     const demo = DEMOS[current];
     if (!demo) return;
+    voice.stop();
     if (isPlaying(demo)) { demo.pause ? demo.pause(ctx) : ctx.click(demo.play); return; }
     if (progressOf(demo) >= 99.9) demo.replay ? demo.replay(ctx) : (ctx.click(demo.reset), ctx.click(demo.play));
     else demo.resume ? demo.resume(ctx) : ctx.click(demo.play);
@@ -142,6 +170,8 @@ export function startShowcase(api) {
   $('btnReplay').addEventListener('click', () => {
     const demo = DEMOS[current];
     if (!demo) return;
+    voice.stop();
+    shownStep = -1; // read the first step again even if it is already showing
     demo.replay ? demo.replay(ctx) : (ctx.click(demo.reset), ctx.click(demo.play));
   });
   seek.addEventListener('input', () => {

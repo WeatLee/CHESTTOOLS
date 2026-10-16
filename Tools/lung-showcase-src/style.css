@@ -200,3 +200,9 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   .nowstep .n{width:32px;height:32px;font-size:16px}
   .nowstep{grid-template-columns:36px 1fr}
 }
+
+/* Voice narration bar (language and on/off) */
+.voicebar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.voicebar button,.voicebar select{min-height:40px;padding:6px 12px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:15px}
+.voicebar button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+.voicebar label{display:flex;gap:6px;align-items:center;font-size:14px;color:var(--soft)}

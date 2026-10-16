@@ -17,4 +17,9 @@ if (existsSync(join(base, 'images'))) {
   mkdirSync(join(base, 'web', 'lung-showcase', 'images'), { recursive: true });
   cpSync(join(base, 'images'), join(base, 'web', 'lung-showcase', 'images'), { recursive: true });
 }
+// Pre-recorded narration (voice/<lang>/*.mp3), built by build-voice.mjs.
+if (existsSync(join(base, 'voice'))) {
+  mkdirSync(join(base, 'web', 'lung-showcase', 'voice'), { recursive: true });
+  cpSync(join(base, 'voice'), join(base, 'web', 'lung-showcase', 'voice'), { recursive: true });
+}
 console.log('Created web/lung-showcase.html and web/lung-showcase assets');
