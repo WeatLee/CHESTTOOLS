@@ -58,3 +58,6 @@ for(const channel of (process.env.QA_CHANNEL?[process.env.QA_CHANNEL]:['msedge',
  }finally{await browser.close();}
 }
 console.log('Selected CHESTTOOLS integration scenarios passed');
+
+
+

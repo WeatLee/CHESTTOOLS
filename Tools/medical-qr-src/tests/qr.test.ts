@@ -23,3 +23,4 @@ test('terrain colours retain strong scan contrast',()=>{
  const luminance=(hex:string)=>{const rgb=hex.match(/[0-9a-f]{2}/gi)!.map(v=>parseInt(v,16)/255).map(v=>v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4));return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;};
  const dark=luminance(CONFIG.qr.dark),light=luminance(CONFIG.qr.light);assert.ok((light+.05)/(dark+.05)>=7);
 });
+

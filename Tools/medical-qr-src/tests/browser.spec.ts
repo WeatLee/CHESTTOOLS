@@ -53,3 +53,8 @@ test('built nested static path retains physical overhead QR',async({page})=>{
  const server=createServer(async(req,res)=>{try{const pathname=new URL(req.url!,'http://localhost').pathname;if(!pathname.startsWith(prefix)){res.writeHead(404).end();return;}const file=path.resolve(root,decodeURIComponent(pathname.slice(prefix.length))||'index.html');if(!file.startsWith(root+path.sep)){res.writeHead(403).end();return;}const mime:any={'.html':'text/html','.js':'text/javascript','.css':'text/css'};res.setHeader('Content-Type',mime[path.extname(file)]||'application/octet-stream');res.end(await fs.readFile(file));}catch{res.writeHead(404).end();}});await new Promise<void>(resolve=>server.listen(4323,'127.0.0.1',resolve));
  try{await page.emulateMedia({reducedMotion:'reduce'});await page.goto('http://127.0.0.1:4323/demo/kmuh/');await ready(page);await qr(page);expect(decode(await page.locator('#scene canvas').screenshot()).text).toBe(CONFIG.defaultUrl);}finally{await new Promise<void>((resolve,reject)=>server.close(e=>e?reject(e):resolve()));}
 });
+
+
+
+
+

@@ -70,8 +70,12 @@ export function createWorld(host:HTMLElement,onSubject:()=>void,onReady:()=>void
   },
   setQrMode(value:boolean){qrMode=value;mode=value?1:0;applyMode();if(!value){yaw=alignFrom.yaw;pitch=alignFrom.pitch;}},
   transitionToQr(value:boolean,done:()=>void){if(transitioning)return;dragging=false;if(value){yaw=THREE.MathUtils.euclideanModulo(yaw+Math.PI,Math.PI*2)-Math.PI;alignFrom={yaw,pitch,y:lung.group.position.y};}transitioning=true;if(reduced){mode=value?1:0;qrMode=value;transitioning=false;applyMode();done();return;}transition={start:performance.now(),from:mode,to:value?1:0,duration:CONFIG.interaction.transitionDuration*1000,done};},
+  /** QA only: freeze the transition at a given progress (0..1). */
+  scrub(value:number){transition=undefined;transitioning=false;mode=THREE.MathUtils.clamp(value,0,1);qrMode=mode===1;applyMode();},
   setReduced(value:boolean){reduced=value;if(value){lung.group.position.y=CONFIG.lung.centerY;applyMode();}dirty=true;},
   stats(){const sorted=[...frames].sort((a,b)=>a-b);return{drawCalls:primaryStats.calls,triangles:primaryStats.triangles,postprocessingPasses:mode===0&&!mobile()&&CONFIG.hospital.blurAmount>0?1:0,lungVoxels:lung.voxelCount,hospitalBlocks:hospital.blockCount,frameSamples:frames.length,medianFrameMs:sorted.length?sorted[Math.floor(sorted.length/2)]:null,p95FrameMs:sorted.length?sorted[Math.floor(sorted.length*.95)]:null,canvas:{width:renderer.domElement.width,height:renderer.domElement.height},qrMode,reduced,cameraMode:mode,qrConstruction:"physical-cube-top-faces",qrSurfaceStyle:"source-colours-and-height-relief",qrValid,qrModules:physicalHospital.moduleCount,qrModuleSize:physicalHospital.step,qrTextureCount:0,qrPlaneCount:0,qrMarkFaces:physicalHospital.markFaces+physicalLung.markFaces,lungTilt:lung.group.rotation.x,lungPose:{y:lung.group.position.y,scaleY:lung.group.scale.y,yaw:lung.group.rotation.y}};},
   dispose(){disposed=true;observer.disconnect();document.removeEventListener('visibilitychange',visibility);scene.traverse(o=>{if(o instanceof THREE.Mesh){o.geometry.dispose();const mats=Array.isArray(o.material)?o.material:[o.material];mats.forEach(m=>m.dispose());}});target.dispose();target.depthTexture?.dispose();postMaterial.dispose();postQuad.geometry.dispose();renderer.dispose();},
  };
 }
+
+

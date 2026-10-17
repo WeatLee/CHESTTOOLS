@@ -107,15 +107,17 @@ export function makePhysicalQr(blocks: Source[], url: string | null, isGround: b
     // Two separated luminance ranges, with source colour and height variation
     // inside each range. Colours never switch when the camera moves.
     const h=THREE.MathUtils.clamp((v.y+v.h/2+3)/9,0,1);
-    if(dark)tint.multiplyScalar(.23+h*.045);
-    else tint.lerp(light,quiet?1:.70);
+    // ICQR-style: dark modules stay saturated mid-tones of the object's own hue
+    // (rose lung, olive grass, terracotta roof); light modules fade toward paper.
+    if(dark){const hsl={h:0,s:0,l:0};tint.getHSL(hsl);tint.setHSL(hsl.h,THREE.MathUtils.clamp(hsl.s*1.3+.12,0,.85),.2+h*.05);}
+    else tint.lerp(light,quiet?1:.78);
     if(!quiet)tint.multiplyScalar(relief?.(v.x,v.y+v.h/2,v.z)??1);
     // Bounded brightness keeps real material variation from confusing local
     // thresholding, especially across the three locator rings on small screens.
     const luminance=(color:THREE.Color)=>color.r*.2126+color.g*.7152+color.b*.0722;
     const value=luminance(tint);
-    if(dark){const ceiling=finder?.065:.105;if(value>ceiling)tint.multiplyScalar(ceiling/value);}
-    else if(!quiet){const floor=finder?.86:.76;if(value<floor)tint.lerp(light,(floor-value)/(luminance(light)-value));}
+    if(dark){const ceiling=finder?.115:.165;if(value>ceiling)tint.multiplyScalar(ceiling/value);}
+    else if(!quiet){const floor=finder?.86:.78;if(value<floor)tint.lerp(light,(floor-value)/(luminance(light)-value));}
     tops.setColorAt(i,tint);
     bounds.set(quiet||finder?[-100,-100,100,100]:[v.source.min.x,v.source.min.z,v.source.max.x,v.source.max.z],i*4);
   });
@@ -146,3 +148,4 @@ export function makePhysicalQr(blocks: Source[], url: string | null, isGround: b
   group.position.y=pivot;
   return {group,count:visible.length,moduleCount:n,step,markFaces,dispose(){for(const mesh of [sides,tops]){mesh.geometry.dispose();(mesh.material as THREE.Material).dispose();mesh.dispose();}if(markMesh){markMesh.geometry.dispose();(markMesh.material as THREE.Material).dispose();}markTexture?.dispose();}};
 }
+

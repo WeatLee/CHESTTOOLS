@@ -49,4 +49,5 @@ updateQr();
 loadQrMark().then(()=>{updateQr();return import('./world.ts');}).then(({createWorld})=>{world=createWorld($('scene'),changeMode,()=>{$('loading').hidden=true;});world.setReduced(reduce.checked);world.setQrCanvas(valid?canvas:null,valid?qrUrl:null);world.setQrMode(state==='QR_IDLE');renderUi();}).catch(e=>{$('loading').hidden=true;$('scene-error').hidden=false;if((e as Error).message.includes('標誌'))feedback.textContent=(e as Error).message;console.warn('3D unavailable; QR fallback remains available',e);});
 // Read-only local diagnostics for reproducible QA; no telemetry is transmitted.
 Object.defineProperty(window,'kmuhDiagnostics',{get:()=>({state,valid,url:qrUrl,phase:'physical voxel anamorphosis',...world?.stats()})});
+Object.defineProperty(window,'kmuhScrub',{value:(v:number)=>world?.scrub(v)});
 window.addEventListener('pagehide',()=>world?.dispose(),{once:true});
