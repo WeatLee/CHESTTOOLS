@@ -1,5 +1,6 @@
 import { createSoundDemo } from './auscultation.js';
 import { createCtDemo } from './ctguide.js';
+import { createWashDemo } from './washing.js';
 
 // The five demonstrations. Each one sets the hidden scene controls and supplies
 // the patient-facing text. Every demo is a schematic illustration, not a real case.
@@ -80,5 +81,6 @@ export const DEMOS = [
       c.setVal('drainSide', 'R', 'change'); // right side; also starts the demo
     }
   },
-  createSoundDemo()
+  createSoundDemo(),
+  createWashDemo()
 ];

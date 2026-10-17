@@ -176,5 +176,49 @@ export const VOICE_TEXT = {
       ms: ['Dengar bunyi, lihat bentuk gelombang', 'Bunyi dimainkan berulang-ulang, dan bentuk gelombang di bawah bergerak mengikutinya. Stridor hanya boleh didengar di tekak dan trakea di leher (titik oren).'],
       id: ['Dengarkan suara, lihat bentuk gelombang', 'Suara diputar berulang-ulang, dan bentuk gelombang di bawah bergerak mengikutinya. Stridor hanya terdengar di tenggorokan dan trakea di leher (titik oranye).']
     }
+  ],
+  wash: [
+    {
+      zh: ['進入氣管', '局部麻醉後，細長的支氣管鏡從鼻腔或口腔進入，經過喉嚨到達氣管，沿著氣管往下，朝要作檢查的肺部前進。'],
+      en: ["Entering the windpipe", "After local numbing medicine, a thin, flexible bronchoscope is passed through the nose or mouth, down the throat and into the windpipe. It then moves down the windpipe toward the part of the lung that needs to be examined."],
+      vi: ['Vào khí quản', 'Sau khi gây tê tại chỗ, ống soi phế quản mảnh và dài đi vào qua mũi hoặc miệng, qua cổ họng rồi đến khí quản, sau đó đi dọc khí quản xuống, hướng về phần phổi cần kiểm tra.'],
+      ms: ['Masuk ke trakea', 'Selepas bius setempat, bronkoskop yang nipis dan panjang dimasukkan melalui hidung atau mulut, melalui tekak sehingga sampai ke trakea, kemudian bergerak ke bawah mengikut trakea menuju bahagian paru-paru yang perlu diperiksa.'],
+      id: ['Masuk ke trakea', 'Setelah pembiusan lokal, bronkoskop yang tipis dan panjang dimasukkan melalui hidung atau mulut, melewati tenggorokan hingga mencapai trakea, lalu bergerak menyusuri trakea ke bawah menuju bagian paru yang perlu diperiksa.']
+    },
+    {
+      zh: ['進入右側主支氣管，看到右上葉支氣管', '接著往要檢查的支氣管前進 (此示意圖是在右側的主支氣管)，進入後往外側看到右上葉支氣管的開口，支氣管鏡轉進去。'],
+      en: ["Into the right main airway, then the right upper lobe airway", "Next it moves toward the airway to be examined. In this illustration that is the right main airway. After entering, the opening of the right upper lobe airway can be seen on the outer side, and the bronchoscope turns into it."],
+      vi: ['Vào phế quản gốc bên phải, thấy phế quản thùy trên phải', 'Tiếp theo, ống soi đi đến nhánh phế quản cần kiểm tra. Trong hình minh họa này là phế quản gốc bên phải. Sau khi vào, nhìn về phía bên ngoài sẽ thấy lỗ của phế quản thùy trên phải, và ống soi rẽ vào đó.'],
+      ms: ['Masuk ke bronkus utama kanan, nampak bronkus lobus atas kanan', 'Seterusnya bronkoskop bergerak ke bronkus yang perlu diperiksa. Dalam ilustrasi ini ialah bronkus utama sebelah kanan. Selepas masuk, bukaan bronkus lobus atas kanan kelihatan di bahagian luar, dan bronkoskop membelok masuk ke situ.'],
+      id: ['Masuk ke bronkus utama kanan, terlihat bronkus lobus atas kanan', 'Selanjutnya bronkoskop bergerak menuju bronkus yang perlu diperiksa. Pada ilustrasi ini adalah bronkus utama sebelah kanan. Setelah masuk, terlihat lubang bronkus lobus atas kanan di sisi luar, dan bronkoskop berbelok masuk ke sana.']
+    },
+    {
+      zh: ['到達右上葉發炎處', '到達發炎處（此示意圖為右上肺葉）。支氣管鏡會先停在這裡，紅色標示的是發炎的位置。'],
+      en: ["Reaching the inflamed area in the right upper lobe", "The bronchoscope reaches the inflamed area, which in this illustration is in the right upper lobe. It stops here first. The red area marks where the inflammation is."],
+      vi: ['Đến vùng viêm ở thùy trên phải', 'Ống soi đến vùng bị viêm, trong hình minh họa này là thùy trên phổi phải. Ống soi sẽ dừng lại ở đây trước. Vùng màu đỏ là vị trí bị viêm.'],
+      ms: ['Sampai ke kawasan radang di lobus atas kanan', 'Bronkoskop sampai ke kawasan yang radang, iaitu lobus atas paru-paru kanan dalam ilustrasi ini. Bronkoskop berhenti di sini dahulu. Kawasan merah menandakan tempat radang.'],
+      id: ['Sampai di area peradangan lobus atas kanan', 'Bronkoskop tiba di area yang meradang, yaitu lobus atas paru kanan pada ilustrasi ini. Bronkoskop berhenti di sini terlebih dahulu. Area merah menandakan lokasi peradangan.']
+    },
+    {
+      zh: ['注入無菌生理食鹽水', '從支氣管鏡的孔道注入少量無菌生理食鹽水（藍色），沖洗這一區的支氣管。'],
+      en: ["Injecting sterile saline", "A small amount of sterile saline, shown in blue, is injected through the channel of the bronchoscope to rinse the airways in this area."],
+      vi: ['Bơm nước muối sinh lý vô trùng', 'Một lượng nhỏ nước muối sinh lý vô trùng (màu xanh) được bơm qua kênh của ống soi phế quản để rửa các phế quản ở vùng này.'],
+      ms: ['Menyuntik salin steril', 'Sedikit salin steril, ditunjukkan dengan warna biru, disuntik melalui saluran bronkoskop untuk membilas bronkus di kawasan ini.'],
+      id: ['Menyuntikkan larutan garam steril', 'Sejumlah kecil larutan garam steril, ditunjukkan dengan warna biru, disuntikkan melalui saluran bronkoskop untuk membilas bronkus di area ini.']
+    },
+    {
+      zh: ['回收檢體', '接著用抽吸把沖洗的液體吸回來，收集在收集瓶中，作為檢體。'],
+      en: ["Collecting the specimen", "Then the rinse fluid is sucked back with suction and collected in a collection bottle. This is the specimen."],
+      vi: ['Thu mẫu bệnh phẩm', 'Tiếp theo, dịch rửa được hút ngược trở lại bằng máy hút và thu vào bình chứa. Đây chính là mẫu bệnh phẩm.'],
+      ms: ['Mengumpul spesimen', 'Kemudian cecair bilasan disedut semula menggunakan sedutan dan dikumpulkan di dalam botol pengumpul. Ini ialah spesimen.'],
+      id: ['Mengumpulkan spesimen', 'Kemudian cairan bilasan disedot kembali dengan alat pengisap dan dikumpulkan di dalam botol penampung. Inilah spesimennya.']
+    },
+    {
+      zh: ['檢查完成', '檢體收集完成後，慢慢退出支氣管鏡。檢體會做進一步的檢驗，結果可以幫助醫師選擇適合的治療。'],
+      en: ["Examination complete", "After the specimen is collected, the bronchoscope is slowly withdrawn. The specimen goes for further testing, and the results help the doctor choose a suitable treatment."],
+      vi: ['Hoàn tất kiểm tra', 'Sau khi thu xong mẫu bệnh phẩm, ống soi phế quản được rút ra từ từ. Mẫu bệnh phẩm sẽ được xét nghiệm thêm, và kết quả giúp bác sĩ chọn cách điều trị phù hợp.'],
+      ms: ['Pemeriksaan selesai', 'Selepas spesimen dikumpulkan, bronkoskop ditarik keluar dengan perlahan. Spesimen akan dihantar untuk ujian lanjut, dan keputusannya membantu doktor memilih rawatan yang sesuai.'],
+      id: ['Pemeriksaan selesai', 'Setelah spesimen terkumpul, bronkoskop ditarik keluar perlahan-lahan. Spesimen akan menjalani pemeriksaan lanjutan, dan hasilnya membantu dokter memilih pengobatan yang sesuai.']
+    }
   ]
 };

@@ -9,6 +9,7 @@ const check = (name, ok, detail = '') => { console.log(`${ok ? 'PASS' : 'FAIL'} 
 const demosSource = readFileSync(join(here, 'src', 'demos.js'), 'utf8');
 for (const id of ['bronch', 'tbna', 'drain']) check(`demo ${id} defined`, demosSource.includes(`id: '${id}'`));
 check('sound demo wired', demosSource.includes('createSoundDemo()'));
+check('wash demo wired', demosSource.includes('createWashDemo()'));
 check('ct demo wired', demosSource.includes('createCtDemo()') && !demosSource.includes('soon: true'));
 
 const { plan } = await import('./src/ct-plan.js');
@@ -16,6 +17,9 @@ check('ct plan: bone clearance >= 6 mm', plan.boneClearanceMm >= 6, `${plan.bone
 check('ct plan: vessel/heart clearance >= 10 mm', plan.vesselClearanceMm >= 10, `${plan.vesselClearanceMm} mm`);
 check('ct plan: path 3-8 cm', plan.pathLengthCm >= 3 && plan.pathLengthCm <= 8, `${plan.pathLengthCm} cm`);
 check('ct plan: entry on patient right', plan.entry[0] < 0);
+
+const wash = readFileSync(join(here, 'src', 'washing.js'), 'utf8');
+check('wash demo: saline before suction, then specimen', /SALINE = \[(\d+), (\d+)\]/.test(wash) && +wash.match(/SALINE = \[\d+, (\d+)\]/)[1] <= +wash.match(/SUCTION = \[(\d+),/)[1] && wash.includes('送去檢驗'));
 
 const audio = readFileSync(join(here, 'src', 'auscultation.js'), 'utf8');
 check('stridor audible only in tracheal zone', /stridor/.test(audio) && /tracheal/.test(audio));

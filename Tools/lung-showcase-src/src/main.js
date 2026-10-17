@@ -509,8 +509,10 @@ function saveCase(){}
 function restoreCase(){lesions.push(newLesion({location:'RS3',size:3}));activeIndex=0;}
 function renderLesionTabs(){const box=$('lesionTabs');box.replaceChildren();lesions.forEach((l,i)=>{const b=document.createElement('button');b.className='lesion-tab'+(i===activeIndex?' active':'');b.textContent=`病灶 ${i+1}`;b.addEventListener('click',()=>{if(placement)togglePlacement();activeIndex=i;syncLesionUI();updateTumor();});box.appendChild(b);});$('addLesion').disabled=lesions.length>=3;$('removeLesion').disabled=lesions.length<=1;}
 function syncLesionUI(){const l=activeLesion();$('locationSelect').value=l.location;$('size').value=l.size;$('sizeValue').textContent=l.size.toFixed(1)+' cm';$('placeBtn').hidden=l.location==='TR'||l.location==='SC';$('placementState').textContent=l.mode==='free'?'目前：自由設定位置':'目前：固定示範位置';renderLesionTabs();}
+// A demo may swap the yellow lesion for its own marker (the washing demo draws an inflamed area instead).
+let lesionHidden=false;
 function updateTumor(){
-  const visible=$('showTumor').checked||currentPreset==='scope';
+  const visible=($('showTumor').checked||currentPreset==='scope')&&!lesionHidden;
   for(const l of lesions){const radius=l.size*.065;
     const pos=l.mode==='free'?l.point.clone().addScaledVector(l.normal,-Math.max(.12,radius+.045)):new THREE.Vector3(...presetLesionPosition(l.location,l.size));
     compressPointForEffusion(pos,l.location[0],effusionStrength(l.location[0]));
@@ -781,8 +783,10 @@ function scopeCenterline(key){
   }
   return points;
 }
+// Scope pose for demos that draw their own extras: path so far, tip, heading and the lesion centre.
+let scopeState=null;
 function updateProcedure(){
-  disposeProcedure();
+  disposeProcedure();scopeState=null;
   const v=+$('procedure').value,l=activeLesion(),isNode=l.location==='TR'||l.location==='SC';
   const points=(l.location==='TR'?new THREE.CatmullRomCurve3(airway.trachea.filter(p=>p[1]>=fixedTargets.TR[1]-.02).map(p=>new THREE.Vector3(...p))).getPoints(44):
     l.location==='SC'?new THREE.CatmullRomCurve3(airway.trachea.map(p=>new THREE.Vector3(...p))).getPoints(48):scopeCenterline(l.location)).map(deformAirwayPoint);
@@ -821,6 +825,7 @@ function updateProcedure(){
     const partial=new THREE.CatmullRomCurve3(scopePath.slice(0,n));
     scopeMesh=new THREE.Mesh(new THREE.TubeGeometry(partial,Math.max(8,n*2),.025,8,false),new THREE.MeshStandardMaterial({color:0x20282b,roughness:.38,depthTest:false,transparent:true,opacity:.98}));
     scopeMesh.renderOrder=12;procedureGroup.add(scopeMesh);
+    {const tipPoint=partial.getPoint(1),back=partial.getPoint(.97);scopeState={path:partial.getPoints(60),tip:tipPoint,dir:tipPoint.clone().sub(back).normalize(),target:target.clone(),end:scopeEnd.clone(),lesionRadius};}
     if(v>90&&sampleAllowed){
       const direction=target.clone().sub(scopeEnd).normalize();
       const extension=Math.min(scopeEnd.distanceTo(target),isNode ? .62 : .34)*(v-90)/10;
@@ -1187,6 +1192,9 @@ export const api={
   stopListening(){if(auscultation)setAuscMode(false);},
   keepBreathing(on){keepBreathingWhileListening=!!on;},
   setSkinAlpha(value){skinAlphaOverride=value;updateView();},
+  hideLesion(on){lesionHidden=!!on;updateTumor();},
+  scopeState:()=>scopeState,
+  lesionCenter:()=>activeLesion().mesh.position.clone(),
   tweenCamera,
   setCamera(position,target){camera.position.set(...position);controls.target.set(...target);controls.update();},
   resetView(){setView('chest');},
