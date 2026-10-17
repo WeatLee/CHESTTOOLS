@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f6f0e7"><title>醫學 QR Code 生成器 · CHESTTOOLS</title>  <script type="module" crossorigin src="./assets/index-B4IeJt19.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-DLBDRnv2.css">
+</head>
+<body><div id="app">
+<header class="masthead"><a class="brand" href="https://weatlee.github.io/CHESTTOOLS/" aria-label="返回 CHESTTOOLS 首頁"><span class="brand-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>KMUH <b>VOXEL LUNG</b></span></a><span class="edition">A MINIATURE CONNECTION <span>醫學 QR Code 生成器</span></span></header>
+<main class="experience">
+<section class="world" aria-label="高醫微縮建築與懸浮方塊肺臟">
+<div class="world-heading"><span class="eyebrow">SMALL BLOCKS. HUMAN CONNECTIONS.</span><h1>呼吸之間，<br>連結世界。</h1><p>一座微縮高醫，一份隨身的連結。</p></div>
+
+<div id="scene" role="img" aria-label="可旋轉的珊瑚色方塊肺臟，下方為高醫微縮建築"><div id="loading" role="status"><span class="loading-cube"></span>正在搭建小小世界…</div></div>
+<div id="qr-layer" hidden><button id="qr-subject" type="button" aria-label="Back to the scene"><canvas id="qr-canvas" aria-label="掃描此 QR Code 開啟輸入的網址"></canvas></button><span class="qr-caption">SCAN TO CONNECT</span></div>
+<div id="scene-error" hidden role="status">此裝置無法顯示 3D，仍可按「顯示 QR Code」掃描或下載。</div>
+<div class="scene-caption"><span class="status-dot"></span><span id="scene-status">LUNG / 呼吸中的方塊肺臟</span><span class="scene-hint" id="scene-hint">拖曳旋轉 · 點擊肺臟升至空拍 QR</span></div>
+</section>
+<aside class="controls" aria-labelledby="control-title"><div class="control-top"><span class="eyebrow">YOUR CONNECTION</span><span class="small-index">01 — 02</span></div><h2 id="control-title">把連結，<br>放進呼吸裡。</h2><p class="description">輸入網址，從平視升至空拍，讓這個小小世界成為可掃描的 QR Code。</p>
+<label for="url-input">目的地網址 <span>DESTINATION</span></label><div class="input-wrap"><span aria-hidden="true">↗</span><input id="url-input" type="url" value="https://weatlee.github.io/CHESTTOOLS/Tools/lee-business-card.html" autocomplete="url" spellcheck="false" aria-describedby="url-error url-note"></div><p id="url-error" class="error" role="alert"></p><p id="url-note" class="url-note">目前連結至醫師名片，可自行更換。</p>
+<button id="toggle" class="primary" type="button"><span id="toggle-text">顯示 QR Code</span><span aria-hidden="true">↗</span></button>
+<div id="qr-actions" hidden><button id="copy" class="secondary" type="button">複製網址</button><button id="download" class="secondary" type="button">下載 QR PNG</button></div>
+<div class="divider"></div><label class="motion-control" for="reduce-motion"><span><strong>減少動畫</strong><small>讓這個世界安靜一些</small></span><input id="reduce-motion" type="checkbox" role="switch"></label>
+<p class="detail-note">QR 模式保持靜止，方便掃描。<br>微縮建築為外型示意，非醫學模型。</p><p id="feedback" role="status" aria-live="polite"></p>
+<div class="control-footer"><span class="tiny-cube" aria-hidden="true">◇</span><span>MADE OF LITTLE MOMENTS</span></div></aside>
+</main><footer class="footer"><span>KMUH VOXEL LUNG QR</span><span>CHESTTOOLS · 醫學 QR Code 生成器</span></footer></div></body></html>

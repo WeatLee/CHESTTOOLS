@@ -1,0 +1,28 @@
+{
+  "name": "kmuh-voxel-lung-qr",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 4321 --strictPort",
+    "build": "tsc --noEmit && vite build --base=./",
+    "preview": "vite preview --host 127.0.0.1 --port 4322 --strictPort",
+    "test": "node --experimental-strip-types --test tests/qr.test.ts",
+    "test:browser": "playwright test"
+  },
+  "dependencies": {
+    "qrcode": "1.5.4",
+    "three": "0.180.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "@types/node": "24.7.2",
+    "@types/qrcode": "1.5.5",
+    "@types/three": "0.180.0",
+    "@zxing/library": "0.21.3",
+    "jsqr": "1.4.0",
+    "pngjs": "7.0.0",
+    "typescript": "5.9.3",
+    "vite": "7.1.9"
+  }
+}
