@@ -51,6 +51,8 @@ export function createWorld(host:HTMLElement,onSubject:()=>void,onReady:()=>void
   const settle=THREE.MathUtils.smoothstep(mode,0,.55);
   lung.group.rotation.set(alignFrom.pitch*(1-settle),alignFrom.yaw*(1-settle),0);
   lung.group.position.y=THREE.MathUtils.lerp(alignFrom.y,CONFIG.lung.centerY,settle);
+  // The floor shadow belongs to the front view; overhead it reads as a stray lung silhouette.
+  (ground.material as THREE.ShadowMaterial).opacity=.08*(1-THREE.MathUtils.smoothstep(mode,0,.35));ground.visible=mode<.35;
   dirty=true;
  }
  function resize(){const r=host.getBoundingClientRect();aspect=r.width/r.height;renderer.setSize(r.width,r.height);const buffer=renderer.getDrawingBufferSize(new THREE.Vector2());target.setSize(buffer.x,buffer.y);postMaterial.uniforms.pixel.value.set(1/buffer.x,1/buffer.y);applyMode();}const observer=new ResizeObserver(resize);observer.observe(host);resize();
