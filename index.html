@@ -47,6 +47,10 @@
         .share-tools{display:block;margin:0 auto 24px;padding:10px 18px;border:1px solid #123b61;border-radius:24px;background:white;color:#123b61;font-size:15px;cursor:pointer}
         .share-dialog{width:min(420px,calc(100% - 32px));border:0;border-radius:18px;padding:28px;text-align:center;color:#123b61;box-shadow:0 12px 50px #123b6133}
         .share-dialog::backdrop{background:#102a4380}.share-dialog h2{margin:8px 0}.share-dialog p{line-height:1.6;color:#557080}.share-dialog img{width:min(260px,100%);height:auto;display:block;margin:18px auto}.share-dialog a{overflow-wrap:anywhere;color:#123b61}.share-close{float:right;border:0;background:#edf3f5;border-radius:50%;width:32px;height:32px;font-size:22px;cursor:pointer;color:#123b61}
+        .share-dialog{width:min(760px,calc(100% - 24px));max-height:calc(100dvh - 24px);padding:18px;background:#f6f0e7;overflow:auto}
+        .share-dialog p{margin:6px 0;font-size:13px}.share-dialog iframe{display:block;width:100%;height:min(660px,calc(100vw + 80px),calc(100dvh - 180px));min-height:350px;border:0;background:#f6f0e7}
+        .share-dialog>a{font-size:12px}.share-close{position:sticky;top:0;z-index:1}
+        body:has(.share-dialog[open]){overflow:hidden}
     </style>
 </head>
 <body>
@@ -56,6 +60,10 @@
 
         <div class="card-columns">
             <div class="card-column">
+                <a href="Tools/medical-qr/index.html?v=20261017" class="card" style="border-left:5px solid #c97660">
+                    <h2>🫁 醫學 QR Code 生成器</h2>
+                    <p>輸入網址，將方塊肺臟與高醫微縮地台轉成空拍 QR Code；可複製連結、下載含胸內標誌的 QR 圖片</p>
+                </a>
                 <a href="Tools/acls.html" class="card acls">
                     <h2>＋ ACLS 指令紀錄台</h2>
                     <p>CPR、插管、電擊、用藥計時與 TXT 紀錄匯出</p>
@@ -131,8 +139,8 @@
     <dialog class="share-dialog" id="share-tools-dialog" aria-labelledby="share-tools-title">
         <button class="share-close" type="button" aria-label="關閉分享視窗">×</button>
         <h2 id="share-tools-title">分享 CHESTTOOLS</h2>
-        <p>掃描 QR Code，開啟臨床快速工具箱</p>
-        <img src="Tools/assets/lee-business-card/toolbox-qr.svg" alt="連至 CHESTTOOLS 首頁的 QR Code，中央為高醫胸腔內科標誌" width="260" height="260">
+        <p>點一下肺臟場景，升至空拍 QR Code，分享臨床快速工具箱。</p>
+        <iframe id="share-lung-frame" title="肺臟與高醫地台：點一下顯示 CHESTTOOLS 分享 QR" data-src="Tools/medical-qr/index.html?embed=share&amp;v=20261017"></iframe>
         <a href="https://weatlee.github.io/CHESTTOOLS/">weatlee.github.io/CHESTTOOLS/</a>
     </dialog>
     <script>
@@ -151,8 +159,18 @@
 
     (() => {
         const dialog = document.getElementById('share-tools-dialog');
-        document.getElementById('share-tools-button').addEventListener('click', () => dialog.showModal());
+        const button = document.getElementById('share-tools-button');
+        const frame = document.getElementById('share-lung-frame');
+        button.addEventListener('click', () => {
+            dialog.showModal();
+            frame.src = frame.dataset.src;
+            dialog.querySelector('.share-close').focus();
+        });
         dialog.querySelector('.share-close').addEventListener('click', () => dialog.close());
+        dialog.addEventListener('close', () => { frame.src = 'about:blank'; button.focus(); });
+        window.addEventListener('message', event => {
+            if(event.origin === location.origin && event.source === frame.contentWindow && event.data?.type === 'kmuh-share-close') dialog.close();
+        });
         dialog.addEventListener('click', event => { if (event.target === dialog) { const r = dialog.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) dialog.close(); } });
     })();
     </script>
