@@ -25,6 +25,7 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 
 /* layout: phone first */
 .stage{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding:0 12px 24px}
+.demo-layout{display:grid;gap:12px;min-width:0}
 .viewer{position:relative;height:min(62vh,118vw);min-height:300px;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 52% 42%,#fffefa 0,#f4f0e8 72%,#eae9e3 100%);border:1px solid var(--line);touch-action:none}
 #viewport{position:absolute;inset:0}
 #labels{position:absolute;inset:0;pointer-events:none}
@@ -128,7 +129,9 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 
 /* wide screens */
 @media (min-width:960px){
-  .sticky-top{display:contents}
+  .demo-layout{display:contents}
+  /* Keep a first-row containing block so the sticky viewer stops before the gallery. */
+  .sticky-top{display:block;align-self:stretch;min-width:0}
   .dock,.steps-toggle{display:none}
   .stage{grid-template-columns:minmax(0,1.7fr) minmax(340px,1fr);align-items:start;gap:16px;padding:0 16px 32px}
   .viewer{position:sticky;top:68px;height:calc(100vh - 140px);min-height:520px;max-height:860px}
@@ -206,3 +209,11 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .voicebar button,.voicebar select{min-height:40px;padding:6px 12px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:15px}
 .voicebar button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
 .voicebar label{display:flex;gap:6px;align-items:center;font-size:14px;color:var(--soft)}
+
+/* Keep mobile controls usable and the enlarged CT slice inside the viewer. */
+@media (max-width:959px){
+  .sticky-top{align-self:start}
+  .dock .player button,.dock .player input[type=range]{min-height:44px}
+  .ctpanel:not(.big){width:auto;min-width:0;height:min(calc(36vw - 10px),300px,calc(100% - 44px))}
+  .ctpanel.big{width:auto;min-width:0;height:min(calc(100% - 52px),calc(100vw - 56px))}
+}
