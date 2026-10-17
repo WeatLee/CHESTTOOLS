@@ -6,9 +6,9 @@ import jsQR from 'jsqr';
 import ZXing from '@zxing/library';
 const home='https://weatlee.github.io/CHESTTOOLS/';
 function scan(bytes,url){
- const png=PNG.sync.read(bytes),data=new Uint8ClampedArray(png.data),gray=new Uint8ClampedArray(png.width*png.height);
+ const png=PNG.sync.read(bytes),data=new Uint8ClampedArray(png.data),gray=new Int32Array(png.width*png.height);
  assert.equal(jsQR(data,png.width,png.height)?.data,url);
- for(let i=0;i<gray.length;i++)gray[i]=data[i*4];
+ for(let i=0;i<gray.length;i++)gray[i]=(data[i*4]<<16)|(data[i*4+1]<<8)|data[i*4+2];
  assert.equal(new ZXing.QRCodeReader().decode(new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(new ZXing.RGBLuminanceSource(gray,png.width,png.height)))).getText(),url);
  assert.ok(data.some((v,i)=>i%4===0&&v<190&&data[i+1]>200&&data[i+2]>200),'department mark present');
 }

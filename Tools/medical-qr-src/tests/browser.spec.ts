@@ -3,7 +3,9 @@ import {CONFIG} from '../src/config.ts';
 import{PNG}from 'pngjs';import jsQR from 'jsqr';import fs from 'node:fs/promises';import ZXing from '@zxing/library';
 const{RGBLuminanceSource,HybridBinarizer,BinaryBitmap,QRCodeReader}=ZXing;
 function decode(bytes:Buffer){const p=PNG.sync.read(bytes),data=new Uint8ClampedArray(p.data);return{p,data,text:jsQR(data,p.width,p.height)?.data};}
-function zxing(bytes:Buffer){const{p,data}=decode(bytes),gray=new Uint8ClampedArray(p.width*p.height);for(let i=0;i<gray.length;i++)gray[i]=data[i*4];return new QRCodeReader().decode(new BinaryBitmap(new HybridBinarizer(new RGBLuminanceSource(gray,p.width,p.height)))).getText();}
+// Feed packed RGB to ZXing so its own luminance conversion handles coloured surfaces.
+function zxing(bytes:Buffer){const{p,data}=decode(bytes),gray=new Int32Array(p.width*p.height);for(let i=0;i<gray.length;i++)gray[i]=(data[i*4]<<16)|(data[i*4+1]<<8)|data[i*4+2];return new QRCodeReader().decode(new BinaryBitmap(new HybridBinarizer(new RGBLuminanceSource(gray,p.width,p.height)))).getText();}
+function hasLungAndFoliage(bytes:Buffer){const {p,data}=decode(bytes);let pink=0,green=0;for(let y=0;y<p.height;y++)for(let x=0;x<p.width;x++){if(Math.abs(x/p.width-.5)<.07&&Math.abs(y/p.height-.5)<.1)continue;const i=(y*p.width+x)*4,r=data[i],g=data[i+1],b=data[i+2];if(r>g*1.25&&r>b*1.12&&r<210&&g>30)pink++;if(g>r*1.08&&g>b*1.2&&g<180)green++;}return pink>150&&green>150;}
 function hasMark(bytes:Buffer){const {data}=decode(bytes);let cyan=0;for(let i=0;i<data.length;i+=4)if(data[i]<190&&data[i+1]>200&&data[i+2]>200)cyan++;return cyan>50;}
 async function diagnostics(page:any){return page.evaluate(()=>(window as any).kmuhDiagnostics);}
 async function ready(page:any){await expect(page.locator('#loading')).toBeHidden();await expect(page.locator('body')).toHaveAttribute('data-state','LUNG_IDLE');}
@@ -13,13 +15,13 @@ test('desktop: continuous overhead camera, rapid click guard, fixed physical vox
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await context.grantPermissions(['clipboard-read','clipboard-write']);await page.goto('/');await ready(page);await page.locator('#reduce-motion').check();
  const stats=await diagnostics(page);expect(stats.lungTilt).toBeCloseTo(CONFIG.lung.displayTilt);expect(stats.qrMarkFaces).toBeGreaterThan(0);expect(stats.lungVoxels).toBeGreaterThan(1000);expect(stats.hospitalBlocks).toBeGreaterThan(3000);
  await page.screenshot({path:'docs/screenshots/revision-front.png',fullPage:true});await page.locator('#reduce-motion').uncheck();
- const poseBefore=(await diagnostics(page)).lungPose;await page.waitForTimeout(400);const poseAfter=(await diagnostics(page)).lungPose;expect(Math.abs(poseAfter.y-poseBefore.y)).toBeLessThan(.13);expect(poseAfter.scaleY).toBe(poseBefore.scaleY);expect(poseAfter.yaw).toBeGreaterThan(poseBefore.yaw);
+ const poseBefore=(await diagnostics(page)).lungPose;await page.waitForFunction(before=>(window as any).kmuhDiagnostics.lungPose.yaw>before,poseBefore.yaw);const poseAfter=(await diagnostics(page)).lungPose;expect(Math.abs(poseAfter.y-poseBefore.y)).toBeLessThan(.13);expect(poseAfter.scaleY).toBe(poseBefore.scaleY);expect(poseAfter.yaw).toBeGreaterThan(poseBefore.yaw);
  await page.evaluate(()=>{for(let i=0;i<12;i++)(document.getElementById('toggle') as HTMLButtonElement).click();});
  await expect(page.locator('body')).toHaveAttribute('data-state','TO_QR');await expect(page.locator('#toggle')).toBeDisabled();
  await page.waitForFunction(()=>{const d=(window as any).kmuhDiagnostics;return d.cameraMode>0&&d.cameraMode<1;});
  await page.screenshot({path:'docs/screenshots/revision-transition.png',fullPage:true});
  await expect(page.locator('body')).toHaveAttribute('data-state','QR_IDLE',{timeout:15000});expect((await diagnostics(page)).cameraMode).toBe(1);const construction=await diagnostics(page);expect(construction.qrConstruction).toBe('physical-cube-top-faces');expect(construction.qrPlaneCount).toBe(0);expect(construction.qrTextureCount).toBe(0);expect(construction.lungPose.yaw).toBe(0);await expect(page.locator('#qr-layer')).toBeHidden();
- let bytes=await page.locator('#scene canvas').screenshot();expect(hasMark(bytes)).toBe(true);expect(decode(bytes).text).toBe(CONFIG.defaultUrl);expect(zxing(bytes)).toBe(CONFIG.defaultUrl);
+ let bytes=await page.locator('#scene canvas').screenshot();expect(hasMark(bytes)).toBe(true);expect(hasLungAndFoliage(bytes)).toBe(true);expect(decode(bytes).text).toBe(CONFIG.defaultUrl);expect(zxing(bytes)).toBe(CONFIG.defaultUrl);
  await page.locator('#url-input').fill('https://weatlee.github.io/CHESTTOOLS/');bytes=await page.locator('#scene canvas').screenshot();expect(decode(bytes).text).toBe('https://weatlee.github.io/CHESTTOOLS/');
  await page.screenshot({path:'docs/screenshots/revision-aerial.png',fullPage:true});
  await page.getByRole('button',{name:'複製網址'}).click();expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe('https://weatlee.github.io/CHESTTOOLS/');

@@ -4,7 +4,28 @@ import { createQr } from './qr.ts';
 import {getQrMarkCanvas,getQrMarkRegion} from './qr-mark.ts';
 
 type Source = { min: THREE.Vector3; max: THREE.Vector3; color: THREE.Color };
-type Piece = { x:number;y:number;z:number;w:number;h:number;d:number;row:number;col:number;color:THREE.Color };
+type Piece = { x:number;y:number;z:number;w:number;h:number;d:number;row:number;col:number;color:THREE.Color;source:Source };
+
+/** Static relief from the actual geometry, sampled toward the scene's sun.
+ * This is a height field, not a QR image. It adds bounded contact shade while
+ * keeping light modules light enough to scan. Reused for every destination. */
+export function makeReliefSampler(blocks:Source[]){
+  const size=256,side=CONFIG.interaction.qrSide,half=side/2,step=side/size;
+  const heights=new Float32Array(size*size).fill(-100);
+  for(const block of blocks){
+    const x0=Math.max(0,Math.floor((block.min.x+half)/step)),x1=Math.min(size-1,Math.floor((block.max.x+half)/step));
+    const z0=Math.max(0,Math.floor((block.min.z+half)/step)),z1=Math.min(size-1,Math.floor((block.max.z+half)/step));
+    for(let z=z0;z<=z1;z++)for(let x=x0;x<=x1;x++)heights[z*size+x]=Math.max(heights[z*size+x],block.max.y);
+  }
+  return(x:number,y:number,z:number)=>{
+    for(let rise=.14;rise<9;rise+=.14){
+      const col=Math.floor((x-rise*.3+half)/step),row=Math.floor((z+rise*.7+half)/step);
+      if(col<0||row<0||col>=size||row>=size)break;
+      if(heights[row*size+col]>y+rise+.045)return .84;
+    }
+    return 1;
+  };
+}
 
 /** Capture the existing architectural massing, including its instance colours. */
 export function captureBlocks(root: THREE.Group): Source[] {
@@ -28,7 +49,7 @@ export function captureBlocks(root: THREE.Group): Source[] {
  * No QR texture, QR plane, opacity change, or camera-dependent shading.
  * The department mark alone uses texture fragments on these same top faces.
  */
-export function makePhysicalQr(blocks: Source[], url: string | null, isGround: boolean) {
+export function makePhysicalQr(blocks: Source[], url: string | null, isGround: boolean,relief?:(x:number,y:number,z:number)=>number) {
   const qr = url ? createQr(url) : null;
   const n = qr?.modules.size ?? 41, border = CONFIG.qr.quietZone;
   const count = n + border * 2, step = CONFIG.interaction.qrSide / count, half = CONFIG.interaction.qrSide / 2;
@@ -43,7 +64,7 @@ export function makePhysicalQr(blocks: Source[], url: string | null, isGround: b
       const left=Math.max(block.min.x,col*step-half),right=Math.min(block.max.x,(col+1)*step-half);
       const back=Math.max(block.min.z,row*step-half),front=Math.min(block.max.z,(row+1)*step-half);
       if(right-left<1e-6||front-back<1e-6)continue;
-      visible.push({x:(left+right)/2,y:(block.min.y+block.max.y)/2,z:(back+front)/2,w:right-left,h:block.max.y-block.min.y,d:front-back,row,col,color:block.color});
+      visible.push({x:(left+right)/2,y:(block.min.y+block.max.y)/2,z:(back+front)/2,w:right-left,h:block.max.y-block.min.y,d:front-back,row,col,color:block.color,source:block});
     }
   }
   const group = new THREE.Group();
@@ -53,16 +74,52 @@ export function makePhysicalQr(blocks: Source[], url: string | null, isGround: b
   sidesGeometry.setIndex(indices.filter((_,i)=>i<12||i>=18)); sidesGeometry.clearGroups();
   const sides = new THREE.InstancedMesh(sidesGeometry,new THREE.MeshStandardMaterial({roughness:.84}),visible.length);
   const topsGeometry = new THREE.PlaneGeometry(1,1); topsGeometry.rotateX(-Math.PI/2);
-  const tops = new THREE.InstancedMesh(topsGeometry,new THREE.MeshBasicMaterial({toneMapped:false}),visible.length);
-  const matrix = new THREE.Matrix4(), dark = new THREE.Color(CONFIG.qr.dark), light = new THREE.Color(CONFIG.qr.light);
+  // Keep the hue of the actual lung, roof, path and foliage. QR modules only
+  // constrain brightness; the overhead view still shows individual objects.
+  const topMaterial=new THREE.MeshBasicMaterial({toneMapped:false});
+  topMaterial.onBeforeCompile=shader=>{
+    shader.vertexShader='attribute vec4 blockBounds; varying vec2 vTopCoord; varying vec4 vBlockBounds;\n'+shader.vertexShader;
+    shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
+      vTopCoord=(instanceMatrix*vec4(position,1.0)).xz;
+      vBlockBounds=blockBounds;
+    `);
+    shader.fragmentShader='varying vec2 vTopCoord; varying vec4 vBlockBounds;\n'+shader.fragmentShader;
+    shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
+      vec2 inset=min(vTopCoord-vBlockBounds.xy,vBlockBounds.zw-vTopCoord);
+      float rim=smoothstep(0.0,0.018,min(inset.x,inset.y));
+      diffuseColor.rgb*=mix(0.88,1.0,rim);
+    `);
+  };
+  topMaterial.customProgramCacheKey=()=> 'physical-object-relief-v1';
+  const tops = new THREE.InstancedMesh(topsGeometry,topMaterial,visible.length);
+  const bounds=new Float32Array(visible.length*4);
+  const matrix = new THREE.Matrix4(), light = new THREE.Color('#fff4e6');
   const pivot = isGround ? 0 : CONFIG.lung.centerY;
   visible.forEach((v,i)=>{
     const x=v.x,y=v.y-pivot,z=v.z;
     matrix.makeScale(v.w,v.h,v.d);matrix.setPosition(x,y,z); sides.setMatrixAt(i,matrix); sides.setColorAt(i,v.color);
     matrix.makeScale(v.w,1,v.d);matrix.setPosition(x,y+v.h/2,z); tops.setMatrixAt(i,matrix);
     const r=v.row-border,c=v.col-border;
-    tops.setColorAt(i,qr && r>=0&&r<n&&c>=0&&c<n&&qr.modules.get(r,c)?dark:light);
+    const quiet=r<0||r>=n||c<0||c>=n;
+    const finder=!quiet&&((r<8&&c<8)||(r<8&&c>=n-8)||(r>=n-8&&c<8));
+    const dark=Boolean(qr&&!quiet&&qr.modules.get(r,c));
+    const tint=v.color.clone();
+    // Two separated luminance ranges, with source colour and height variation
+    // inside each range. Colours never switch when the camera moves.
+    const h=THREE.MathUtils.clamp((v.y+v.h/2+3)/9,0,1);
+    if(dark)tint.multiplyScalar(.23+h*.045);
+    else tint.lerp(light,quiet?1:.70);
+    if(!quiet)tint.multiplyScalar(relief?.(v.x,v.y+v.h/2,v.z)??1);
+    // Bounded brightness keeps real material variation from confusing local
+    // thresholding, especially across the three locator rings on small screens.
+    const luminance=(color:THREE.Color)=>color.r*.2126+color.g*.7152+color.b*.0722;
+    const value=luminance(tint);
+    if(dark){const ceiling=finder?.065:.105;if(value>ceiling)tint.multiplyScalar(ceiling/value);}
+    else if(!quiet){const floor=finder?.86:.76;if(value<floor)tint.lerp(light,(floor-value)/(luminance(light)-value));}
+    tops.setColorAt(i,tint);
+    bounds.set(quiet||finder?[-100,-100,100,100]:[v.source.min.x,v.source.min.z,v.source.max.x,v.source.max.z],i*4);
   });
+  topsGeometry.setAttribute('blockBounds',new THREE.InstancedBufferAttribute(bounds,4));
   sides.castShadow=true; sides.receiveShadow=true;
   for (const mesh of [sides,tops]) {mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor!.needsUpdate=true;mesh.computeBoundingSphere();group.add(mesh);}
   // The mark is split across the existing physical top faces. It is not a

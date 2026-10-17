@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import{CONFIG}from './config.ts';
 import{makeHospital,makeLung}from './geometry.ts';
-import{captureBlocks,makePhysicalQr}from './physical-qr.ts';
+import{captureBlocks,makePhysicalQr,makeReliefSampler}from './physical-qr.ts';
 export function createWorld(host:HTMLElement,onSubject:()=>void,onReady:()=>void){
  const mobile=()=>innerWidth<=720,scene=new THREE.Scene();
  const camera=new THREE.OrthographicCamera(-7,7,6,-6,.1,80);camera.position.set(...CONFIG.scene.cameraPosition);camera.lookAt(...CONFIG.scene.target);
@@ -27,8 +27,9 @@ export function createWorld(host:HTMLElement,onSubject:()=>void,onReady:()=>void
  const sourceHospital=makeHospital(),sourceLung=makeLung();
  sourceLung.group.position.set(.1,CONFIG.lung.centerY,0);sourceLung.group.scale.setScalar(CONFIG.lung.scale);sourceLung.group.rotation.y=CONFIG.lung.initialYaw;
  const hospitalSources=captureBlocks(sourceHospital.group),lungSources=captureBlocks(sourceLung.group);
+ const relief=makeReliefSampler([...hospitalSources,...lungSources]);
  for(const root of [sourceHospital.group,sourceLung.group])root.traverse(o=>{if(o instanceof THREE.Mesh){o.geometry.dispose();(o.material as THREE.Material).dispose();}});
- let physicalHospital=makePhysicalQr(hospitalSources,null,true),physicalLung=makePhysicalQr(lungSources,null,false);
+ let physicalHospital=makePhysicalQr(hospitalSources,null,true,relief),physicalLung=makePhysicalQr(lungSources,null,false,relief);
  const hospital={group:physicalHospital.group,blockCount:physicalHospital.count},lung={group:physicalLung.group,voxelCount:physicalLung.count};
  scene.add(hospital.group,lung.group);
  let qrValid=false,alignFrom={yaw:0,pitch:CONFIG.lung.displayTilt,y:CONFIG.lung.centerY};
@@ -56,21 +57,21 @@ export function createWorld(host:HTMLElement,onSubject:()=>void,onReady:()=>void
  const frames:number[]=[],clock=new THREE.Clock();let lastFrame=performance.now(),lastShadow=0,ready=false;
  function animate(now:number){if(disposed)return;requestAnimationFrame(animate);if(!visible)return;const t=clock.getElapsedTime();
   if(transition){const progress=Math.min(1,(now-transition.start)/transition.duration),ease=progress*progress*(3-2*progress);mode=THREE.MathUtils.lerp(transition.from,transition.to,ease);applyMode();if(progress===1){const done=transition.done;transition=undefined;transitioning=false;qrMode=mode===1;done();}}
-  if(!qrMode&&!transitioning&&!reduced&&!dragging){yaw+=CONFIG.lung.rotationSpeed*Math.min((now-lastFrame)/1000,.05);lung.group.rotation.set(pitch,yaw,0);lung.group.position.y=CONFIG.lung.centerY+Math.sin(t*.9)*CONFIG.lung.hoverAmplitude;dirty=true;}
+  if(!qrMode&&!transitioning&&!reduced&&!dragging){yaw+=CONFIG.lung.rotationSpeed*THREE.MathUtils.clamp((now-lastFrame)/1000,0,.05);lung.group.rotation.set(pitch,yaw,0);lung.group.position.y=CONFIG.lung.centerY+Math.sin(t*.9)*CONFIG.lung.hoverAmplitude;dirty=true;}
   const elapsed=now-lastFrame;lastFrame=now;if(dirty){if(now-lastShadow>CONFIG.scene.shadowRefreshMs){renderer.shadowMap.needsUpdate=true;lastShadow=now;}if(mode===0&&!mobile()&&CONFIG.hospital.blurAmount>0){const direction=camera.getWorldDirection(new THREE.Vector3());postMaterial.uniforms.focus.value=lung.group.position.clone().sub(camera.position).dot(direction);renderer.setRenderTarget(target);renderer.render(scene,camera);primaryStats.calls=renderer.info.render.calls;primaryStats.triangles=renderer.info.render.triangles;renderer.setRenderTarget(null);renderer.render(postScene,postCamera);}else{renderer.setRenderTarget(null);renderer.render(scene,camera);primaryStats.calls=renderer.info.render.calls;primaryStats.triangles=renderer.info.render.triangles;}dirty=false;if(ready){frames.push(elapsed);if(frames.length>240)frames.shift();}if(!ready){ready=true;onReady();}}
  }
  requestAnimationFrame(animate);const visibility=()=>{visible=!document.hidden;lastFrame=performance.now();dirty=true;};document.addEventListener('visibilitychange',visibility);renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();document.getElementById('scene-error')!.hidden=false;});
  return{
   setQrCanvas(canvas:HTMLCanvasElement|null,url:string|null=null){
    qrValid=Boolean(canvas&&url);scene.remove(hospital.group,lung.group);physicalHospital.dispose();physicalLung.dispose();
-   physicalHospital=makePhysicalQr(hospitalSources,qrValid?url:null,true);physicalLung=makePhysicalQr(lungSources,qrValid?url:null,false);
+   physicalHospital=makePhysicalQr(hospitalSources,qrValid?url:null,true,relief);physicalLung=makePhysicalQr(lungSources,qrValid?url:null,false,relief);
    hospital.group=physicalHospital.group;hospital.blockCount=physicalHospital.count;lung.group=physicalLung.group;lung.voxelCount=physicalLung.count;
    scene.add(hospital.group,lung.group);renderer.shadowMap.needsUpdate=true;applyMode();
   },
   setQrMode(value:boolean){qrMode=value;mode=value?1:0;applyMode();if(!value){yaw=alignFrom.yaw;pitch=alignFrom.pitch;}},
   transitionToQr(value:boolean,done:()=>void){if(transitioning)return;dragging=false;if(value){yaw=THREE.MathUtils.euclideanModulo(yaw+Math.PI,Math.PI*2)-Math.PI;alignFrom={yaw,pitch,y:lung.group.position.y};}transitioning=true;if(reduced){mode=value?1:0;qrMode=value;transitioning=false;applyMode();done();return;}transition={start:performance.now(),from:mode,to:value?1:0,duration:CONFIG.interaction.transitionDuration*1000,done};},
   setReduced(value:boolean){reduced=value;if(value){lung.group.position.y=CONFIG.lung.centerY;applyMode();}dirty=true;},
-  stats(){const sorted=[...frames].sort((a,b)=>a-b);return{drawCalls:primaryStats.calls,triangles:primaryStats.triangles,postprocessingPasses:mode===0&&!mobile()&&CONFIG.hospital.blurAmount>0?1:0,lungVoxels:lung.voxelCount,hospitalBlocks:hospital.blockCount,frameSamples:frames.length,medianFrameMs:sorted.length?sorted[Math.floor(sorted.length/2)]:null,p95FrameMs:sorted.length?sorted[Math.floor(sorted.length*.95)]:null,canvas:{width:renderer.domElement.width,height:renderer.domElement.height},qrMode,reduced,cameraMode:mode,qrConstruction:"physical-cube-top-faces",qrValid,qrModules:physicalHospital.moduleCount,qrModuleSize:physicalHospital.step,qrTextureCount:0,qrPlaneCount:0,qrMarkFaces:physicalHospital.markFaces+physicalLung.markFaces,lungTilt:lung.group.rotation.x,lungPose:{y:lung.group.position.y,scaleY:lung.group.scale.y,yaw:lung.group.rotation.y}};},
+  stats(){const sorted=[...frames].sort((a,b)=>a-b);return{drawCalls:primaryStats.calls,triangles:primaryStats.triangles,postprocessingPasses:mode===0&&!mobile()&&CONFIG.hospital.blurAmount>0?1:0,lungVoxels:lung.voxelCount,hospitalBlocks:hospital.blockCount,frameSamples:frames.length,medianFrameMs:sorted.length?sorted[Math.floor(sorted.length/2)]:null,p95FrameMs:sorted.length?sorted[Math.floor(sorted.length*.95)]:null,canvas:{width:renderer.domElement.width,height:renderer.domElement.height},qrMode,reduced,cameraMode:mode,qrConstruction:"physical-cube-top-faces",qrSurfaceStyle:"source-colours-and-height-relief",qrValid,qrModules:physicalHospital.moduleCount,qrModuleSize:physicalHospital.step,qrTextureCount:0,qrPlaneCount:0,qrMarkFaces:physicalHospital.markFaces+physicalLung.markFaces,lungTilt:lung.group.rotation.x,lungPose:{y:lung.group.position.y,scaleY:lung.group.scale.y,yaw:lung.group.rotation.y}};},
   dispose(){disposed=true;observer.disconnect();document.removeEventListener('visibilitychange',visibility);scene.traverse(o=>{if(o instanceof THREE.Mesh){o.geometry.dispose();const mats=Array.isArray(o.material)?o.material:[o.material];mats.forEach(m=>m.dispose());}});target.dispose();target.depthTexture?.dispose();postMaterial.dispose();postQuad.geometry.dispose();renderer.dispose();},
  };
 }
