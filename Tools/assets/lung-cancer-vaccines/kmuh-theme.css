@@ -27,13 +27,11 @@ p{margin:0 0 14px}
 .button.primary{color:#fff;background:var(--accent)}
 .button.primary:hover{background:var(--accent-dark)}
 .meta{font-size:13px;color:var(--muted);margin:18px 0 0}
-.hospital-visual{display:grid;grid-template-columns:minmax(0,1fr) 170px;align-items:end;gap:24px;margin-top:18px}
-.hospital-scene{height:300px;position:relative;overflow:hidden}
+.hospital-visual{position:relative;margin-top:18px}
+.hospital-scene{height:350px;position:relative;overflow:hidden}
 .hospital-scene img{position:absolute;bottom:0;left:0;display:block;width:100%;height:auto}
-.scene-brand{display:flex;flex-direction:column;align-items:center;text-align:center;padding-bottom:38px}
-.scene-brand img{display:block;width:150px;height:auto;filter:grayscale(1);opacity:.9;margin-bottom:12px}
-.scene-brand span{font-size:16px;font-weight:650;letter-spacing:.08em}
-.scene-brand small{font-size:10px;line-height:1.5;letter-spacing:.04em;margin-top:6px;color:var(--muted)}
+.scene-brand{position:absolute;left:6%;top:4%;width:210px;pointer-events:none}
+.scene-brand img{display:block;width:100%;height:auto;opacity:.84}
 .toc{display:flex;flex-wrap:wrap;gap:4px 24px;margin:0 0 16px;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .toc a{display:inline-flex;align-items:center;min-height:44px;padding:4px 0;font-size:15px;text-decoration:none;font-weight:600}
 .toc a:hover{text-decoration:underline;text-underline-offset:5px}
@@ -76,7 +74,7 @@ footer{display:flex;align-items:center;justify-content:center;gap:20px;padding:3
 @media(max-width:800px){
   .topbar{gap:12px}.brand{gap:12px}.brand strong{font-size:15px}.brand small{font-size:11px}.brand img{width:64px;height:63px}
   .tips{grid-template-columns:1fr 1fr;gap:22px}.tip,.tip:first-child,.tip:last-child{padding:0;border:0}
-  .two-col{grid-template-columns:1fr;gap:24px}.hospital-scene{height:200px}.hospital-visual{grid-template-columns:minmax(0,1fr) 120px;gap:16px}.scene-brand{padding-bottom:24px}.scene-brand img{width:110px}.scene-brand span{font-size:13px}
+  .two-col{grid-template-columns:1fr;gap:24px}.hospital-scene{height:240px}.scene-brand{width:150px;left:5%;top:3%}
   .table-wrap{border:0;overflow:visible}table,tbody,tr,td,tbody th{display:block;width:100%!important}
   thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
   tbody tr{border:1px solid var(--line);border-radius:5px;overflow:hidden;margin-bottom:20px}tbody tr:last-child{margin-bottom:0}
@@ -88,7 +86,7 @@ footer{display:flex;align-items:center;justify-content:center;gap:20px;padding:3
 @media(max-width:520px){
   main,.topbar,footer{width:calc(100% - 32px)}.topbar{align-items:flex-start;flex-wrap:wrap;padding:20px 0 12px}.brand{width:100%}.brand strong{font-size:15px}.back{margin-left:76px;font-size:13px}
   .hero{padding-top:30px}h1{font-size:34px;padding-bottom:18px}.lead{font-size:17px}.button{width:100%}
-  .hospital-visual{grid-template-columns:minmax(0,1fr) 82px;gap:8px;margin-top:24px}.hospital-scene{height:120px}.hospital-scene img{width:100%;left:0;max-width:none}.scene-brand{padding-bottom:20px}.scene-brand img{width:72px;margin-bottom:7px}.scene-brand span{font-size:10px;letter-spacing:0}.scene-brand small{display:none}
+  .hospital-visual{margin-top:24px}.hospital-scene{height:170px}.hospital-scene img{width:100%;left:0;max-width:none}.scene-brand{width:96px;left:4%;top:0}
   .toc{gap:2px 20px;padding:12px 0}.toc a{font-size:14px}
   .section{padding:28px 0 32px}h2{font-size:23px}.number{width:30px;height:30px;font-size:17px;margin-right:8px}
   .tips{grid-template-columns:1fr;gap:20px}.tip{display:flex;align-items:center;gap:16px}.tip .icon{margin:0;flex:none}
