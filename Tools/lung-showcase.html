@@ -3,20 +3,39 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>肺部 3D 衛教展示｜示意圖</title>
-  <meta name="description" content="肺部 3D 衛教展示：支氣管鏡切片、EBUS-TBNA、胸腔引流、呼吸音與電腦斷層導引穿刺的示意動畫。所有內容皆為示意圖，非實際病情。">
-  <link rel="stylesheet" href="lung-showcase/style.css?v=20261017-ct-layout2">
+  <title>胸腔內科檢查衛教</title>
+  <meta name="description" content="胸腔內科常見檢查的 3D 衛教動畫：支氣管鏡沖洗、支氣管鏡切片、EBUS-TBNA、電腦斷層導引穿刺與胸腔引流。所有內容皆為示意圖，非實際病情。">
+  <link rel="stylesheet" href="lung-showcase/style.css?v=20261021-mvi9nek1">
 </head>
-<body>
+<body data-view="hub">
   <div class="app">
     <header class="top">
-      <div class="brand"><span class="mark">✦</span><div><h1>肺部 3D 衛教展示</h1><p>所有內容皆為示意圖，非實際病情</p></div></div>
+      <div class="brand"><span class="mark">✦</span><div><h1>胸腔內科檢查衛教</h1><p>所有內容皆為示意圖，非實際病情</p></div></div>
       <div id="voicebar" class="voicebar" role="group" aria-label="語音導覽">
         <button id="voiceToggle" type="button" aria-pressed="false">🔇 語音：關</button>
         <label>語言 <select id="voiceLang" aria-label="語音與步驟文字語言"></select></label>
       </div>
     </header>
-    <nav id="tabs" class="tabs" aria-label="展示項目"></nav>
+    <nav id="demobar" class="demobar" aria-label="檢查導覽">
+      <a id="demoBack" class="bar-back" href="#home">← 檢查列表</a>
+      <a id="demoPrev" class="bar-step" href="#home" hidden>‹ 上一項</a>
+      <a id="demoNext" class="bar-step" href="#home" hidden>下一項 ›</a>
+    </nav>
+    <nav id="tabs" class="tabs" aria-label="展示項目" hidden></nav>
+    <section id="hub" class="hub" aria-label="檢查列表">
+      <div class="hub-intro">
+        <h2>想了解哪一項檢查？</h2>
+        <p>點選下面的檢查，看 3D 示範動畫和說明。所有內容皆為<strong>示意圖，非實際病情</strong>，實際流程依醫師說明為準。</p>
+      </div>
+      <div id="hubCards" class="hub-cards"></div>
+      <section class="hub-share" aria-label="帶回家">
+        <img src="lung-showcase/qr/home.png" alt="胸腔內科檢查衛教首頁的 QR Code" width="168" height="168" loading="lazy">
+        <div>
+          <h2>帶回家再看一次</h2>
+          <p>用手機相機掃描左邊的 QR Code，就能在手機開啟這份衛教，和家人一起看。</p>
+        </div>
+      </section>
+    </section>
     <main class="stage">
       <div class="demo-layout">
       <div class="sticky-top" id="stickyTop">
@@ -157,6 +176,6 @@
       if (box) { box.textContent = '3D 模型無法載入：' + (event.message || '請用最新版 Chrome、Edge 或 Safari 開啟，並按 Ctrl+F5 重新整理'); box.classList.add('error'); }
     });
   </script>
-  <script type="module" src="lung-showcase/main.js?v=20261017-wash1"></script>
+  <script type="module" src="lung-showcase/main.js?v=20261021-mvi9nek1"></script>
 </body>
 </html>
