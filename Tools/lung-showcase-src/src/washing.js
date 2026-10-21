@@ -132,7 +132,7 @@ export function createWashDemo() {
     title: '支氣管鏡沖洗（Bronchoscopic washing）',
     when: '當肺部有發炎或感染，例如肺炎、痰液很多或懷疑結核菌時，醫師可以用支氣管鏡直接到發炎的位置，用少量無菌生理食鹽水沖洗，再把液體吸出來收集，送去培養或檢驗，找出真正的致病原。這裡以右上肺發炎為例。',
     camera: HOME,
-    pictures: [],
+    pictures: [{ src: 'lung-showcase/images/wash-room.webp', caption: 'AI 生成之示意圖：支氣管鏡室，醫師站在床頭，鏡子由鼻孔進入，旁邊的螢幕顯示氣管內部' }],
     steps: [
       { at: 0, title: '進入氣管', text: '局部麻醉後，細長的支氣管鏡從鼻腔或口腔進入，經過喉嚨到達氣管，沿著氣管往下，朝要作檢查的肺部前進。' },
       { at: 22, title: '進入右側主支氣管，看到右上葉支氣管', text: '接著往要檢查的支氣管前進 (此示意圖是在右側的主支氣管)，進入後往外側看到右上葉支氣管的開口，支氣管鏡轉進去。' },

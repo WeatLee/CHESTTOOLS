@@ -7,7 +7,7 @@ export const HUB = [
   {
     id: 'wash', name: '支氣管鏡沖洗', en: 'Bronchoscopic washing',
     text: '肺部有發炎或感染時，醫師用支氣管鏡到發炎的位置，注入少量無菌生理食鹽水再吸回來，收集檢體送去培養或檢驗，找出致病的原因。',
-    picture: ''
+    picture: 'lung-showcase/images/wash-room.webp'
   },
   {
     id: 'bronch', name: '支氣管鏡切片', en: 'Bronchoscopic biopsy',
