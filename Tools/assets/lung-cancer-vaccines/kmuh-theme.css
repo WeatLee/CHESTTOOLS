@@ -1,15 +1,15 @@
-:root{color-scheme:light;--ink:#282426;--muted:#696166;--accent:#805365;--accent-dark:#694151;--line:#e5dce0;--soft:#f8f4f6}
+:root{color-scheme:light;--ink:#183f70;--muted:#536b83;--accent:#b32838;--accent-dark:#922130;--line:#dce3eb;--soft:#fff}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:24px}
 body{margin:0;background:#fff;color:var(--ink);font-family:system-ui,-apple-system,"Microsoft JhengHei",sans-serif;line-height:1.85}
-a{color:var(--accent-dark)}
+a{color:var(--ink)}
 a,button{touch-action:manipulation}
 a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
 button{font:inherit}
 main,.topbar,footer{width:min(1120px,calc(100% - 48px));margin:auto}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:26px 0;border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:18px;min-width:0}
-.brand img{display:block;flex:none;width:76px;height:74px}
+.brand img{display:block;flex:none;width:76px;height:76px;object-fit:contain}
 .brand strong{display:block;font-size:18px;letter-spacing:.04em;font-weight:650}
 .brand small{display:block;font-size:13px;color:var(--muted);letter-spacing:.04em}
 .back{display:inline-flex;align-items:center;flex:none;min-height:44px;text-decoration:none;font-size:14px}
@@ -20,15 +20,20 @@ h1{font-size:clamp(34px,4.8vw,52px);line-height:1.3;font-weight:650;letter-spaci
 h2{font-size:clamp(23px,3vw,29px);line-height:1.5;font-weight:650;margin:0 0 24px}
 h3{font-size:20px;line-height:1.5;font-weight:650;margin:0 0 10px}
 p{margin:0 0 14px}
-.lead{font-size:clamp(17px,2.5vw,21px);color:#51484e;margin-bottom:26px}
+.lead{font-size:clamp(17px,2.5vw,21px);color:var(--ink);margin-bottom:26px}
 .actions{display:flex;flex-wrap:wrap;gap:10px}
-.button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:10px 19px;border:1px solid var(--accent);border-radius:5px;background:#fff;color:var(--accent-dark);text-decoration:none;font-size:15px;font-weight:650;cursor:pointer}
+.button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:10px 19px;border:1px solid var(--accent);border-radius:5px;background:#fff;color:var(--ink);text-decoration:none;font-size:15px;font-weight:650;cursor:pointer}
 .button:hover{background:var(--soft)}
 .button.primary{color:#fff;background:var(--accent)}
 .button.primary:hover{background:var(--accent-dark)}
 .meta{font-size:13px;color:var(--muted);margin:18px 0 0}
-.hospital-scene{height:360px;position:relative;margin:8px 0 0;overflow:hidden}
+.hospital-visual{display:grid;grid-template-columns:minmax(0,1fr) 170px;align-items:end;gap:24px;margin-top:18px}
+.hospital-scene{height:300px;position:relative;overflow:hidden}
 .hospital-scene img{position:absolute;bottom:0;left:0;display:block;width:100%;height:auto}
+.scene-brand{display:flex;flex-direction:column;align-items:center;text-align:center;padding-bottom:38px}
+.scene-brand img{display:block;width:150px;height:auto;filter:grayscale(1);opacity:.9;margin-bottom:12px}
+.scene-brand span{font-size:16px;font-weight:650;letter-spacing:.08em}
+.scene-brand small{font-size:10px;line-height:1.5;letter-spacing:.04em;margin-top:6px;color:var(--muted)}
 .toc{display:flex;flex-wrap:wrap;gap:4px 24px;margin:0 0 16px;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .toc a{display:inline-flex;align-items:center;min-height:44px;padding:4px 0;font-size:15px;text-decoration:none;font-weight:600}
 .toc a:hover{text-decoration:underline;text-underline-offset:5px}
@@ -46,19 +51,19 @@ p{margin:0 0 14px}
 .tip:first-child{padding-left:0}.tip:last-child{padding-right:0;border-right:0}
 .tip .icon{display:block;font-size:27px;margin-bottom:12px;filter:grayscale(1)}
 .tip p{margin:0}
-.closing{margin:32px 0 0;text-align:center;font-size:20px;font-weight:650;color:var(--accent-dark)}
+.closing{margin:32px 0 0;text-align:center;font-size:20px;font-weight:650;color:var(--ink)}
 .section-intro{color:var(--muted);margin-bottom:24px}
 .table-wrap{border:1px solid var(--line);border-radius:5px;overflow:hidden}
 table{width:100%;border-collapse:collapse;font-size:16px;line-height:1.75}
 th,td{padding:18px 16px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);border-right:1px solid var(--line)}
-thead th{background:var(--accent);color:#fff;font-weight:650}
-tbody th{width:16%;background:#f4edf0;color:var(--accent-dark);font-size:18px;font-weight:650}
+thead th{background:#fff;color:var(--ink);font-weight:650;border-top:3px solid var(--accent)}
+tbody th{width:16%;background:#fff;color:var(--ink);font-size:18px;font-weight:650}
 td:nth-child(2){width:23%;background:#fff}
-td:nth-child(3){width:22%;background:#fcfafb}
+td:nth-child(3){width:22%;background:#fff}
 td:last-child{width:39%;background:#fff;border-right:0}
 tbody tr:last-child>*{border-bottom:0}
 ul{padding-left:1.25em;margin:0}li+li{margin-top:6px}
-details{border:1px solid var(--line);border-radius:5px;background:#fcfafb}
+details{border:1px solid var(--line);border-radius:5px;background:#fff}
 summary{cursor:pointer;font-weight:650;padding:18px 20px;min-height:48px}
 .posters{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:0 20px 20px}
 .posters a{display:block}.posters img{display:block;width:100%;height:auto;border-radius:3px}
@@ -71,7 +76,7 @@ footer{display:flex;align-items:center;justify-content:center;gap:20px;padding:3
 @media(max-width:800px){
   .topbar{gap:12px}.brand{gap:12px}.brand strong{font-size:15px}.brand small{font-size:11px}.brand img{width:64px;height:63px}
   .tips{grid-template-columns:1fr 1fr;gap:22px}.tip,.tip:first-child,.tip:last-child{padding:0;border:0}
-  .two-col{grid-template-columns:1fr;gap:24px}.hospital-scene{height:230px}
+  .two-col{grid-template-columns:1fr;gap:24px}.hospital-scene{height:200px}.hospital-visual{grid-template-columns:minmax(0,1fr) 120px;gap:16px}.scene-brand{padding-bottom:24px}.scene-brand img{width:110px}.scene-brand span{font-size:13px}
   .table-wrap{border:0;overflow:visible}table,tbody,tr,td,tbody th{display:block;width:100%!important}
   thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
   tbody tr{border:1px solid var(--line);border-radius:5px;overflow:hidden;margin-bottom:20px}tbody tr:last-child{margin-bottom:0}
@@ -83,7 +88,7 @@ footer{display:flex;align-items:center;justify-content:center;gap:20px;padding:3
 @media(max-width:520px){
   main,.topbar,footer{width:calc(100% - 32px)}.topbar{align-items:flex-start;flex-wrap:wrap;padding:20px 0 12px}.brand{width:100%}.brand strong{font-size:15px}.back{margin-left:76px;font-size:13px}
   .hero{padding-top:30px}h1{font-size:34px;padding-bottom:18px}.lead{font-size:17px}.button{width:100%}
-  .hospital-scene{height:140px;margin-top:20px}.hospital-scene img{width:110%;left:-5%;max-width:none}
+  .hospital-visual{grid-template-columns:minmax(0,1fr) 82px;gap:8px;margin-top:24px}.hospital-scene{height:120px}.hospital-scene img{width:100%;left:0;max-width:none}.scene-brand{padding-bottom:20px}.scene-brand img{width:72px;margin-bottom:7px}.scene-brand span{font-size:10px;letter-spacing:0}.scene-brand small{display:none}
   .toc{gap:2px 20px;padding:12px 0}.toc a{font-size:14px}
   .section{padding:28px 0 32px}h2{font-size:23px}.number{width:30px;height:30px;font-size:17px;margin-right:8px}
   .tips{grid-template-columns:1fr;gap:20px}.tip{display:flex;align-items:center;gap:16px}.tip .icon{margin:0;flex:none}
@@ -92,7 +97,7 @@ footer{display:flex;align-items:center;justify-content:center;gap:20px;padding:3
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 @media print{
-  body{font-size:11pt}.topbar,.toc,.actions,.source-actions,#original,.skip,#copy-status,.hospital-scene{display:none}
+  body{font-size:11pt}.topbar,.toc,.actions,.source-actions,#original,.skip,#copy-status,.hospital-visual{display:none}
   main,footer{width:100%}.hero,.section{padding:16px 0;margin:0}h1{font-size:28pt}h2{font-size:18pt}
   .tips{grid-template-columns:1fr 1fr}.protection{padding:12px}table{font-size:10pt}th,td{padding:10px}
   tr,.tip,.note{break-inside:avoid}a{color:inherit;text-decoration:none}
