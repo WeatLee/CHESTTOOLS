@@ -1,5 +1,7 @@
 // The start page: one card per examination. It is deliberately light (no 3D, no demo code);
 // the 3D scene is only loaded when a card is opened (see entry.js).
+import { versioned } from './ver.js';
+
 export const SITE = 'https://weatlee.github.io/CHESTTOOLS/Tools/lung-showcase.html';
 
 // Order of the cards (also the order of the previous / next buttons inside an examination).
@@ -47,7 +49,7 @@ function card(item, index) {
         <button class="hub-qr-btn" type="button" aria-expanded="false">QR Code</button>
       </div>
       <div class="hub-qr" hidden>
-        <img src="lung-showcase/qr/${item.id}.png" alt="${item.name}的 QR Code，掃描後在手機開啟" width="168" height="168" loading="lazy">
+        <img src="${versioned(`lung-showcase/qr/${item.id}.png`)}" alt="${item.name}的 QR Code，掃描後在手機開啟" width="168" height="168" loading="lazy">
         <p>用手機相機掃描，直接開啟「${item.name}」</p>
       </div>
     </div>`;
@@ -56,7 +58,7 @@ function card(item, index) {
     const image = new Image();
     image.alt = '';
     image.addEventListener('load', () => { pic.append(image); pic.classList.remove('none'); });
-    image.src = item.picture;
+    image.src = versioned(item.picture);
   }
   const button = el.querySelector('.hub-qr-btn'), box = el.querySelector('.hub-qr');
   button.addEventListener('click', () => {

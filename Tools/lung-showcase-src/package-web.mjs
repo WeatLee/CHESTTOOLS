@@ -10,6 +10,10 @@ let html = readFileSync(join(base, 'index.html'), 'utf8');
 html = html.replace('href="style.css"', `href="lung-showcase/style.css?v=${release}"`);
 html = html.replace('src="main.js"', `src="lung-showcase/main.js?v=${release}"`);
 if (!html.includes(`lung-showcase/main.js?v=${release}`) || !html.includes(`lung-showcase/style.css?v=${release}`)) throw new Error('Web packaging failed');
+html = html.replace('<script type="module" src="lung-showcase/main.js', `<script>window.SHOWCASE_V="${release}";</script>
+  <script type="module" src="lung-showcase/main.js`);
+html = html.replace('src="lung-showcase/qr/home.png"', `src="lung-showcase/qr/home.png?v=${release}"`);
+if (!html.includes('SHOWCASE_V')) throw new Error('Version injection failed');
 writeFileSync(join(base, 'web', 'lung-showcase.html'), html);
 copyFileSync(join(base, 'style.css'), join(base, 'web', 'lung-showcase', 'style.css'));
 // Optional illustrations (images/*.webp) are copied when present.

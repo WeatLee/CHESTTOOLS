@@ -4,6 +4,7 @@
 // Procedure page while this page shows only captions and a play button.
 import { DEMOS } from './demos.js';
 import { createVoice } from './voice.js';
+import { versioned } from './ver.js';
 
 const $ = id => document.getElementById(id);
 const fire = (element, type) => element.dispatchEvent(new Event(type, { bubbles: true }));
@@ -103,7 +104,7 @@ export function startShowcase(api) {
       image.alt = picture.caption;
       image.loading = 'eager';
       image.addEventListener('load', () => { figure.hidden = false; });
-      image.src = picture.src;
+      image.src = versioned(picture.src);
       const caption = document.createElement('figcaption');
       caption.textContent = `${picture.caption}（示意圖，非實際病情）`;
       if (picture.credit) { const credit = document.createElement('small'); credit.className = 'credit'; credit.textContent = picture.credit; caption.append(document.createElement('br'), credit); }
