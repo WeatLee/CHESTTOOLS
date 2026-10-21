@@ -17,6 +17,11 @@ if (existsSync(join(base, 'images'))) {
   mkdirSync(join(base, 'web', 'lung-showcase', 'images'), { recursive: true });
   cpSync(join(base, 'images'), join(base, 'web', 'lung-showcase', 'images'), { recursive: true });
 }
+// QR codes (qr/<id>.png), made with the Medical QR page.
+if (existsSync(join(base, 'qr'))) {
+  mkdirSync(join(base, 'web', 'lung-showcase', 'qr'), { recursive: true });
+  cpSync(join(base, 'qr'), join(base, 'web', 'lung-showcase', 'qr'), { recursive: true });
+}
 // Pre-recorded narration (voice/<lang>/*.mp3), built by build-voice.mjs.
 if (existsSync(join(base, 'voice'))) {
   mkdirSync(join(base, 'web', 'lung-showcase', 'voice'), { recursive: true });

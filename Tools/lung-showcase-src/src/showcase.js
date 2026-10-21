@@ -20,6 +20,8 @@ export function startShowcase(api) {
 
   let current = -1;
   let entering = false;
+  let pendingId = null;   // an examination asked for while another one was still starting
+  let controller = null;
   const tabs = $('tabs'), steps = $('steps'), seek = $('seek'), btnPlay = $('btnPlay');
 
   // ---- voice (narration of the step captions; see voice.js) ----
@@ -139,11 +141,13 @@ export function startShowcase(api) {
       renderGallery(demo);
       seek.value = '0';
       history.replaceState(null, '', `#${demo.id}`);
+      document.title = `${demo.tab}｜胸腔內科檢查衛教`;
       await api.ready;
       resetScene();
       demo.enter(ctx);
     } finally {
       entering = false;
+      if (pendingId !== null) { const id = pendingId; pendingId = null; controller?.open(id); }
     }
   }
 
@@ -240,11 +244,21 @@ export function startShowcase(api) {
   }
   requestAnimationFrame(frame);
 
-  // ---- start on the demo named in the address, else the first ----
-  const wanted = DEMOS.findIndex(demo => `#${demo.id}` === location.hash);
-  enter(wanted >= 0 ? wanted : 0, { fromHash: true });
-  window.addEventListener('hashchange', () => {
-    const index = DEMOS.findIndex(demo => `#${demo.id}` === location.hash);
-    if (index >= 0 && index !== current) enter(index, { fromHash: true });
-  });
+  // ---- called by the start page router (entry.js) ----
+  controller = {
+    open(id) {
+      if (entering) { pendingId = id; return; }
+      const index = DEMOS.findIndex(demo => demo.id === id);
+      if (index < 0) { location.hash = '#home'; return; }
+      api.pauseRender(false);
+      if (index !== current) enter(index, { fromHash: true });
+    },
+    leave() {
+      voice.stop();
+      DEMOS[current]?.exit?.(ctx);
+      current = -1;
+      api.pauseRender(true);
+    }
+  };
+  return controller;
 }

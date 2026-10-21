@@ -1170,7 +1170,8 @@ function stepCameraTween(){
   controls.target.lerpVectors(cameraTween.fromTarget,cameraTween.toTarget,e);
   if(t>=1)cameraTween=null;
 }
-function animate(time){requestAnimationFrame(animate);const delta=Math.min(.05,(time-lastTime)/1000||0);lastTime=time;stepCameraTween();
+let renderPaused=false,animating=true;
+function animate(time){if(renderPaused){animating=false;return;}requestAnimationFrame(animate);const delta=Math.min(.05,(time-lastTime)/1000||0);lastTime=time;stepCameraTween();
   if(drainPlaying){$('drainProgress').value=Math.min(100,+$('drainProgress').value+delta*SPEED.drain);if(+$('drainProgress').value>=100){drainPlaying=false;$('drainPlay').textContent='▶ 播放';}}
   if(drain.active)updateDrain();
   if(tbnaPlaying){$('tbnaProgress').value=Math.min(100,+$('tbnaProgress').value+delta*SPEED.tbna);if(+$('tbnaProgress').value>=100){tbnaPlaying=false;$('tbnaPlay').textContent='▶ 播放';}}
@@ -1198,5 +1199,6 @@ export const api={
   tweenCamera,
   setCamera(position,target){camera.position.set(...position);controls.target.set(...target);controls.update();},
   resetView(){setView('chest');},
+  pauseRender(on){renderPaused=!!on;if(!on&&!animating){animating=true;lastTime=performance.now();requestAnimationFrame(animate);}},
   toast
 };
