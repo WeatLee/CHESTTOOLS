@@ -11,7 +11,7 @@ const HOME = [[0, .15, 7.9], [0, -.1, 0]];
 // A picture whose file is missing stays hidden, so these can be added at any time.
 const pictures = {
   bronch: [{ src: 'lung-showcase/images/bronch-room.webp', caption: 'AI 生成之示意圖：支氣管鏡室，醫師站在床頭，鏡子由鼻孔進入，旁邊的螢幕顯示氣管內部，夾子可以夾取組織' }],
-  tbna: [{ src: 'lung-showcase/images/tbna-room.webp', caption: 'AI 生成之示意圖：超音波支氣管鏡檢查，螢幕同時顯示超音波影像（看到淋巴結和針）與氣管內部' }],
+  tbna: [{ src: 'lung-showcase/images/tbna-room.webp', caption: 'AI 生成之示意圖：超音波支氣管鏡檢查，病人嘴巴含著咬口器，鏡子由口腔進入；螢幕同時顯示超音波影像（看到淋巴結和針）與氣管內部' }],
   drain: [{ src: 'lung-showcase/images/pigtail-bedside.webp', caption: 'AI 生成之示意圖：床邊放置胸腔引流管，病人坐著、身體前傾，醫師從側背部把導管放入' }],
   sound: [{ src: 'lung-showcase/images/auscultation.webp', caption: '用聽診器聽診的情形' }],
   ct: [{ src: 'lung-showcase/images/ct-table.webp', caption: 'AI 生成之示意圖：病人躺在檢查台上，醫師看著影像引導針進入' }]
