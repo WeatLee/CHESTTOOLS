@@ -6,7 +6,9 @@ import { LANGS, VOICE_TEXT } from './voice-text.js';
 
 const KEY = 'showcase-voice';
 // Languages whose audio files exist. Taiwanese has no recording yet, so it stays disabled.
-const READY = new Set(['zh', 'en', 'vi', 'ms', 'id']);
+const READY = new Set(['zh', 'en', 'vi', 'ms', 'id', 'hak']);
+// Languages recorded for only some demos (a missing demo is simply not read aloud).
+const COVERAGE = { hak: ['bronch'] };
 
 function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } }
 function save(state) { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* storage blocked: fine */ } }
@@ -54,6 +56,7 @@ export function createVoice({ onLangChange }) {
   function speak(demo, index) {
     stop();
     if (!state.on || !VOICE_TEXT[demo.id]?.[index]) return;
+    if (COVERAGE[state.lang] && !COVERAGE[state.lang].includes(demo.id)) return;
     const mine = token;
     const done = () => { if (mine !== token) return; const next = after; after = null; audio = null; next?.(); };
     audio = new Audio(`lung-showcase/voice/${state.lang}/${demo.id}-${index + 1}.mp3`);

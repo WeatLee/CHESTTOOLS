@@ -6,6 +6,7 @@
 export const LANGS = [
   { id: 'zh', label: '中文', voice: 'zh-TW-HsiaoChenNeural', htmlLang: 'zh-TW' },
   { id: 'en', label: 'English (US)', voice: 'en-US-JennyNeural', htmlLang: 'en-US' },
+  { id: 'hak', label: '客語（僅支氣管鏡）', voice: null, htmlLang: 'hak-TW' }, // recorded by the user; only the bronchoscopy demo so far
   { id: 'nan', label: '台語', voice: null, htmlLang: 'nan-TW' }, // no neural voice in the TTS service; see voice/README.md
   { id: 'vi', label: 'Tiếng Việt', voice: 'vi-VN-HoaiMyNeural', htmlLang: 'vi' },
   { id: 'ms', label: 'Bahasa Melayu', voice: 'ms-MY-YasminNeural', htmlLang: 'ms' },
