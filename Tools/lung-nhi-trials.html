@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>肺癌健保給付與臨床試驗查詢</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 1100px; margin: auto; }
+        .back { display: inline-block; margin-bottom: 10px; color: #187464; text-decoration: none; font-size: 15px; }
+        .back:hover { text-decoration: underline; }
+        h1 { text-align: center; color: #2c3e50; margin: 6px 0 8px; font-size: 28px; line-height: 1.35; }
+        .lead { text-align: center; color: #5b6b73; margin: 0 auto 26px; max-width: 760px; line-height: 1.7; }
+        h2.group { margin: 28px 0 12px; color: #187464; font-size: 20px; display: flex; align-items: center; gap: 10px; }
+        h2.group::after { content: ''; flex: 1; height: 1px; background: #cfe0dc; }
+        .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: stretch; }
+        .card {
+            background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-decoration: none; color: #333; display: flex; flex-direction: column; gap: 10px;
+            border-left: 5px solid #187464; transition: 0.3s;
+        }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .card.rules { border-left-color: #176b87; }
+        .card.trial { border-left-color: #8a5a12; }
+        .card h3 { margin: 0; color: #3498db; font-size: 22px; line-height: 1.35; }
+        .card p { margin: 0; line-height: 1.7; }
+        .card .when { font-size: 14px; color: #5b6b73; background: #f1f6f5; border-radius: 6px; padding: 8px 10px; }
+        .badges { display: flex; flex-wrap: wrap; gap: 6px; }
+        .badge { font-size: 12px; border-radius: 5px; padding: 3px 8px; background: #e2f3eb; color: #14614d; }
+        .badge.test { background: #fdf1dc; color: #8a5a12; }
+        .badge.new { background: #e8eefb; color: #2c4a8a; font-weight: 650; }
+        .go { margin-top: auto; color: #187464; font-weight: 650; }
+        .note { margin: 30px auto 10px; max-width: 860px; font-size: 13px; color: #74858a; line-height: 1.8; }
+        a:focus-visible { outline: 3px solid #eba95b; outline-offset: 3px; }
+        @media (max-width: 768px) {
+            .container { max-width: 600px; }
+            .cards { grid-template-columns: 1fr; gap: 15px; }
+            h1 { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a class="back" href="../index.html">← 臨床快速工具箱</a>
+        <h1>肺癌 · 健保給付與臨床試驗查詢</h1>
+        <p class="lead">肺癌與惡性間皮瘤的健保特殊藥物（免疫、標靶）給付，以及院內臨床試驗初篩。四個工具各有用途，依手上的資訊與想問的問題選擇。</p>
+
+        <h2 class="group">健保給付</h2>
+        <div class="cards">
+            <a href="nhi-quick-finder.html" class="card">
+                <div class="badges"><span class="badge new">新</span><span class="badge test">測試版 · 待校對</span></div>
+                <h3>🔎 健保特殊藥物快找</h3>
+                <p>點幾個關鍵條件（癌別、分期、基因、線數、PD-L1），直接列出目前可能適用的健保特殊藥物；每張卡逐字附條文，並標示還需確認的條件。</p>
+                <div class="when">適合：已知大致病況，想快速看有哪些藥、各卡還缺什麼條件。</div>
+                <span class="go">開啟快找 →</span>
+            </a>
+
+            <a href="lung-cancer-nhi-pathway.html?v=1150922" class="card">
+                <div class="badges"><span class="badge">逐層問答</span></div>
+                <h3>🫁 肺癌健保特殊用藥路徑查詢</h3>
+                <p>依癌別、期別、driver gene、PD-L1 與既往治療，逐層篩選可能符合的特殊健保給付路徑。</p>
+                <div class="when">適合：想一步一步確認每個條件，不漏問。</div>
+                <span class="go">開啟路徑查詢 →</span>
+            </a>
+
+            <a href="nhi-drug-rules.html?v=20261007d" class="card rules">
+                <div class="badges"><span class="badge">全文查詢</span></div>
+                <h3>🩺 健保藥品給付規定查詢</h3>
+                <p>第六節呼吸道與第九節抗癌瘤藥物；優先顯示藥品完整主條文，可展開相關規定及完整 IO 給付規定。</p>
+                <div class="when">適合：已知藥名或關鍵字，要看完整條文。</div>
+                <span class="go">開啟條文查詢 →</span>
+            </a>
+        </div>
+
+        <h2 class="group">臨床試驗</h2>
+        <div class="cards">
+            <a href="lung-trial-finder.html?v=20261016v13" class="card trial">
+                <div class="badges"><span class="badge test">測試版</span></div>
+                <h3>🔎 肺癌試驗快找</h3>
+                <p>依癌別、期別、基因型、PD-L1 與已接受治療線數，初篩可能符合的院內臨床試驗。</p>
+                <div class="when">適合：想知道病人有沒有可能收案的試驗；僅為初篩，不代表收案資格。</div>
+                <span class="go">開啟試驗快找 →</span>
+            </a>
+        </div>
+
+        <p class="note">本頁工具皆為自用輔助，不含病人資料，未完成臨床驗證（標「測試版」者尤其如此）。健保給付內容請以健保署最新公告與完整條文為準；臨床試驗是否符合收案，請以各試驗窗口確認。</p>
+    </div>
+</body>
+</html>

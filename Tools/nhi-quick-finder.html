@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>健保特殊藥物快找</title>
+<style>:root{font-family:system-ui,"Microsoft JhengHei",sans-serif;color:#203b42;background:#f3f6f6;font-size:16px}
+*{box-sizing:border-box}body{margin:0}
+header{background:#173f46;color:#fff;padding:22px max(20px,calc((100vw - 1240px)/2))}
+header small{color:#aed7d0;letter-spacing:2px}
+h1{font-size:26px;margin:6px 0}
+header p{margin:0;color:#d1e2e3;font-size:14px;line-height:1.7}
+main{max-width:1280px;margin:20px auto;padding:0 20px}
+.layout{display:grid;grid-template-columns:390px 1fr;gap:22px}
+.panel{background:#fff;border:1px solid #dce6e6;border-radius:15px;padding:20px;align-self:start}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+h2{font-size:19px;margin:0}
+.q{margin-top:20px}.q h3{font-size:15px;margin:0 0 9px}
+.opts{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font:inherit;font-size:14px;background:#fff;color:#345259;border:1px solid #cfdcdc;border-radius:8px;padding:8px 10px;cursor:pointer;line-height:1.4;min-height:38px;display:inline-flex;gap:6px;align-items:center}
+.chip:hover{border-color:#23897a}
+.chip.sub{margin-left:14px;border-style:dashed}
+.chip[aria-pressed=true]{background:#e2f3eb;color:#14614d;border-color:#248a70;font-weight:650}
+.chip[aria-pressed=true]::before{content:'✓ ';font-weight:700}
+.chip .n{font-size:12px;color:#6c8185;background:#edf2f3;border-radius:10px;padding:0 6px}
+.hint{font-size:12px;color:#74858a;line-height:1.65;margin:8px 0 0}
+button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid #eba95b;outline-offset:3px}
+.clear{border:0;background:none;color:#24756d;cursor:pointer;padding:8px;font-size:14px;font:inherit}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.count{font-size:13px;background:#dfeeea;color:#256650;padding:6px 10px;border-radius:30px;white-space:nowrap}
+.note{font-size:13px;color:#6c8185}
+.sel{font:inherit;font-size:13px;background:#e2f3eb;color:#14614d;border:1px solid #248a70;border-radius:8px;padding:5px 9px;cursor:pointer}
+.grp{font-size:16px;margin:22px 0 10px;color:#2b5c57;display:flex;gap:8px;align-items:center}
+.grp .cnt{font-size:12px;background:#dfeeea;border-radius:10px;padding:1px 8px;color:#256650}
+.card{background:#fff;border:1px solid #dce6e6;border-radius:13px;margin-bottom:10px}
+.card summary{list-style:none;cursor:pointer;padding:14px 18px;display:grid;grid-template-columns:auto 1fr;gap:4px 10px}
+.card summary::-webkit-details-marker{display:none}
+.cid{font-size:12px;color:#68858b;background:#edf2f3;padding:3px 7px;border-radius:5px;align-self:start;margin-top:2px}
+.ctitle{font-weight:650;font-size:16px;overflow-wrap:anywhere}
+.tags{grid-column:2;display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:12px;color:#416d70;background:#edf5f4;border-radius:5px;padding:3px 7px}
+.tag.mode{background:#e1ecf5;color:#2d5878}.tag.legacy{background:#f1ece2;color:#7a5a21}
+.tag.warn{background:#fbe9e9;color:#a02f2f;font-weight:650}
+.tag.pend{background:#fdf1dc;color:#8a5a12}
+.tag.req{background:#fbe9e9;color:#b02a2a;font-weight:650}
+.tag.okc{background:#e2f3eb;color:#14614d;font-weight:650}
+.tag.fix{background:#e8eefb;color:#2c4a8a;font-weight:650}
+.brief{grid-column:2;font-size:14px;line-height:1.65;color:#597278}
+.card[open] summary{border-bottom:1px solid #edf1f1}
+.body{padding:6px 18px 16px;font-size:15px;line-height:1.8;color:#3d5a60}
+.body h4{margin:14px 0 4px;font-size:14px;color:#2b5c57}
+.body ul{margin:0;padding-left:20px}
+.body p{margin:4px 0}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid #edf1f1}
+.ok{color:#14614d;font-weight:650}.no{color:#a02f2f}.pend{color:#8a5a12}
+.io-common{font-size:14px;line-height:1.75;color:#74858a;background:#f6f9f9;border-radius:8px;padding:8px 10px;margin-top:12px}
+.src{font-size:15px;margin-top:12px}
+.src a{color:#24756d}
+.empty{padding:30px;border:1px dashed #becfd0;border-radius:14px;text-align:center;color:#637b80;background:#fff;line-height:1.9}
+footer{max-width:1280px;margin:10px auto 40px;padding:0 20px;font-size:12px;color:#7b8e92;line-height:1.8}
+[hidden]{display:none!important}
+@media(max-width:820px){.layout{grid-template-columns:1fr}header{padding:20px}main{padding:0 14px;margin:14px auto}.panel{padding:17px}.chip{min-height:42px}h1{font-size:23px}}
+</style></head>
+<body>
+<header><small>NHI QUICK FINDER · pending-clinical-review</small><h1>健保特殊藥物快找</h1><p>肺癌與惡性間皮瘤的免疫、標靶藥物。點幾個條件，看目前可能適用的健保給付；化療不在範圍。<span id="ver"></span></p></header>
+<main><div class="layout">
+<aside class="panel"><div class="row"><h2>快速篩選</h2><button class="clear" id="reset" type="button" hidden>清除條件</button></div><div id="panelBody"></div></aside>
+<section>
+<div class="bar"><span class="count" id="count"></span><span class="note" id="hiddenNote"></span></div>
+<div class="bar" id="selected"></div>
+<div id="cards"></div>
+</section></div></main>
+<footer>卡片上的「一行重點」與「條文」逐字取自健保署第九節（僅刪除修訂日期與項次）；標籤、待確認、紅字提示與排序是本頁加註，<b>尚待使用者校對</b>，不代表臨床建議或已驗證；請以健保署最新公告與完整條文為準。只有「確定不符合」的藥才會隱藏，條件未答的卡片會保留並標「待確認」。<br>資料來源：<span id="src"></span></footer>
+<script>const DATA={"version":"0.1","updated":"2026/10/28","source":"健保署第九節 115.9.22（115/10/1 生效）；整理自 ../nhi-drug-rules 資料庫 versions id=3；草稿待使用者校對","status":"pending-clinical-review","fullTextBase":"nhi-drug-rules.html","ioCommon":["每位病人每個適應症限給付一種免疫檢查點抑制劑且不得互換，治療期間亦不可合併申報該適應症之標靶藥物（atezolizumab與bevacizumab併用於晚期肝細胞癌第一線用藥及非鱗狀非小細胞肺癌第一線用藥除外），無效後或給付時程期滿後則不再給付該適應症相關之標靶藥物。（enfortumab vedotin用於局部晚期或轉移性泌尿道上皮癌第三線用藥及cetuximab用於頭頸部鱗狀細胞癌(不含鼻咽癌) 除外 ）。","給付時程期限：自初次處方用藥日起算2年（pembrolizumab用於早期三陰性乳癌依前述給付時程期限至多使用17個療程、durvalumab用於鞏固治療自初次處方用藥日起算1年、nivolumab用於非小細胞肺癌術前輔助治療至多使用3個療程）。"],"cards":[{"id":"T01","kind":"targeted","title":"Gefitinib · 一線","brief":"具有EGFR-TK基因突變之局部侵犯性或轉移性(即第ⅢB、ⅢC或第Ⅳ期)之肺腺癌病患之第一線治療，需檢附EGFR基因檢測結果報告，且需符合全民健康保險藥品給付規定之通則十二。","hist":"adeno","stage":["la","iv"],"gene":{"type":"egfr","need":"EGFR-TK 突變"},"line":["1"],"pdl1":null,"flags":[],"conditions":["用於第一線用藥：病歷應留存確實患有肺腺癌之病理或細胞檢查報告，及EGFR-TK基因突變檢測報告。","每次處方以4週為限，再次處方時需於病歷記錄治療後相關臨床資料，如每4週需追蹤胸部X光或電腦斷層等影像檢查，每8至12週需進行完整療效評估（如胸部X光或電腦斷層）。","本藥品與erlotinib及afatinib不得併用。","本藥品於第一線使用時，與osimertinib、dacomitinib、bevacizumab併用erlotinib之治療組合及aumolertinib僅得擇一使用，除因耐受性不良，不得互換。","如需更換使用osimertinib或aumolertinib，必須符合osimertinib或aumolertinib第一線使用於具有EGFR Exon 19 Del或Exon 21 L858R基因突變之局部侵犯性或轉移性（即為IIIB、IIIC期或第Ⅳ期）肺腺癌病患之限制。","如需更換使用dacomitinib，必須符合dacomitinib第一線使用於具有EGFR-TK Exon 19 Del或Exon 21 L858R點突變，且無腦轉移(non-CNS)之局部侵犯性或轉移性肺腺癌之限制。","如需更換使用bevacizumab併用erlotinib之治療組合，必須符合bevacizumab第一線使用於具有EGFR Exon 21 L858R突變且腦轉移之無法手術切除的轉移性（第Ⅳ期）非鱗狀非小細胞肺癌肺腺癌之限制。"],"notes":[],"src":"9.24-1(1)","q":"gefitinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T02","kind":"targeted","title":"Erlotinib · 一線","brief":"適用於具有EGFR-TK突變之局部侵犯性或轉移性(即第ⅢB、ⅢC或第Ⅳ期)之肺腺癌病患之第一線治療，需檢附EGFR基因檢測結果報告，且需符合全民健康保險藥品給付規定之通則十二。","hist":"adeno","stage":["la","iv"],"gene":{"type":"egfr","need":"EGFR-TK 突變"},"line":["1"],"pdl1":null,"flags":[],"conditions":["每次處方以4週為限，再次處方時需於病歷記錄治療後相關臨床資料，如每4週需追蹤胸部X光或電腦斷層等影像檢查，每8至12週需進行完整療效評估（如胸部X光或電腦斷層）。","本藥品與gefitinib及afatinib不得併用。","本藥品於第一線使用時，與osimertinib、dacomitinib及aumolertinib僅得擇一使用，除因耐受性不良，不得互換。","如需更換使用osimertinib或aumolertinib，必須符合osimertinib或aumolertinib第一線使用於具有EGFR Exon 19 Del或Exon 21 L858R基因突變之局部侵犯性或轉移性（即為IIIB、IIIC期或第Ⅳ期）肺腺癌病患之限制。","如需更換使用dacomitinib，必須符合dacomitinib第一線使用於具有EGFR-TK Exon 19 Del或Exon 21 L858R點突變，且無腦轉移(non-CNS)之局部侵犯性或轉移性肺腺癌之限制。"],"notes":[],"src":"9.29-1(1)","q":"erlotinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T03","kind":"targeted","title":"Afatinib · 一線","brief":"具有EGFR-TK基因突變之局部晚期或轉移性(即第ⅢB、ⅢC期或第Ⅳ期)之肺腺癌病患之第一線治療，需檢附EGFR基因檢測結果報告，且需符合全民健康保險藥品給付規定之通則十二。","hist":"adeno","stage":["la","iv"],"gene":{"type":"egfr","need":"EGFR-TK 突變"},"line":["1"],"pdl1":null,"flags":[],"conditions":["用於具有EGFR-TK基因突變之局部晚期或轉移性肺腺癌之第一線治療：病歷應留存確實患有肺腺癌之病理或細胞檢查報告，及EGFR-TK基因突變檢測報告。","每次處方以4週為限，再次處方時需於病歷記錄治療後相關臨床資料，如每4週需追蹤胸部X光或電腦斷層等影像檢查，每8至12週需進行完整療效評估（如胸部X光或電腦斷層）。","使用本藥品後，除因耐受性不良，否則不得轉換類似藥理機轉之其他酪胺酸激酶阻斷劑（tyrosine kinase inhibitor, TKI）。","本藥品與gefitinib及erlotinib不得併用。","本藥品於第一線使用時，與osimertinib、dacomitinib、bevacizumab併用erlotinib之治療組合及aumolertinib僅得擇一使用，除因耐受性不良，不得互換。","如需更換使用osimertinib或aumolertinib，必須符合osimertinib或aumolertinib第一線使用於具有EGFR Exon 19 Del或Exon 21 L858R基因突變之局部侵犯性或轉移性（即為IIIB、IIIC期或第Ⅳ期）肺腺癌病患之限制。","如需更換使用dacomitinib，必須符合dacomitinib第一線使用於具有EGFR-TK Exon 19 Del或Exon 21 L858R點突變，且無腦轉移(non-CNS)之局部侵犯性或轉移性肺腺癌之限制。","如需更換使用bevacizumab併用erlotinib之治療組合，必須符合bevacizumab第一線使用於具有EGFR Exon 21 L858R突變且腦轉移之無法手術切除的轉移性（第Ⅳ期）非鱗狀非小細胞肺癌肺腺癌之限制。"],"notes":[],"src":"9.45-1(1)","q":"afatinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T04","kind":"targeted","title":"Osimertinib · 一線","brief":"具有EGFR Exon 19 Del或Exon 21 L858R基因突變之局部侵犯性或轉移性（即為IIIB、IIIC期或第Ⅳ期）肺腺癌病患之第一線治療。","hist":"adeno","stage":["la","iv"],"gene":{"type":"egfr","sub":["ex19del","l858r"],"need":"EGFR Exon 19 Del 或 Exon 21 L858R"},"line":["1"],"pdl1":null,"flags":["需事前審查"],"conditions":["須經事前審查核准後使用：","每次申請事前審查之療程以三個月為限，每三個月需再次申請。","初次申請時需檢具確實患有肺腺癌或非小細胞肺癌之病理或細胞檢查報告，及檢附EGFR基因檢測結果報告，且需符合全民健康保險藥品給付規定之通則十二。","再次申請時需附上治療後相關臨床資料（如：影像學）證實無惡化，才可繼續使用。每次處方以4週為限，如給藥4週後需追蹤胸部X光或電腦斷層等影像檢查評估療效，每8至12週需進行完整療效評估(如胸部X光或電腦斷層)，若病情惡化、復發或產生不可接受之毒性，即不得再次申請。","用於第一線治療用藥：與gefitinib、erlotinib、afatinib、dacomitinib及aumolertinib僅得擇一使用，除因耐受性不良，不得互換。如需更換使用本藥品，必須符合本藥品具有EGFR Exon 19 Del或Exon 21 L858R基因突變之局部侵犯性或轉移性（即為IIIB、IIIC期或第Ⅳ期）肺腺癌病患。","每日限用1粒。"],"notes":[],"src":"9.80-1(1)","q":"osimertinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T05","kind":"targeted","title":"Aumolertinib · 一線","brief":"具有EGFR Exon 19 Del或Exon 21 L858R基因突變之局部侵犯性或轉移性（即為IIIB、IIIC期或第Ⅳ期）肺腺癌病人之第一線治療。","hist":"adeno","stage":["la","iv"],"gene":{"type":"egfr","sub":["ex19del","l858r"],"need":"EGFR Exon 19 Del 或 Exon 21 L858R"},"line":["1"],"pdl1":null,"flags":["需事前審查"],"conditions":["須經事前審查核准後使用：","每次申請事前審查之療程以三個月為限，每三個月需再次申請。","初次申請時需檢具確實患有肺腺癌或非小細胞肺癌之病理或細胞檢查報告，及檢附EGFR基因檢測結果報告，且需符合全民健康保險藥品給付規定之通則十二。","再次申請時需附上治療後相關臨床資料（如：影像學）證實無惡化，才可繼續使用。每次處方以4週為限，如給藥4週後需追蹤胸部X光或電腦斷層等影像檢查評估療效，每8至12週需進行完整療效評估(如胸部X光或電腦斷層)，若病情惡化、復發或產生不可接受之毒性，即不得再次申請。","用於第一線治療用藥：與gefitinib、erlotinib、afatinib、dacomitinib及osimertinib僅得擇一使用，除因耐受性不良，不得互換。如需更換使用本藥品，必須符合本藥品具有EGFR Exon 19 Del或Exon 21 L858R基因突變之局部侵犯性或轉移性（即為IIIB、IIIC期或第Ⅳ期）肺腺癌病患。","每日限給付2粒。"],"notes":[],"src":"9.138-1(1)","q":"aumolertinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T06","kind":"targeted","title":"Dacomitinib · 一線","brief":"限單獨使用具有EGFR-TK Exon 19 Del或Exon 21 L858R點突變，且無腦轉移 (non-CNS)之局部侵犯性或轉移性(即第ⅢB、ⅢC或第Ⅳ期)之肺腺癌病患之第一線治療，需檢附EGFR基因檢測結果報告，且需符合全民健康保險藥品給付規定之通則十二。","hist":"adeno","stage":["la","iv"],"gene":{"type":"egfr","sub":["ex19del","l858r"],"need":"EGFR Exon 19 Del 或 Exon 21 L858R"},"line":["1"],"pdl1":null,"flags":[],"conditions":["病歷應留存確實患有肺腺癌之病理或細胞檢查報告，及EGFR-TK基因突變檢測報告。","每次處方以4週為限，再次處方時需於病歷記錄治療後相關臨床資料，如每4週需追蹤胸部X光或電腦斷層等影像檢查，每8至12週需進行完整療效評估（如胸部X光或電腦斷層）。","本藥品與gefitinib、erlotinib、afatinib、osimertinib及aumolertinib，僅得擇一使用，除因耐受性不良，不得互換。如需更換使用本藥品，必須符合本藥品第一線使用於具有EGFR-TK Exon 19 Del或Exon 21 L858R點突變，且無腦轉移(non-CNS)之局部侵犯性或轉移性(即第ⅢB、ⅢC或第Ⅳ期)肺腺癌之限制。","每日限用1粒。"],"notes":[],"src":"9.83-1","q":"dacomitinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T07","kind":"targeted","title":"Bevacizumab ＋ Erlotinib · 一線","brief":"Bevacizumab與 erlotinib併用，作為無法手術切除的轉移性(第Ⅳ期)且帶有表皮生長因子受體(EGFR) Exon 21 L858R 活化性突變之腦轉移非鱗狀非小細胞肺癌病患的第一線治療。","hist":"nonsq","stage":["iv"],"gene":{"type":"egfr","sub":["l858r"],"need":"EGFR Exon 21 L858R 突變"},"line":["1"],"pdl1":null,"flags":["需事前審查"],"conditions":["Erlotinib與bevacizumab(除Zirabev以外)併用，作為無法手術切除的轉移性（第Ⅳ期）且帶有表皮生長因子受體(EGFR) Exon 21 L858R活性化突變之腦轉移非鱗狀非小細胞肺癌病患的第一線治療。","須經事前審查核准後使用：","每次申請之療程以 12 週為限。","初次申請時需檢附表皮生長因子受體(EGFR) Exon 21 L858R 活化性突變檢測報告，且需符合全民健康保險藥品給付規定之通則十二。","再次申請必須提出客觀證據（如：影像學）證實無惡化，才可繼續使用。","Bevacizumab併用erlotinib於第一線治療時，該治療組合與gefitinib、afatinib 僅得擇一使用，除因耐受性不良，不得互換。","使用劑量：限7.5mg/kg，每三週1次。"],"notes":[],"combo":"bevacizumab","src":"9.37-5、9.29-2","q":"bevacizumab","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T08","kind":"targeted","title":"Osimertinib · 二線 T790M","brief":"先前已使用過EGFR標靶藥物gefitinib、erlotinib、afatinib或dacomitinib治療失敗，且具有EGFR T790M基因突變之局部侵犯性或轉移性之非小細胞肺癌之第二線治療。","hist":"nsclc","stage":["la","iv"],"gene":{"type":"egfr","sub":["t790m"],"need":"EGFR T790M 突變"},"line":["2"],"pdl1":null,"flags":["需事前審查"],"conditions":["須經事前審查核准後使用：","每次申請事前審查之療程以三個月為限，每三個月需再次申請。","初次申請時需檢具確實患有肺腺癌或非小細胞肺癌之病理或細胞檢查報告，及檢附EGFR基因檢測結果報告，且需符合全民健康保險藥品給付規定之通則十二。","再次申請時需附上治療後相關臨床資料（如：影像學）證實無惡化，才可繼續使用。每次處方以4週為限，如給藥4週後需追蹤胸部X光或電腦斷層等影像檢查評估療效，每8至12週需進行完整療效評估(如胸部X光或電腦斷層)，若病情惡化、復發或產生不可接受之毒性，即不得再次申請。","用於第二線治療用藥：須符合本藥品具有EGFR T790M基因突變，及檢附曾經接受gefitinib、erlotinib、afatinib或dacomitinib治療之證明，以及目前又有疾病惡化之影像診斷證明（如胸部X光、電腦斷層或其他可作為評估的影像），此影像證明以可測量（measurable）的病灶為優先，如沒有可以測量的病灶，則可評估（evaluable）的病灶亦可採用。與aumolertinib擇一使用，除因耐受不良，不得互換。","每日限用1粒。"],"notes":[],"src":"9.80-1(2)","q":"osimertinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T09","kind":"targeted","title":"Aumolertinib · 二線 T790M","brief":"先前已接受過EGFR標靶藥物 gefitinib、erlotinib、afatinib 、dacomitinib治療失敗，且具有EGFR T790M基因突變之局部侵犯性或轉移性之非小細胞肺癌之第二線治療。","hist":"nsclc","stage":["la","iv"],"gene":{"type":"egfr","sub":["t790m"],"need":"EGFR T790M 突變"},"line":["2"],"pdl1":null,"flags":["需事前審查"],"conditions":["須經事前審查核准後使用：","每次申請事前審查之療程以三個月為限，每三個月需再次申請。","初次申請時需檢具確實患有肺腺癌或非小細胞肺癌之病理或細胞檢查報告，及檢附EGFR基因檢測結果報告，且需符合全民健康保險藥品給付規定之通則十二。","再次申請時需附上治療後相關臨床資料（如：影像學）證實無惡化，才可繼續使用。每次處方以4週為限，如給藥4週後需追蹤胸部X光或電腦斷層等影像檢查評估療效，每8至12週需進行完整療效評估(如胸部X光或電腦斷層)，若病情惡化、復發或產生不可接受之毒性，即不得再次申請。","每日限給付2粒。"],"notes":[],"src":"9.138-1(2)","q":"aumolertinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T10","kind":"targeted","title":"Amivantamab ＋ Carboplatin ＋ Pemetrexed · 一線","brief":"與carboplatin 及pemetrexed 併用，適用於罹患帶有表皮生長因子受體(EGFR) exon 20 插入突變之局部晚期或轉移性非小細胞肺癌(NSCLC)的成人病人，作為第一線治療。","hist":"nsclc","stage":["la","iv"],"gene":{"type":"egfr","sub":["ex20ins"],"need":"EGFR exon 20 插入突變"},"line":["1"],"pdl1":null,"flags":["需事前審查"],"conditions":["需經事前審查核准後使用：","初次申請時需檢具確實患有非小細胞肺癌之病理或細胞檢查報告，及檢具表皮生長因子受體(EGFR) exon 20插入突變分析檢測結果報告，且需符合全民健康保險藥品給付規定之通則十二。","每次申請事前審查之療程以3個月為限，每3個月需再次申請，再次申請時需檢附療效評估資料，若病情惡化即不得再次申請。"],"notes":[],"combo":"carboplatin、pemetrexed","src":"9.126-1","q":"amivantamab","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T11","kind":"targeted","title":"Alectinib · 一線","brief":"適用於ALK陽性之晚期非小細胞肺癌第一線治療。","hist":"nsclc","stage":["la","iv"],"gene":{"type":"alk","need":"ALK 陽性"},"line":["1"],"pdl1":null,"flags":["需事前審查"],"conditions":["須經事前審查核准後使用:","每次申請事前審查之療程以三個月為限，每三個月需再次申請。","初次申請時需檢具確實患有非小細胞肺癌之病理或細胞檢查報告及ALK突變檢測報告，且需符合全民健康保險藥品給付規定之通則十二。","再次申請時並需附上治療後相關臨床資料，如給藥4週後，需追蹤胸部X光或電腦斷層等影像檢查評估療效，往後每4週做胸部X光檢查，每3個月需追蹤其作為評估藥效的影像（如胸部X光或電腦斷層），若病情惡化即不得再次申請。","Alectinib與ceritinib、crizotinib、brigatinib、lorlatinib用於ALK陽性之晚期非小細胞肺癌第一線治療時，僅得擇一使用，除因病人使用後，發生嚴重不良反應或耐受不良之情形外，不得互換。","每日最大劑量限1200mg。"],"notes":[],"src":"9.60","q":"alectinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T12","kind":"targeted","title":"Brigatinib · 一線","brief":"適用於ALK陽性的晚期非小細胞肺癌第一線治療。","hist":"nsclc","stage":["la","iv"],"gene":{"type":"alk","need":"ALK 陽性"},"line":["1"],"pdl1":null,"flags":["需事前審查"],"conditions":["需經事前審查核准後使用：","每次申請事前審查之療程以3個月為限，每3個月需再次申請。","初次申請時需檢具確實患有非小細胞肺癌之病理或細胞檢查報告，及ALK突變檢測報告且需符合全民健康保險藥品給付規定之通則十二。","再次申請時並需附上治療後相關臨床資料，如給藥4週後，需追蹤胸部X光或電腦斷層等影像檢查評估療效，往後每4週做胸部X光檢查，每3個月需追蹤其作為評估藥效的影像（如胸部X光或電腦斷層），若病情惡化即不得再次申請。","Brigatinib與alectinib、ceritinib、crizotinib、lorlatinib用於ALK陽性之晚期非小細胞肺癌第一線治療時，僅得擇一使用，除因病人使用後，發生嚴重不良反應或耐受不良之情形外，不得互換。","每日最大劑量限180mg。"],"notes":[],"src":"9.82-1","q":"brigatinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T13","kind":"targeted","title":"Lorlatinib · 一線","brief":"適用於ALK陽性的晚期非小細胞肺癌第一線治療。","hist":"nsclc","stage":["la","iv"],"gene":{"type":"alk","need":"ALK 陽性"},"line":["1"],"pdl1":null,"flags":["需事前審查"],"conditions":["須經事前審查核准後使用：","每次申請事前審查之療程以三個月為限，每三個月需再次申請。","初次申請時需檢具確實患有非小細胞肺癌之病理或細胞檢查報告，及ALK突變檢測報告且需符合全民健康保險藥品給付規定之通則十二。","再次申請時並需附上治療後相關臨床資料，如給藥4週後，需追蹤胸部X光或電腦斷層等影像檢查評估療效，往後每4週做胸部X光檢查，每3個月需追蹤其作為評估藥效的影像（如胸部X光或電腦斷層），若病情惡化即不得再次申請。","Lorlatinib與alectinib、ceritinib、crizotinib、brigatinib用於ALK陽性之晚期非小細胞肺癌第一線治療時，僅得擇一使用，除因病人使用後，發生嚴重不良反應或耐受不良之情形外，不得互換。"],"notes":[],"src":"9.81-1","q":"lorlatinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T14","kind":"targeted","title":"Ceritinib · 一線","brief":"適用於ALK陽性之晚期非小細胞肺癌第一線治療。","hist":"nsclc","stage":["la","iv"],"gene":{"type":"alk","need":"ALK 陽性"},"line":["1"],"pdl1":null,"flags":["需事前審查"],"conditions":["須經事前審查核准後使用：","每次申請事前審查之療程以三個月為限，每三個月需再次申請。","初次申請時需檢具確實患有非小細胞肺癌之病理或細胞檢查報告及ALK突變檢測報告，且需符合全民健康保險藥品給付規定之通則十二。","再次申請時並需附上治療後相關臨床資料，如給藥4週後，需追蹤胸部X光或電腦斷層等影像檢查評估療效，往後每4週做胸部X光檢查，每3個月需追蹤其作為評估藥效的影像（如胸部X光或電腦斷層），若病情惡化即不得再次申請。","Ceritinib與crizotinib、alectinib、brigatinib、lorlatinib用於ALK陽性之晚期非小細胞肺癌第一線治療時，僅得擇一使用，除因病人使用後，發生嚴重不良反應或耐受不良之情形外，不得互換。","每日最大劑量限450mg。"],"notes":[],"src":"9.59","q":"ceritinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T15","kind":"targeted","title":"Crizotinib · 一線","brief":"適用於ALK陽性之晚期非小細胞肺癌第一線治療，且於113年9月1日前經審核同意用藥，後續評估符合續用申請條件者。","hist":"nsclc","stage":["la","iv"],"gene":{"type":"alk","need":"ALK 陽性"},"line":["1"],"pdl1":null,"flags":["僅續用","需事前審查"],"conditions":["須經事前審查核准後使用:","每次申請事前審查之療程以三個月為限，每三個月需再次申請。","初次申請時需檢具確實患有非小細胞肺癌之病理或細胞檢查報告，及ALK突變檢測報告，或ROS-1突變檢測報告，且需符合全民健康保險藥品給付規定之通則十二。","再次申請時需附上治療後相關臨床資料，如給藥4週後，需追蹤胸部X光或電腦斷層等影像檢查評估療效，往後每4週做胸部X光檢查，每3個月需追蹤其作為評估藥效的影像(如胸部X光或電腦斷層)，若病情惡化即不得再次申請。","Crizotinib與ceritinib、alectinib、brigatinib、lorlatinib用於ALK陽性之晚期非小細胞肺癌第一線治療時，僅得擇一使用，除因病人使用後，發生嚴重不良反應或耐受不良之情形外，不得互換。","每日最大劑量限500mg。"],"notes":[],"src":"9.50","q":"crizotinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T16","kind":"targeted","title":"Brigatinib · crizotinib 惡化後","brief":"適用於在crizotinib治療中惡化之ALK陽性的晚期非小細胞肺癌患者。","hist":"nsclc","stage":["la","iv"],"gene":{"type":"alk","need":"ALK 陽性"},"line":["2","3p"],"pdl1":null,"flags":["需事前審查"],"conditions":["需經事前審查核准後使用。","每次申請事前審查之療程以3個月為限，每3個月需再次申請，再次申請時並需附上治療後相關臨床資料，若病情惡化即不得再次申請。","每日最大劑量限180mg。"],"notes":[],"src":"9.82-2","q":"brigatinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T17","kind":"targeted","title":"Lorlatinib · ALK 抑制劑惡化後","brief":"適用於在ceritinib、alectinib或brigatinib治療中惡化之ALK陽性的晚期非小細胞肺癌患者。","hist":"nsclc","stage":["la","iv"],"gene":{"type":"alk","need":"ALK 陽性"},"line":["2","3p"],"pdl1":null,"flags":["需事前審查"],"conditions":["須經事前審查核准後使用。","每次申請事前審查之療程以三個月為限，每三個月需再次申請，再次申請時並需附上治療後相關臨床資料，若病情惡化即不得再次申請。"],"notes":[],"src":"9.81-2","q":"lorlatinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T18","kind":"targeted","title":"Crizotinib · ROS-1","brief":"單獨使用於ROS-1陽性之晚期非小細胞肺癌患者。","hist":"nsclc","stage":["la","iv"],"gene":{"type":"ros1","need":"ROS-1 陽性"},"line":null,"pdl1":null,"flags":["需事前審查"],"conditions":["須經事前審查核准後使用:","每次申請事前審查之療程以三個月為限，每三個月需再次申請。","初次申請時需檢具確實患有非小細胞肺癌之病理或細胞檢查報告，及ALK突變檢測報告，或ROS-1突變檢測報告，且需符合全民健康保險藥品給付規定之通則十二。","再次申請時需附上治療後相關臨床資料，如給藥4週後，需追蹤胸部X光或電腦斷層等影像檢查評估療效，往後每4週做胸部X光檢查，每3個月需追蹤其作為評估藥效的影像(如胸部X光或電腦斷層)，若病情惡化即不得再次申請。","Crizotinib與entrectinib用於ROS-1陽性之晚期非小細胞肺癌時，僅得擇一使用，除因病人使用後，發生嚴重不良反應或耐受不良之情形外，不得互換。","每日最大劑量限500mg。"],"notes":[],"src":"9.50","q":"crizotinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T19","kind":"targeted","title":"Entrectinib · ROS-1","brief":"單獨使用於ROS-1陽性之局部晚期或轉移性非小細胞肺癌的成人病人。","hist":"nsclc","stage":["la","iv"],"gene":{"type":"ros1","need":"ROS-1 陽性"},"line":null,"pdl1":null,"flags":["需事前審查"],"conditions":["須經事前審查核准後使用：","需檢具確實患有非小細胞肺癌之病理或細胞檢查報告，以及符合診斷之ROS-1突變檢測報告，且需符合全民健康保險藥品給付規定之通則十二。","每次申請事前審查之療程以三個月為限，每三個月需再次申請，再次申請時並需附上治療後相關臨床資料，如給藥4週後，需追蹤胸部X光或電腦斷層等影像檢查評估療效，往後每4週做胸部X光檢查，每隔8週需追蹤其作為評估藥效的影像(如胸部X光或電腦斷層)，若病情惡化即不得再次申請。","Entrectinib與crizotinib用於ROS-1陽性之晚期非小細胞肺癌時，僅得擇一使用，除因病人使用後，發生嚴重不良反應或耐受不良之情形外，不得互換。","每日最大劑量限600mg。"],"notes":[],"src":"9.93","q":"entrectinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T20","kind":"targeted","title":"Repotrectinib · crizotinib 或 entrectinib 惡化後","brief":"單獨給付於在crizotinib或entrectinib治療中惡化之ROS1陽性之局部晚期或轉移性非小細胞肺癌的成人病人。","hist":"nsclc","stage":["la","iv"],"gene":{"type":"ros1","need":"ROS-1 陽性"},"line":["2","3p"],"pdl1":null,"flags":["需事前審查"],"conditions":["須經事前審查核准後使用：","需檢具確實患有非小細胞肺癌之病理或細胞檢查報告，以及符合診斷之ROS-1突變檢測報告，且需符合全民健康保險藥品給付規定之通則十二。","每次申請事前審查以3個月為限，再次申請時需附上治療後相關臨床資料，如給藥4週後，需追蹤胸部X光或電腦斷層等影像檢查評估療效，往後每4週做胸部X光檢查，每隔8週需追蹤其作為評估藥效的影像(如胸部X光或電腦斷層)，若病情惡化即不得再次申請。","每日最大劑量限320mg。"],"notes":[],"src":"9.131","q":"repotrectinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T21","kind":"targeted","title":"Dabrafenib ＋ Trametinib · BRAF V600E","brief":"Dabrafenib與trametinib併用於治療BRAF V600E突變之轉移性(第IV期)非小細胞肺癌成人病人：","hist":"nsclc","stage":["iv"],"gene":{"type":"braf","need":"BRAF V600E 突變"},"line":["2"],"pdl1":null,"flags":["需事前審查"],"conditions":["作為先前已接受過第一線含鉑化學治療，但仍惡化的轉移性(第IV期)非小細胞肺癌成人病人第二線治療，使用本品無效後則不再給付該適應症相關之免疫檢查點PD-1、PD-L1抑制劑。","須經事前審查核准後使用:","初次申請時需檢附確實患有非小細胞肺癌之病理或細胞檢查報告以及 BRAF V600E 突變檢測報告，且需符合全民健康保險藥品給付規定之通則十二。","每次申請事前審查之療程以3個月為限，每3個月需再次申請，再次申請時並需附上治療後相關臨床資料，若病情惡化即不得再次申請。"],"notes":[],"combo":"trametinib（與 dabrafenib 併用）","src":"9.91-4","q":"dabrafenib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T22","kind":"targeted","title":"Tepotinib · MET exon 14 skipping","brief":"適用於治療轉移性非小細胞肺癌的成人病人，其腫瘤帶有導致間質上皮轉化因子外顯子14 跳讀式突變(MET exon 14 skipping mutation)。","hist":"nsclc","stage":["iv"],"gene":{"type":"met","need":"MET exon 14 skipping 突變"},"line":null,"pdl1":null,"flags":["需事前審查"],"conditions":["須經事前審查核准後使用:","初次申請時需檢具確實患有非小細胞肺癌之病理或細胞檢查報告,以及符合診斷之間質上皮轉化因子外顯子14跳讀式突變(MET exon 14 skipping mutation)檢測報告，且需符合全民健康保險藥品給付規定之通則十二。","每次申請事前審查之療程以3個月為限，每3個月需再次申請，再次申請時並需附上治療後相關臨床資料，若病情惡化即不得再次申請。","使用本品無效後則不再給付該適應症相關之免疫檢查點PD-1、PD-L1抑制劑。","每日最多處方2粒。"],"notes":[],"src":"9.101","q":"tepotinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T23a","kind":"targeted","title":"Larotrectinib · NTRK（不適合化療）","brief":"不適合接受化學治療之晚期非小細胞肺癌成人患者，非鱗狀癌者需為EGFR/ALK/ROS-1 腫瘤基因原生型、鱗狀癌者需為EGFR/ALK 腫瘤基因原生型。","hist":"nsclc","stage":["la","iv"],"gene":{"type":"ntrk","need":"NTRK 基因融合"},"line":null,"pdl1":null,"flags":["需事前審查"],"conditions":["適用於有NTRK基因融合的實體腫瘤成人和兒童病人，並應符合以下條件：","具NTRK基因融合且無已知的後天阻抗性突變(acquired resistance mutation)。","為轉移性實體腫瘤，或手術切除極可能造成嚴重病症(severe morbidity)。","沒有合適的替代治療選項(包含免疫檢查點抑制劑)。","需經事前審查核准後使用：","每次申請之療程以12週為限。","初次申請時需檢附NTRK基因融合檢測報告。NTRK 1/2/3檢測需符合全民健康保險藥品給付規定之通則十二。","再次申請時需檢附療效評估資料證實無疾病進展，才可繼續使用。"],"notes":[],"src":"9.95-3(1)I","q":"larotrectinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T23b","kind":"targeted","title":"Larotrectinib · NTRK（鱗狀含鉑失敗後）","brief":"先前已使用過platinum 類化學治療失敗後，又有疾病惡化，且EGFR/ALK 腫瘤基因為原生型之晚期鱗狀非小細胞肺癌患者。","hist":"sq","stage":["la","iv"],"gene":{"type":"ntrk","need":"NTRK 基因融合"},"line":["2"],"pdl1":null,"flags":["需事前審查"],"conditions":["適用於有NTRK基因融合的實體腫瘤成人和兒童病人，並應符合以下條件：","具NTRK基因融合且無已知的後天阻抗性突變(acquired resistance mutation)。","為轉移性實體腫瘤，或手術切除極可能造成嚴重病症(severe morbidity)。","沒有合適的替代治療選項(包含免疫檢查點抑制劑)。","需經事前審查核准後使用：","每次申請之療程以12週為限。","初次申請時需檢附NTRK基因融合檢測報告。NTRK 1/2/3檢測需符合全民健康保險藥品給付規定之通則十二。","再次申請時需檢附療效評估資料證實無疾病進展，才可繼續使用。"],"notes":[],"src":"9.95-3(1)II","q":"larotrectinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T23c","kind":"targeted","title":"Larotrectinib · NTRK（肺腺癌二線化療以上失敗後）","brief":"先前已使用過platinum 類及docetaxel /paclitaxel 類二線(含)以上化學治療均失敗，又有疾病惡化，且EGFR/ALK/ROS-1 腫瘤基因為原生型之晚期非小細胞肺腺癌患者。","hist":"adeno","stage":["la","iv"],"gene":{"type":"ntrk","need":"NTRK 基因融合"},"line":["3p"],"pdl1":null,"flags":["需事前審查"],"conditions":["適用於有NTRK基因融合的實體腫瘤成人和兒童病人，並應符合以下條件：","具NTRK基因融合且無已知的後天阻抗性突變(acquired resistance mutation)。","為轉移性實體腫瘤，或手術切除極可能造成嚴重病症(severe morbidity)。","沒有合適的替代治療選項(包含免疫檢查點抑制劑)。","需經事前審查核准後使用：","每次申請之療程以12週為限。","初次申請時需檢附NTRK基因融合檢測報告。NTRK 1/2/3檢測需符合全民健康保險藥品給付規定之通則十二。","再次申請時需檢附療效評估資料證實無疾病進展，才可繼續使用。"],"notes":[],"src":"9.95-3(1)III","q":"larotrectinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"T23d","kind":"targeted","title":"Larotrectinib · NTRK（EGFR 突變 TKI 抗性）","brief":"先前曾接受過至少一線anti-EGFR TKI 治療失敗，且因NTRK 基因融合對anti-EGFR TKI 產生抗性之局部侵犯性或轉移性之EGFR 突變非小細胞肺癌患者。","hist":"nsclc","stage":["la","iv"],"gene":{"type":"ntrk","need":"NTRK 基因融合"},"line":["2","3p"],"pdl1":null,"flags":["需事前審查"],"conditions":["適用於有NTRK基因融合的實體腫瘤成人和兒童病人，並應符合以下條件：","具NTRK基因融合且無已知的後天阻抗性突變(acquired resistance mutation)。","為轉移性實體腫瘤，或手術切除極可能造成嚴重病症(severe morbidity)。","沒有合適的替代治療選項(包含免疫檢查點抑制劑)。","需經事前審查核准後使用：","每次申請之療程以12週為限。","初次申請時需檢附NTRK基因融合檢測報告。NTRK 1/2/3檢測需符合全民健康保險藥品給付規定之通則十二。","再次申請時需檢附療效評估資料證實無疾病進展，才可繼續使用。"],"notes":[],"src":"9.95-3(1)IV","q":"larotrectinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"I01","kind":"io","mode":"mono","title":"單用 · 轉移性 NSCLC 一線","brief":"非小細胞肺癌第一線用藥：轉移性非小細胞肺癌成人病人，非鱗狀癌者需為EGFR/ALK/ROS-1腫瘤基因原生型、鱗狀癌者需為EGFR/ALK腫瘤基因原生型。","hist":"nsclc","stage":["iv"],"gene":{"type":"wt","wt":{"nonsq":["egfr","alk","ros1"],"sq":["egfr","alk"]}},"line":["1"],"pdl1":[{"drug":"Pembrolizumab","metric":"TPS≥50%","assay":"Dako 22C3 或 Ventana SP263","b":["ge50"]},{"drug":"Atezolizumab","metric":"TC≥50% 或 IC≥10%","assay":"Ventana SP142","b":["ge50"],"alt":"IC≥10%"},{"drug":"Cemiplimab","metric":"TPS≥50%","assay":"Dako 22C3 或 Ventana SP263","b":["ge50"]}],"flags":["需事前審查"],"conditions":[],"notes":[],"src":"9.69-1(2)、表 P013","q":"pembrolizumab","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"I02","kind":"io","mode":"combo","title":"Pembrolizumab ＋ Carboplatin ＋ Paclitaxel · 鱗狀一線","brief":"轉移性鱗狀非小細胞肺癌第一線用藥：限pembrolizumab與carboplatin及paclitaxel併用至多使用4個療程，接續單用pembrolizumab治療，或限tislelizumab與carboplatin及paclitaxel併用至多使用4個療程，接續單用tislelizumab治療。","hist":"sq","stage":["iv"],"gene":{"type":"any"},"line":["1"],"pdl1":[{"drug":"Pembrolizumab","metric":"TPS 1–49%","assay":"Dako 22C3 或 Ventana SP263","b":["1_49"]}],"flags":["需事前審查"],"conditions":[],"notes":[],"combo":"carboplatin、paclitaxel（至多 4 療程）","src":"9.69-2(2)、表 P014","q":"pembrolizumab","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"I03","kind":"io","mode":"combo","title":"Tislelizumab ＋ Carboplatin ＋ Paclitaxel · 鱗狀一線","brief":"轉移性鱗狀非小細胞肺癌第一線用藥：限pembrolizumab與carboplatin及paclitaxel併用至多使用4個療程，接續單用pembrolizumab治療，或限tislelizumab與carboplatin及paclitaxel併用至多使用4個療程，接續單用tislelizumab治療。","hist":"sq","stage":["iv"],"gene":{"type":"any"},"line":["1"],"pdl1":null,"flags":["需事前審查"],"conditions":[],"notes":[],"combo":"carboplatin、paclitaxel（至多 4 療程）","src":"9.69-2(2)、表 P014","q":"tislelizumab","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"I04","kind":"io","mode":"combo","title":"Pembrolizumab ＋ Pemetrexed ＋ 含鉑 · 非鱗狀一線","brief":"轉移性非鱗狀非小細胞肺癌第一線：限pembrolizumab與pemetrexed(限使用Pexeda、Apeta、Pemetrexed Sandoz或Alimta Avos)及含鉑類化學療法併用，或限tislelizumab與pemetrexed(限使用Pexeda、Apeta、Pemetrexed Sandoz或Alimta Avos)及含鉑類化學療法併用，或限atezolizumab與bevacizumab(限使用Alymsys、Avastin、Abevmy、Vegzelma或Mvasi)及carboplatin、paclitaxel併用，做為轉移性且不具有EGFR/ALK/ROS-1腫瘤基因異常的非鱗狀非小細胞肺癌第一線治療。","hist":"nonsq","stage":["iv"],"gene":{"type":"wt","wt":{"nonsq":["egfr","alk","ros1"],"sq":["egfr","alk","ros1"]}},"line":["1"],"pdl1":null,"flags":["需事前審查"],"conditions":[],"notes":[],"combo":"pemetrexed（限 Pexeda、Apeta、Pemetrexed Sandoz 或 Alimta Avos）及含鉑類化療","src":"9.69-2(2)、表 P013","q":"pembrolizumab","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"I05","kind":"io","mode":"combo","title":"Tislelizumab ＋ Pemetrexed ＋ 含鉑 · 非鱗狀一線","brief":"轉移性非鱗狀非小細胞肺癌第一線：限pembrolizumab與pemetrexed(限使用Pexeda、Apeta、Pemetrexed Sandoz或Alimta Avos)及含鉑類化學療法併用，或限tislelizumab與pemetrexed(限使用Pexeda、Apeta、Pemetrexed Sandoz或Alimta Avos)及含鉑類化學療法併用，或限atezolizumab與bevacizumab(限使用Alymsys、Avastin、Abevmy、Vegzelma或Mvasi)及carboplatin、paclitaxel併用，做為轉移性且不具有EGFR/ALK/ROS-1腫瘤基因異常的非鱗狀非小細胞肺癌第一線治療。","hist":"nonsq","stage":["iv"],"gene":{"type":"wt","wt":{"nonsq":["egfr","alk","ros1"],"sq":["egfr","alk","ros1"]}},"line":["1"],"pdl1":[{"drug":"Tislelizumab","metric":"TC≥50%","assay":"Ventana SP263","b":["ge50"]}],"flags":["需事前審查"],"conditions":[],"notes":[],"combo":"pemetrexed（限 Pexeda、Apeta、Pemetrexed Sandoz 或 Alimta Avos）及含鉑類化療","src":"9.69-2(2)、表 P013","q":"tislelizumab","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"I06","kind":"io","mode":"combo","title":"Atezolizumab ＋ Bevacizumab ＋ Carboplatin ＋ Paclitaxel · 非鱗狀一線","brief":"轉移性非鱗狀非小細胞肺癌第一線：限pembrolizumab與pemetrexed(限使用Pexeda、Apeta、Pemetrexed Sandoz或Alimta Avos)及含鉑類化學療法併用，或限tislelizumab與pemetrexed(限使用Pexeda、Apeta、Pemetrexed Sandoz或Alimta Avos)及含鉑類化學療法併用，或限atezolizumab與bevacizumab(限使用Alymsys、Avastin、Abevmy、Vegzelma或Mvasi)及carboplatin、paclitaxel併用，做為轉移性且不具有EGFR/ALK/ROS-1腫瘤基因異常的非鱗狀非小細胞肺癌第一線治療。","hist":"nonsq","stage":["iv"],"gene":{"type":"wt","wt":{"nonsq":["egfr","alk","ros1"],"sq":["egfr","alk","ros1"]}},"line":["1"],"pdl1":null,"flags":["需事前審查"],"conditions":["Bevacizumab(限使用Alymsys、Avastin、Abevmy、Vegzelma或Mvasi)與atezolizumab及carboplatin、paclitaxel併用於轉移性非鱗狀非小細胞肺癌第一線治療，患者需符合免疫檢查點抑制劑之藥品給付規定。"],"notes":[],"combo":"bevacizumab（限 Alymsys、Avastin、Abevmy、Vegzelma、Mvasi）、carboplatin、paclitaxel","src":"9.69-2(2)、9.37-7、表 P013","q":"atezolizumab","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"I07","kind":"io","mode":"mono","title":"單用 · 鱗狀 NSCLC 二線","brief":"鱗狀非小細胞肺癌第二線用藥：先前已使用過platinum類化學治療失敗後，又有疾病惡化，且EGFR/ALK腫瘤基因為原生型之晚期鱗狀非小細胞肺癌成人病人。","hist":"sq","stage":["la","iv"],"gene":{"type":"wt","wt":{"nonsq":["egfr","alk"],"sq":["egfr","alk"]}},"line":["2"],"pdl1":[{"drug":"Pembrolizumab","metric":"TPS≥50%","assay":"Dako 22C3 或 Ventana SP263","b":["ge50"]},{"drug":"Nivolumab","metric":"TC≥50%","assay":"Dako 28-8 或 Ventana SP263","b":["ge50"]},{"drug":"Atezolizumab","metric":"TC≥50% 或 IC≥10%","assay":"Ventana SP142","b":["ge50"],"alt":"IC≥10%"},{"drug":"Tislelizumab","metric":"TC≥50%","assay":"Ventana SP263","b":["ge50"]}],"flags":["需事前審查"],"conditions":[],"notes":[],"src":"9.69-1(2)、表 P011","q":"nivolumab","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"I08","kind":"io","mode":"mono","title":"單用 · 肺腺癌三線","brief":"肺腺癌第三線用藥：先前已使用過platinum類及docetaxel/paclitaxel類二線(含)以上化學治療均失敗，又有疾病惡化，且EGFR/ALK/ROS-1腫瘤基因為原生型之晚期非小細胞肺腺癌成人病人。","hist":"adeno","stage":["la","iv"],"gene":{"type":"wt","wt":{"nonsq":["egfr","alk","ros1"],"sq":["egfr","alk","ros1"]}},"line":["3p"],"pdl1":[{"drug":"Pembrolizumab","metric":"TPS≥50%","assay":"Dako 22C3 或 Ventana SP263","b":["ge50"]},{"drug":"Nivolumab","metric":"TC≥50%","assay":"Dako 28-8 或 Ventana SP263","b":["ge50"]},{"drug":"Atezolizumab","metric":"TC≥50% 或 IC≥10%","assay":"Ventana SP142","b":["ge50"],"alt":"IC≥10%"},{"drug":"Tislelizumab","metric":"TC≥50%","assay":"Ventana SP263","b":["ge50"]}],"flags":["需事前審查"],"conditions":[],"notes":[],"src":"9.69-1(2)、表 P012","q":"nivolumab","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"I09","kind":"io","mode":"mono","title":"Durvalumab · 鞏固治療","brief":"鞏固治療：限durvalumab用於第三期局部晚期、無法手術切除且腫瘤表現PD-L1≥1%之非小細胞肺癌成人病人，非鱗狀癌者需為EGFR/ALK/ROS-1腫瘤基因原生型、鱗狀癌者需為EGFR/ALK腫瘤基因原生型，病人須於接受根治性同步放射治療合併至少2個週期含鉑化療後無惡化(無PD)，且至多使用12個月。","hist":"nsclc","stage":["iii"],"gene":{"type":"wt","wt":{"nonsq":["egfr","alk","ros1"],"sq":["egfr","alk"]}},"line":null,"pdl1":[{"drug":"Durvalumab","metric":"PD-L1≥1%","assay":"Ventana SP263","b":["1_49","ge50"]}],"flags":["需事前審查"],"conditions":[],"notes":[],"src":"9.69-1(2)、表 P015","q":"durvalumab","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"I10","kind":"io","mode":"combo","title":"Nivolumab ＋ 含鉑化療 · 術前輔助","brief":"非小細胞肺癌術前輔助治療：限用於可切除（腫瘤≧4公分或淋巴結陽性N1/N2(排除N3)，且無疾病轉移M0）之不具EGFR或ALK 腫瘤基因異常成人病人，且至多3個療程，並依下列條件使用： 非鱗狀非小細胞肺癌：限nivolumab與pemetrexed(限使用Pexeda、Apeta、Pemetrexed Sandoz或Alimta Avos)及含鉑化療併用。 鱗狀細胞非小細胞肺癌：限nivolumab與含鉑化療併用。","hist":"nsclc","stage":["resectable"],"gene":{"type":"wt","wt":{"nonsq":["egfr","alk"],"sq":["egfr","alk"]}},"line":null,"pdl1":null,"flags":["需事前審查"],"conditions":[],"notes":[],"combo":"非鱗狀：pemetrexed（限 Pexeda、Apeta、Pemetrexed Sandoz 或 Alimta Avos）及含鉑化療；鱗狀：含鉑化療","src":"9.69-2(2)、表 P016","q":"nivolumab","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"I11","kind":"io","mode":"combo","title":"Atezolizumab ＋ Carboplatin ＋ Etoposide · 小細胞肺癌擴散期一線","brief":"小細胞肺癌：限atezolizumab與carboplatin及etoposide併用，或durvalumab與etoposide及carboplatin或cisplatin兩者之一併用，適用於先前未曾接受化療，且無腦部或無脊髓轉移之擴散期(extensive stage)小細胞肺癌成人患者。","hist":"sclc","stage":["iv"],"gene":{"type":"na"},"line":["1"],"pdl1":null,"flags":["需事前審查"],"conditions":[],"notes":[],"combo":"carboplatin、etoposide","src":"9.69-2(3)、表 P021","q":"atezolizumab","stageFixed":true,"stageTag":"限擴散期（extensive stage）","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）","lineFixed":true,"lineTag":"限一線"},{"id":"I12","kind":"io","mode":"combo","title":"Durvalumab ＋ Etoposide ＋ Carboplatin 或 Cisplatin · 小細胞肺癌擴散期一線","brief":"小細胞肺癌：限atezolizumab與carboplatin及etoposide併用，或durvalumab與etoposide及carboplatin或cisplatin兩者之一併用，適用於先前未曾接受化療，且無腦部或無脊髓轉移之擴散期(extensive stage)小細胞肺癌成人患者。","hist":"sclc","stage":["iv"],"gene":{"type":"na"},"line":["1"],"pdl1":null,"flags":["需事前審查"],"conditions":[],"notes":[],"combo":"etoposide，及 carboplatin 或 cisplatin 兩者之一","src":"9.69-2(3)、表 P021","q":"durvalumab","stageFixed":true,"stageTag":"限擴散期（extensive stage）","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）","lineFixed":true,"lineTag":"限一線"},{"id":"I13","kind":"io","mode":"combo","title":"Ipilimumab ＋ Nivolumab · 惡性肋膜間皮瘤一線","brief":"惡性肋膜間皮瘤：限ipilimumab與nivolumab併用於無法切除之惡性肋膜間皮瘤且病理組織顯示為非上皮型(Non-epithelioid)成人病人的第一線治療。","hist":"mpm_nonepi","stage":["la","iv"],"gene":{"type":"na"},"line":["1"],"pdl1":null,"flags":["需事前審查"],"conditions":[],"notes":[],"src":"9.69-2(4)、表 P111","q":"ipilimumab","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）","stageTag":"限無法切除"},{"id":"L01","kind":"legacy","title":"Gefitinib · 二線以後","brief":"先前已使用過第一線含鉑化學治療，或70歲以上接受過第一線化學治療，但仍局部惡化或轉移之肺腺癌。","hist":"adeno","stage":["la","iv"],"gene":{"type":"any","label":"不限 EGFR"},"line":["2","3p"],"pdl1":null,"flags":[],"conditions":["用於第二線以上用藥：病歷應留存確實患有肺腺癌之病理或細胞檢查報告，並附曾經接受第一線含鉑化學治療，或70歲(含)以上接受過第一線化學治療之證明，及目前又有疾病惡化之影像診斷證明（如胸部X光、電腦斷層或其他可作為評估的影像），此影像證明以可測量（measurable）的病灶為優先，如沒有可以測量的病灶，則可評估（evaluable）的病灶亦可採用。","每次處方以4週為限，再次處方時需於病歷記錄治療後相關臨床資料，如每4週需追蹤胸部X光或電腦斷層等影像檢查，每8至12週需進行完整療效評估（如胸部X光或電腦斷層）。","本藥品與erlotinib及afatinib不得併用。"],"notes":[],"src":"9.24-1(2)","q":"gefitinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"L02","kind":"legacy","title":"Erlotinib · 二線","brief":"先前已使用過platinum類第一線化學治療，或70歲以上接受過第一線化學治療，但仍局部惡化或轉移之腺性非小細胞肺癌之第二線用藥。","hist":"adeno","stage":["la","iv"],"gene":{"type":"any","label":"不限 EGFR"},"line":["2"],"pdl1":null,"flags":[],"conditions":["用於第二線用藥：病歷應留存確實患有非小細胞肺癌之病理或細胞檢查報告，並附曾經接受platinum類第一線化學治療，或70歲(含)以上接受過第一線化學治療之證明，及目前又有疾病惡化之影像診斷證明（如胸部X光、電腦斷層或其他可作為評估的影像），此影像證明以可測量（measurable）的病灶為優先，如沒有可以測量的病灶，則可評估（evaluable）的病灶亦可採用。","每次處方以4週為限，再次處方時需於病歷記錄治療後相關臨床資料，如每4週需追蹤胸部X光或電腦斷層等影像檢查，每8至12週需進行完整療效評估（如胸部X光或電腦斷層）。","本藥品與gefitinib及afatinib不得併用。","備註1：非小細胞肺癌病患的第二線治療用藥之定義為：病患需先經第一線含鉑化學治療，或70歲(含)以上接受過第一線化學治療後，因疾病惡化，此時所給予之治療即為第二線用藥。"],"notes":[],"src":"9.29-1(3)、3(2)","q":"erlotinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"L03","kind":"legacy","title":"Erlotinib · 三線","brief":"先前已使用過platinum類及docetaxel或paclitaxel化學治療後，但仍局部惡化或轉移之非小細胞肺癌之第三線用藥。","hist":"nsclc","stage":["la","iv"],"gene":{"type":"any","label":"不限 EGFR"},"line":["3p"],"pdl1":null,"flags":[],"conditions":["用於第三線用藥：病歷應留存確實患有非小細胞肺癌之病理或細胞檢查報告，並附曾經接受第一線及第二線化學藥物如platinum(cisplatin或carboplatin)與taxane(paclitaxel或docetaxel)治療之證明，及目前又有疾病惡化之影像診斷證明（如胸部X光、電腦斷層或其他可作為評估的影像），此影像證明以可測量（measurable）的病灶為優先，如沒有可以測量的病灶，則可評估（evaluable）的病灶亦可採用。","每次處方以4週為限，再次處方時需於病歷記錄治療後相關臨床資料，如每4週需追蹤胸部X光或電腦斷層等影像檢查，每8至12週需進行完整療效評估（如胸部X光或電腦斷層）。","本藥品與gefitinib及afatinib不得併用。","備註2：非小細胞肺癌病患的第三線治療用藥之定義為：病患需先經第一線化學藥物治療後，因疾病惡化，再經第二線不同的化學藥物治療之後，若疾病再度惡化，此時所給予之治療即為第三線用藥。"],"notes":[],"src":"9.29-1(4)、3(3)","q":"erlotinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"L04","kind":"legacy","title":"Erlotinib · 化療後維持療法","brief":"已接受4個週期platinum類第一線化學療法後，腫瘤範圍穩定(stable disease，不含partial response或complete response)之局部晚期或轉移性肺腺癌的維持療法。","hist":"adeno","stage":["la","iv"],"gene":{"type":"any","label":"不限 EGFR"},"line":["1"],"pdl1":null,"flags":[],"conditions":["用於已接受platinum類第一線化學療法後，病情穩定之維持療法：病歷應留存確實患有肺腺癌之病理或細胞檢查報告，並附已接受4個週期platinum類第一線化學療法後，腫瘤範圍穩定(stable disease，不含partial response或complete response)之影像診斷證明（如胸部X光、電腦斷層或其他可作為評估的影像）。","每次處方以4週為限，再次處方時需於病歷記錄治療後相關臨床資料，如每4週需追蹤胸部X光或電腦斷層等影像檢查，每8至12週需進行完整療效評估（如胸部X光或電腦斷層）。","本藥品與gefitinib及afatinib不得併用。"],"notes":[],"src":"9.29-1(2)、3(1)","q":"erlotinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"},{"id":"L05","kind":"legacy","title":"Afatinib · 鱗狀 NSCLC 二線","brief":"先前已使用過第一線含鉑化學治療，但仍惡化的局部晚期或轉移性之鱗狀組織非小細胞肺癌之第二線治療。","hist":"sq","stage":["la","iv"],"gene":{"type":"any","label":"不限 EGFR"},"line":["2"],"pdl1":null,"flags":[],"conditions":["用於局部晚期或轉移性之鱗狀組織非小細胞肺癌之第二線治療：病歷應留存曾經接受含鉑類化學治療之證明，及目前又有疾病惡化之影像診斷證明(如胸部X光、電腦斷層或其他可作為評估的影像)，此影像證明以可測量(measurable)的病灶為優先，如沒有可以測量的病灶，則可評估(evaluable)的病灶亦可採用。","每次處方以4週為限，再次處方時需於病歷記錄治療後相關臨床資料，如每4週需追蹤胸部X光或電腦斷層等影像檢查，每8至12週需進行完整療效評估（如胸部X光或電腦斷層）。","使用本藥品後，除因耐受性不良，否則不得轉換類似藥理機轉之其他酪胺酸激酶阻斷劑（tyrosine kinase inhibitor, TKI）。","本藥品與gefitinib及erlotinib不得併用。"],"notes":[],"src":"9.45-1(2)","q":"afatinib","textSource":"健保署第九節 115.9.22（逐字取自資料庫；僅刪除修訂日期與項次）"}],"textVersion":"115.9.22"};</script>
+<script>/* 健保特殊藥物快找：篩選邏輯（純函式）＋畫面。DATA 由 build.js 注入。 */
+const AXES = {
+  hist: [
+    ['nsclc', 'NSCLC（未分型）'], ['nonsq', '非鱗狀 NSCLC'], ['adeno', '腺癌', 'sub'], ['sq', '鱗狀 NSCLC'],
+    ['sclc', '小細胞肺癌'], ['mpm_nonepi', '間皮瘤 · 非上皮型'], ['mpm_other', '間皮瘤 · 其他']
+  ],
+  stage: [
+    ['resectable', '可切除（術前輔助）'], ['iii', 'III 期無法切除'], ['la', '局部晚期（IIIB–IV）'], ['iv', 'IV 期（轉移／擴散期）']
+  ],
+  gene: [
+    ['egfr', 'EGFR'], ['alk', 'ALK'], ['ros1', 'ROS1'], ['braf', 'BRAF V600E'], ['met', 'MET exon 14 skipping'],
+    ['ntrk', 'NTRK 融合'], ['kras', 'KRAS G12C'], ['ret', 'RET'], ['her2', 'HER2（ERBB2）'], ['nrg1', 'NRG1'],
+    ['other', '其他／未列'], ['negative', '陰性（皆無異常）'], ['unknown', '不明／未檢測']
+  ],
+  egfrSub: [
+    ['ex19del', 'Exon 19 deletion'], ['l858r', 'L858R'], ['t790m', 'T790M'], ['ex20ins', 'Exon 20 插入'], ['egfr_other', '其他 EGFR 突變']
+  ],
+  line: [['1', '一線'], ['2', '二線'], ['3p', '三線以後']],
+  pdl1: [['ge50', 'TPS ≥50%'], ['1_49', 'TPS 1–49%'], ['lt1', 'TPS <1%'], ['untested', '未檢驗']]
+};
+const AXIS_NAME = { hist: '組織型', stage: '分期', gene: '基因', egfrSub: 'EGFR 子類', line: '線數', pdl1: 'PD-L1' };
+
+function labelOf(axis, v) { const o = AXES[axis].find(x => x[0] === v); return o ? o[1] : v; }
+
+const GENE_NAME = { egfr: 'EGFR', alk: 'ALK', ros1: 'ROS-1' };
+function wtNeed(card, h) {
+  const nm = l => l.map(x => GENE_NAME[x]).join('/');
+  const A = card.gene.wt.nonsq, B = card.gene.wt.sq;
+  if (h === 'sq') return nm(B) + ' 原生型';
+  if (['nonsq', 'adeno'].includes(h)) return nm(A) + ' 原生型';
+  return nm(A) === nm(B) ? nm(A) + ' 原生型' : '非鱗狀 ' + nm(A) + '、鱗狀 ' + nm(B) + ' 原生型';
+}
+
+/* 卡片分組與順序：一般常見的治療在前。已選特定 driver gene → 標靶在前；否則免疫在前，需特定基因突變的標靶放最後 */
+const GROUPS = { targeted: '標靶藥物', io_mono: '免疫治療 · 單用（9.69-1）', io_combo: '免疫治療 · 併用（9.69-2）', legacy: '舊適應症（條文未限基因）' };
+function groupKey(card) { return card.kind === 'io' ? (card.mode === 'mono' ? 'io_mono' : 'io_combo') : card.kind; }
+function groupOrder(sel) {
+  return ['egfr', 'alk', 'ros1', 'braf', 'met', 'ntrk'].includes(sel.gene)
+    ? ['targeted', 'io_mono', 'io_combo', 'legacy']
+    : ['io_mono', 'io_combo', 'legacy', 'targeted'];
+}
+
+const HIST_LABEL = { nsclc: 'NSCLC', nonsq: '非鱗狀 NSCLC', adeno: '腺癌', sq: '鱗狀 NSCLC', sclc: '小細胞肺癌', mpm_nonepi: '間皮瘤・非上皮型' };
+function stageLabel(card) {
+  const k = card.stage.join(',');
+  return { iv: 'IV 期（轉移）', 'la,iv': '局部晚期／IV 期', iii: 'III 期無法切除', resectable: '可切除（術前輔助）' }[k] || k;
+}
+function lineLabel(line) {
+  const k = line.join(',');
+  return { '1': '一線', '2': '二線', '3p': '三線以後', '2,3p': '二線以後' }[k] || k;
+}
+
+/* 逐項比對。回傳 {out} 或 {out:false, chips, pend}。
+   chips = 卡片的各項要求 [{axis, ok, text}]：ok=已選且符合（綠）；!ok=尚未選或需確認（紅，text 寫卡片要求）。
+   只有「確定不符合」才 out。 */
+function evalCard(card, sel) {
+  const chips = [];
+  const add = (axis, ok, text) => chips.push({ axis, ok, text });
+  const OUT = { out: true };
+  const h = sel.hist, g = sel.gene;
+
+  // 組織型
+  const req = card.hist, hl = HIST_LABEL[req];
+  if (!h) add('hist', false, hl);
+  else if (req === 'nsclc') { if (!['nsclc', 'nonsq', 'adeno', 'sq'].includes(h)) return OUT; add('hist', true, hl); }
+  else if (req === 'nonsq') {
+    if (['nonsq', 'adeno'].includes(h)) add('hist', true, hl); else if (h === 'nsclc') add('hist', false, '需為非鱗狀'); else return OUT;
+  } else if (req === 'adeno') {
+    if (h === 'adeno') add('hist', true, hl); else if (['nonsq', 'nsclc'].includes(h)) add('hist', false, '需為腺癌'); else return OUT;
+  } else if (req === 'sq') {
+    if (h === 'sq') add('hist', true, hl); else if (h === 'nsclc') add('hist', false, '需為鱗狀'); else return OUT;
+  } else if (h !== req) return OUT; else add('hist', true, hl);
+
+  // 分期
+  const sl = card.stageTag || stageLabel(card), s = sel.stage;
+  if (!s) add('stage', false, sl);
+  else if (card.stage.includes(s)) add('stage', true, sl);
+  else if (s === 'iii' && card.stage.includes('la')) add('stage', false, '需為 IIIB 以上');
+  else if (s === 'la' && card.stage.includes('iii')) add('stage', false, '需為 III 期無法切除');
+  else return OUT;
+
+  // 基因（小細胞、間皮瘤不適用）：未選或不明時寫出卡片要求的基因（紅）
+  const gt = card.gene.type;
+  if (gt !== 'any' && gt !== 'na' && !['sclc', 'mpm_nonepi', 'mpm_other'].includes(h)) {
+    const unresolved = !g || g === 'unknown';
+    if (gt === 'egfr') {
+      const nd = card.gene.need;
+      if (unresolved) add('gene', false, '需 ' + nd + '才符合');
+      else if (g === 'egfr') {
+        if (card.gene.sub) {
+          if (!sel.egfrSub) add('gene', false, '需 ' + nd + '才符合');
+          else if (!card.gene.sub.includes(sel.egfrSub)) return OUT;
+          else add('gene', true, nd);
+        } else add('gene', true, nd);
+      } else return OUT;
+    } else if (gt === 'wt') {
+      const nd = wtNeed(card, h);
+      if (unresolved) add('gene', false, '需 ' + nd + '才符合');
+      else if (['egfr', 'alk', 'ros1'].includes(g)) {
+        const inSq = card.gene.wt.sq.includes(g), inNon = card.gene.wt.nonsq.includes(g);
+        const sqSide = h === 'sq', nonSide = ['nonsq', 'adeno'].includes(h);
+        if (sqSide) { if (inSq) return OUT; add('gene', true, nd); }
+        else if (nonSide) { if (inNon) return OUT; add('gene', true, nd); }
+        else if (inSq && inNon) return OUT;
+        else if (inSq || inNon) add('gene', false, '組織型（影響基因要求）');
+        else add('gene', true, nd);
+      } else add('gene', true, nd);
+    } else if (unresolved) add('gene', false, '需 ' + card.gene.need + '才符合');
+    else if (g !== gt) return OUT;
+    else add('gene', true, card.gene.need);
+  }
+
+  // 線數
+  if (card.line) {
+    const ll = card.lineTag || lineLabel(card.line);
+    if (!sel.line) add('line', false, ll);
+    else if (!card.line.includes(sel.line)) return OUT;
+    else add('line', true, ll);
+  }
+
+  // PD-L1
+  if (card.pdl1) {
+    const m = [...new Set(card.pdl1.map(d => d.metric))].join('／'), p = sel.pdl1;
+    if (!p) add('pdl1', false, 'PD-L1：' + m);
+    else if (p === 'untested') add('pdl1', false, '需驗 PD-L1：' + m);
+    else if (card.pdl1.some(d => d.b.includes(p))) add('pdl1', true, 'PD-L1：' + m);
+    else {
+      const alt = card.pdl1.find(d => d.alt);
+      if (alt) add('pdl1', false, 'PD-L1：待確認 ' + alt.alt); else return OUT;
+    }
+  }
+  return { out: false, chips, pend: chips.filter(c => !c.ok) };
+}
+
+function remaining(sel) {
+  return DATA.cards.map(c => ({ card: c, r: evalCard(c, sel) })).filter(x => !x.r.out);
+}
+
+function withOption(sel, axis, value) {
+  const n = Object.assign({}, sel, { [axis]: value });
+  if (axis === 'gene' && value !== 'egfr') delete n.egfrSub;
+  return n;
+}
+
+if (typeof module !== 'undefined') module.exports = { AXES, evalCard, remaining, withOption, labelOf, groupOrder, groupKey, GROUPS };
+
+/* ---------- 畫面 ---------- */
+if (typeof document !== 'undefined') (function () {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let sel = {};
+  const open = new Set();
+
+  function visibleAxes() {
+    const h = sel.hist;
+    const noGene = ['sclc', 'mpm_nonepi', 'mpm_other'].includes(h);
+    return { gene: !noGene, pdl1: !noGene };
+  }
+
+  function chipGroup(axis, title, opts, note) {
+    const total = remaining(sel).length;
+    const items = opts.filter(o => {
+      if (o[2] === 'sub' && !['nonsq', 'adeno'].includes(sel.hist)) return false;
+      return true;
+    }).map(o => {
+      const on = sel[axis] === o[0];
+      const n = remaining(withOption(sel, axis, o[0])).length;
+      if (!on && n === 0 && axis !== 'hist' && total > 0) return '';
+      return `<button type="button" class="chip${o[2] === 'sub' ? ' sub' : ''}" data-axis="${axis}" data-v="${o[0]}" aria-pressed="${on}">${esc(o[1])}<span class="n">${n}</span></button>`;
+    }).join('');
+    return `<section class="q"><h3>${title}</h3><div class="opts">${items}</div>${note ? `<p class="hint">${note}</p>` : ''}</section>`;
+  }
+
+  function renderPanel() {
+    const va = visibleAxes();
+    let html = chipGroup('hist', '1　癌別／組織型', AXES.hist);
+    html += chipGroup('stage', '2　分期／情境', AXES.stage);
+    if (va.gene) {
+      html += chipGroup('gene', '3　Driver gene', AXES.gene, '沒有健保專屬藥的基因（如 KRAS G12C）選了之後只剩免疫與不限基因的舊適應症。');
+      if (sel.gene === 'egfr') html += chipGroup('egfrSub', '　EGFR 子類', AXES.egfrSub);
+    }
+    html += chipGroup('line', '4　治療線數', AXES.line);
+    if (va.pdl1) html += chipGroup('pdl1', '5　PD-L1', AXES.pdl1, '各藥指標（TPS／TC／IC）不同，卡片內逐藥標示。');
+    $('panelBody').innerHTML = html;
+  }
+
+  function tagsFor(card, r, picked) {
+    const t = [];
+    if (card.mode) t.push(`<span class="tag mode">${card.mode === 'mono' ? '單用' : '併用'}</span>`);
+    if (card.kind === 'legacy') t.push('<span class="tag legacy">舊適應症</span>');
+    if (card.gene.label) t.push(`<span class="tag">${esc(card.gene.label)}</span>`);
+    for (const f of card.flags) t.push(`<span class="tag ${f === '僅續用' ? 'warn' : ''}">${esc(f)}</span>`);
+    if (picked) {
+      // 各項要求：未選或需確認＝紅，已選且符合＝綠
+      for (const c of r.chips) t.push(`<span class="tag ${c.ok ? 'okc' : 'req'}">${esc(c.text)}</span>`);
+    } else {
+      if (card.stageTag) t.push(`<span class="tag fix">${esc(card.stageTag)}</span>`);
+      if (card.lineTag) t.push(`<span class="tag fix">${esc(card.lineTag)}</span>`);
+    }
+    return t.join('');
+  }
+
+  function pdlTable(card) {
+    if (!card.pdl1) return '';
+    const p = sel.pdl1;
+    const rows = card.pdl1.map(d => {
+      let mark = '';
+      if (p && p !== 'untested') mark = d.b.includes(p) ? '<span class="ok">符合</span>' : d.alt ? `<span class="pend">待確認：${esc(d.alt)}</span>` : '<span class="no">不符</span>';
+      return `<tr><td>${esc(d.drug)}</td><td>${esc(d.metric)}</td><td>${esc(d.assay)}</td><td>${mark}</td></tr>`;
+    }).join('');
+    return `<h4>PD-L1 要求（各藥）</h4><table><thead><tr><th>藥物</th><th>指標</th><th>檢測</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  function cardHtml({ card, r }, picked) {
+    const url = `${DATA.fullTextBase}?q=${encodeURIComponent(card.q)}&section=9`;
+    const list = a => a.length ? `<ul>${a.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
+    const body =
+      (card.conditions.length ? `<h4>條文（第九節 ${esc(card.src)}）</h4>${list(card.conditions)}` : '') +
+      (card.combo ? `<h4>搭配藥物</h4><p>${esc(card.combo)}</p>` : '') +
+      pdlTable(card) +
+      (card.notes.length ? `<h4>條文補充</h4>${list(card.notes)}` : '') +
+      (card.kind === 'io' ? `<p class="io-common">${DATA.ioCommon.map(esc).join('<br>')}</p>` : '') +
+      `<p class="src">條文：第九節 ${esc(card.src)}　<a href="${url}" target="_blank" rel="noopener">開啟全文（搜尋 ${esc(card.q)}，按 Enter）</a></p>`;
+    return `<details class="card" data-id="${card.id}"${open.has(card.id) ? ' open' : ''}><summary><span class="cid">${card.id}</span><span class="ctitle">${esc(card.title)}</span><span class="tags">${tagsFor(card, r, picked)}</span><span class="brief">${esc(card.brief)}</span></summary><div class="body">${body}</div></details>`;
+  }
+
+  function renderCards() {
+    const picked = Object.keys(sel).length > 0;
+    const rem = remaining(sel);
+    const hidden = DATA.cards.length - rem.length;
+    const groups = groupOrder(sel).map(k => [GROUPS[k], x => groupKey(x.card) === k]);
+    let html = '';
+    for (const [title, f] of groups) {
+      const items = rem.filter(f);
+      if (!items.length) continue;
+      html += `<h2 class="grp">${title}<span class="cnt">${items.length}</span></h2>` + items.map(x => cardHtml(x, picked)).join('');
+    }
+    if (!rem.length) html = '<div class="empty">目前條件下沒有符合的特殊藥物卡。<br>化療不在本頁範圍（原本就可使用）。可按上方 × 取消條件再試。</div>';
+    $('cards').innerHTML = html;
+    $('count').textContent = `${rem.length} 張候選`;
+    $('hiddenNote').textContent = picked ? `已隱藏 ${hidden} 張確定不符合的藥` : '尚未選擇條件，顯示全部';
+    const tags = Object.keys(sel).map(a => `<button type="button" class="sel" data-clear="${a}">${AXIS_NAME[a]}：${esc(labelOf(a, sel[a]))} ×</button>`).join('');
+    $('selected').innerHTML = tags;
+    $('reset').hidden = !picked;
+  }
+
+  function render() { renderPanel(); renderCards(); }
+
+  $('panelBody').addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    const axis = b.dataset.axis, v = b.dataset.v;
+    if (sel[axis] === v) { delete sel[axis]; if (axis === 'gene') delete sel.egfrSub; if (axis === 'hist' && v === 'nonsq') { /* keep */ } }
+    else sel = withOption(sel, axis, v);
+    if (axis === 'hist' && !['nonsq', 'adeno'].includes(sel.hist)) { /* adeno 子選項隨之隱藏 */ }
+    render();
+  });
+  $('selected').addEventListener('click', e => {
+    const b = e.target.closest('[data-clear]'); if (!b) return;
+    const a = b.dataset.clear; delete sel[a]; if (a === 'gene') delete sel.egfrSub; render();
+  });
+  $('reset').addEventListener('click', () => { sel = {}; render(); });
+  $('cards').addEventListener('toggle', e => {
+    const d = e.target.closest && e.target.closest('details.card'); if (!d) return;
+    if (d.open) open.add(d.dataset.id); else open.delete(d.dataset.id);
+  }, true);
+  $('ver').textContent = `v${DATA.version} · ${DATA.updated}`;
+  $('src').textContent = DATA.source;
+  render();
+})();
+</script>
+</body></html>
