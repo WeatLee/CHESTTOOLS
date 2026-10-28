@@ -58,6 +58,14 @@ th,td{text-align:left;padding:5px 8px;border-bottom:1px solid #edf1f1}
 footer{max-width:1280px;margin:10px auto 40px;padding:0 20px;font-size:12px;color:#7b8e92;line-height:1.8}
 [hidden]{display:none!important}
 @media(max-width:820px){.layout{grid-template-columns:1fr}header{padding:20px}main{padding:0 14px;margin:14px auto}.panel{padding:17px}.chip{min-height:42px}h1{font-size:23px}}
+
+.row2{display:grid;grid-template-columns:130px 1fr;gap:4px 16px;padding:12px 0;border-bottom:1px solid #e3eaea}
+.row2 .k{font-weight:650;color:#2b5c57;font-size:15px}
+.row2 .v p{margin:0}
+.io-common{margin-top:14px}
+.io-common summary{cursor:pointer;font-weight:650;color:#2b5c57;list-style:revert}
+.io-common p{margin:8px 0 0}
+@media(max-width:600px){.row2{grid-template-columns:1fr}}
 </style></head>
 <body>
 <header><small>NHI QUICK FINDER · pending-clinical-review</small><h1>健保特殊藥物快找</h1><p>肺癌與惡性間皮瘤的免疫、標靶藥物。點幾個條件，看目前可能適用的健保給付；化療不在範圍。<span id="ver"></span></p></header>
@@ -280,20 +288,28 @@ if (typeof document !== 'undefined') (function () {
       if (p && p !== 'untested') mark = d.b.includes(p) ? '<span class="ok">符合</span>' : d.alt ? `<span class="pend">待確認：${esc(d.alt)}</span>` : '<span class="no">不符</span>';
       return `<tr><td>${esc(d.drug)}</td><td>${esc(d.metric)}</td><td>${esc(d.assay)}</td><td>${mark}</td></tr>`;
     }).join('');
-    return `<h4>PD-L1 要求（各藥）</h4><table><thead><tr><th>藥物</th><th>指標</th><th>檢測</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+    return `<table><thead><tr><th>藥物</th><th>指標</th><th>檢測</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  // 收合時只顯示一行標題：逐字取 brief 第一個「：」或「，」之前（純截取，不改字）
+  function headline(brief) {
+    const m = brief.match(/^[^：，]+/);
+    return (m ? m[0] : brief).replace(/。$/, '');
   }
 
   function cardHtml({ card, r }, picked) {
     const url = `${DATA.fullTextBase}?q=${encodeURIComponent(card.q)}&section=9`;
     const list = a => a.length ? `<ul>${a.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
+    const row = (k, v) => `<div class="row2"><div class="k">${k}</div><div class="v">${v}</div></div>`;
     const body =
-      (card.conditions.length ? `<h4>條文（第九節 ${esc(card.src)}）</h4>${list(card.conditions)}` : '') +
-      (card.combo ? `<h4>搭配藥物</h4><p>${esc(card.combo)}</p>` : '') +
-      pdlTable(card) +
-      (card.notes.length ? `<h4>條文補充</h4>${list(card.notes)}` : '') +
-      (card.kind === 'io' ? `<p class="io-common">${DATA.ioCommon.map(esc).join('<br>')}</p>` : '') +
-      `<p class="src">條文：第九節 ${esc(card.src)}　<a href="${url}" target="_blank" rel="noopener">開啟全文（搜尋 ${esc(card.q)}，按 Enter）</a></p>`;
-    return `<details class="card" data-id="${card.id}"${open.has(card.id) ? ' open' : ''}><summary><span class="cid">${card.id}</span><span class="ctitle">${esc(card.title)}</span><span class="tags">${tagsFor(card, r, picked)}</span><span class="brief">${esc(card.brief)}</span></summary><div class="body">${body}</div></details>`;
+      row('給付適應症', `<p>${esc(card.brief)}</p>`) +
+      (card.conditions.length ? row('條文', list(card.conditions)) : '') +
+      (card.combo ? row('搭配藥物', `<p>${esc(card.combo)}</p>`) : '') +
+      (card.pdl1 ? row('PD-L1 要求（各藥）', pdlTable(card)) : '') +
+      (card.notes.length ? row('條文補充', list(card.notes)) : '') +
+      row('條文來源', `<p class="src">第九節 ${esc(card.src)}　<a href="${url}" target="_blank" rel="noopener">開啟全文（搜尋 ${esc(card.q)}，按 Enter）</a></p>`) +
+      (card.kind === 'io' ? `<details class="io-common"><summary>免疫治療共同申請條件</summary><p>${DATA.ioCommon.map(esc).join('<br>')}</p></details>` : '');
+    return `<details class="card" data-id="${card.id}"${open.has(card.id) ? ' open' : ''}><summary><span class="cid">${card.id}</span><span class="ctitle">${esc(card.title)}</span><span class="tags">${tagsFor(card, r, picked)}</span><span class="brief">${esc(headline(card.brief))}</span></summary><div class="body">${body}</div></details>`;
   }
 
   function renderCards() {
