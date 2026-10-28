@@ -123,6 +123,7 @@ export function startShowcase(api) {
       previous?.exit?.(ctx);
       current = index;
       const demo = DEMOS[index];
+      voice.setDemo(demo.id);
       [...tabs.children].forEach((button, i) => button.classList.toggle('active', i === index));
       // Centre the chosen tab inside the tab strip only (scrollIntoView would scroll the whole page).
       const chosen = tabs.children[index];

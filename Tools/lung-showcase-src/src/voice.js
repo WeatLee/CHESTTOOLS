@@ -21,15 +21,27 @@ export function createVoice({ onLangChange }) {
   const bar = document.getElementById('voicebar');
   const toggle = document.getElementById('voiceToggle');
   const select = document.getElementById('voiceLang');
+  const options = new Map();
   for (const lang of LANGS) {
     if (!READY.has(lang.id)) continue; // Taiwanese is hidden until its recordings exist
     const option = document.createElement('option');
     option.value = lang.id;
-    option.textContent = READY.has(lang.id) ? lang.label : `${lang.label}（準備中）`;
-    option.disabled = !READY.has(lang.id);
+    option.textContent = lang.label;
     select.appendChild(option);
+    options.set(lang.id, option);
   }
   select.value = state.lang;
+
+  // A language recorded for only some demos is offered on those demos only; elsewhere it
+  // disappears from the list, and a choice made earlier falls back to Chinese.
+  function setDemo(demoId) {
+    for (const [id, option] of options) {
+      const offered = !COVERAGE[id] || COVERAGE[id].includes(demoId);
+      option.hidden = option.disabled = !offered;
+      if (!offered && state.lang === id) { state.lang = 'zh'; }
+    }
+    select.value = state.lang;
+  }
 
   const refreshToggle = () => {
     toggle.setAttribute('aria-pressed', String(state.on));
@@ -90,7 +102,7 @@ export function createVoice({ onLangChange }) {
   });
 
   return {
-    state, caption, speak, stop, stepChanged, bar,
+    state, caption, speak, stop, stepChanged, setDemo, bar,
     busy: () => !!audio,                 // a clip is playing (or paused by the user)
     holding: () => after !== null,       // the animation is waiting for the clip to end
     afterClip(fn) { after = fn; },       // run fn when the current clip ends; dropped by stop()
