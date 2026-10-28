@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>肺癌治療 SDM（醫師首頁）</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>肺癌治療 SDM</h1>
+  <p class="muted">醫師診間操作用。病人只會拿到單一項目的 QR code，看不到這一頁。</p>
+
+  <div class="cards">
+    <div class="card item" data-path="gene-testing/">
+      <h3>1 基因檢測</h3>
+      <p class="muted">新診斷肺腺癌，要送哪些基因檢查、要等多久、費用大約多少。</p>
+      <div class="actions">
+        <button class="primary" data-act="open">開啟</button>
+        <button data-act="qr">顯示 QR code</button>
+      </div>
+    </div>
+    <div class="card item soon">
+      <h3>2 檢測後的治療選擇<span class="tag">準備中</span></h3>
+      <p class="muted">有突變走標靶，沒突變看 PD-L1 選化療或免疫。</p>
+    </div>
+    <div class="card item soon">
+      <h3>3 抗藥後怎麼辦<span class="tag">準備中</span></h3>
+      <p class="muted">標靶藥產生抗藥性之後的選擇。</p>
+    </div>
+  </div>
+  <p class="muted" style="margin-top:2em">首頁不記錄任何病人資料。</p>
+</div>
+
+<dialog id="qrdlg">
+  <h3 id="qrtitle" style="margin-top:0"></h3>
+  <canvas id="qrcanvas" aria-label="QR code"></canvas>
+  <p class="muted" id="qrurl" style="word-break:break-all"></p>
+  <div class="warnbox noprint" id="qrwarn" hidden></div>
+  <div style="display:flex;gap:8px;justify-content:center;margin-top:8px">
+    <button id="qrprint">列印</button>
+    <button id="qrclose" class="primary">關閉</button>
+  </div>
+</dialog>
+
+<script src="config.js"></script>
+<script src="assets/qr.js"></script>
+<script>
+(function () {
+  var cfg = window.SDM_CONFIG || {};
+  var base = cfg.baseUrl || '';
+  var local = !base;
+  if (local) base = location.href.replace(/[^\/]*$/, '');
+  function urlOf(path) { return base + path; }
+
+  document.querySelectorAll('.item[data-path]').forEach(function (card) {
+    var path = card.getAttribute('data-path');
+    card.querySelector('[data-act=open]').onclick = function () { location.href = path; };
+    card.querySelector('[data-act=qr]').onclick = function () {
+      var u = urlOf(path), warn = document.getElementById('qrwarn');
+      document.getElementById('qrtitle').textContent = card.querySelector('h3').textContent;
+      document.getElementById('qrurl').textContent = u;
+      try { SdmQr.paintQr(document.getElementById('qrcanvas'), u, 10); warn.hidden = true; }
+      catch (e) { warn.hidden = false; warn.textContent = e.message; }
+      if (local) {
+        warn.hidden = false;
+        warn.textContent = '網站網址尚未設定（site/config.js 的 baseUrl），這個 QR 指向本機位置，病人手機掃不開。上線後請先改好網址。';
+      }
+      document.getElementById('qrdlg').showModal();
+    };
+  });
+  document.getElementById('qrclose').onclick = function () { document.getElementById('qrdlg').close(); };
+  document.getElementById('qrprint').onclick = function () { window.print(); };
+})();
+</script>
+</body>
+</html>
