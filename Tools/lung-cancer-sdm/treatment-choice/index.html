@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>肺腺癌治療選擇</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="draft" id="draft" hidden>草稿：內容待醫師校對，數字僅供版面示範</div>
+<div class="wrap">
+  <h1>肺腺癌治療選擇</h1>
+
+  <div class="stepbar" id="stepbar" role="tablist" aria-label="步驟">
+    <button data-step="1" role="tab"><b>1</b><span>有哪些治療</span></button>
+    <button data-step="2" role="tab"><b>2</b><span>基因怎麼驗</span></button>
+    <button data-step="3" role="tab"><b>3</b><span>結果出來之後</span></button>
+  </div>
+
+  <!-- 第一步：流程圖 -->
+  <section class="step" id="s1">
+    <h2>健保有給付的治療</h2>
+    <p>目前有化療、標靶藥和免疫藥物可以使。 每種治療都有適合的情況，有時也可以考慮合併治療。</p>
+    <p class="muted">先點「有突變」或「沒有突變」，後面的治療方塊會亮起來，再點亮起來的治療方塊看說明。</p>
+
+    <div class="metro" aria-label="健保有給付的治療方塊圖">
+      <!-- 電腦：橫式方塊圖 -->
+      <svg class="mh" viewBox="0 0 680 310" role="group" aria-label="健保有給付的治療（橫式）">
+        <defs><marker id="mk1" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="13" orient="auto"><path d="M1 1L9 5L1 9z" fill="context-stroke"/></marker></defs>
+        <path class="seg main" d="M150 150 H186"/>
+        <path class="seg pos" data-seg="pos" d="M186 150 V48 H222" marker-end="url(#mk1)"/>
+        <path class="seg pos" data-seg="pos" d="M342 48 H428" marker-end="url(#mk1)"/>
+        <path class="seg neg" data-seg="neg" d="M186 150 V202 H222" marker-end="url(#mk1)"/>
+        <path class="seg neg" data-seg="neg" d="M352 202 H392 V142 H428" marker-end="url(#mk1)"/>
+        <path class="seg neg" data-seg="neg" d="M352 202 H428" marker-end="url(#mk1)"/>
+        <path class="seg neg" data-seg="neg" d="M352 202 H392 V262 H428" marker-end="url(#mk1)"/>
+        <g class="st start"><rect class="box" x="30" y="125" width="120" height="50" rx="10"/><text x="90" y="156" text-anchor="middle">基因檢測</text></g>
+        <g class="st br pos" data-br="pos" role="button" tabindex="0" aria-label="有突變">
+          <rect class="box" x="222" y="26" width="120" height="44" rx="10"/><text x="282" y="54" text-anchor="middle">有突變</text>
+        </g>
+        <g class="st br neg" data-br="neg" role="button" tabindex="0" aria-label="沒有突變">
+          <rect class="box" x="222" y="180" width="130" height="44" rx="10"/><text x="287" y="208" text-anchor="middle">沒有突變</text>
+        </g>
+        <g class="st tx" data-tx="target" data-br="pos" role="button" tabindex="0" aria-label="標靶治療">
+          <rect class="box" x="428" y="26" width="150" height="44" rx="10"/><text x="503" y="54" text-anchor="middle">標靶治療</text>
+        </g>
+        <g class="st tx" data-tx="immune" data-br="neg" role="button" tabindex="0" aria-label="免疫治療">
+          <rect class="box" x="428" y="120" width="150" height="44" rx="10"/><text x="503" y="148" text-anchor="middle">免疫治療</text>
+        </g>
+        <g class="st tx" data-tx="both" data-br="neg" role="button" tabindex="0" aria-label="免疫加化療">
+          <rect class="box" x="428" y="180" width="150" height="44" rx="10"/><text x="503" y="208" text-anchor="middle">免疫加化療</text>
+        </g>
+        <g class="st tx" data-tx="chemo" data-br="neg" role="button" tabindex="0" aria-label="化學治療">
+          <rect class="box" x="428" y="240" width="150" height="44" rx="10"/><text x="503" y="268" text-anchor="middle">化學治療</text>
+        </g>
+      </svg>
+      <!-- 手機：直式方塊圖 -->
+      <svg class="mv" viewBox="0 0 340 340" role="group" aria-label="健保有給付的治療（直式）">
+        <defs><marker id="mk2" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="13" orient="auto"><path d="M1 1L9 5L1 9z" fill="context-stroke"/></marker></defs>
+        <path class="seg pos" data-seg="pos" d="M20 32 H8 V122 H20" marker-end="url(#mk2)"/>
+        <path class="seg neg" data-seg="neg" d="M8 122 V212 H20" marker-end="url(#mk2)"/>
+        <path class="seg pos" data-seg="pos" d="M170 122 H190" marker-end="url(#mk2)"/>
+        <path class="seg neg" data-seg="neg" d="M170 212 H180 V190 H190" marker-end="url(#mk2)"/>
+        <path class="seg neg" data-seg="neg" d="M170 212 H180 V242 H190" marker-end="url(#mk2)"/>
+        <path class="seg neg" data-seg="neg" d="M170 212 H180 V294 H190" marker-end="url(#mk2)"/>
+        <g class="st start"><rect class="box" x="20" y="10" width="150" height="44" rx="10"/><text x="95" y="38" text-anchor="middle">基因檢測</text></g>
+        <g class="st br pos" data-br="pos" role="button" tabindex="0" aria-label="有突變">
+          <rect class="box" x="20" y="100" width="150" height="44" rx="10"/><text x="95" y="128" text-anchor="middle">有突變</text>
+        </g>
+        <g class="st tx" data-tx="target" data-br="pos" role="button" tabindex="0" aria-label="標靶治療">
+          <rect class="box" x="190" y="100" width="136" height="44" rx="10"/><text x="258" y="128" text-anchor="middle">標靶治療</text>
+        </g>
+        <g class="st br neg" data-br="neg" role="button" tabindex="0" aria-label="沒有突變">
+          <rect class="box" x="20" y="190" width="150" height="44" rx="10"/><text x="95" y="218" text-anchor="middle">沒有突變</text>
+        </g>
+        <g class="st tx" data-tx="immune" data-br="neg" role="button" tabindex="0" aria-label="免疫治療">
+          <rect class="box" x="190" y="170" width="136" height="40" rx="10"/><text x="258" y="196" text-anchor="middle">免疫治療</text>
+        </g>
+        <g class="st tx" data-tx="both" data-br="neg" role="button" tabindex="0" aria-label="免疫加化療">
+          <rect class="box" x="190" y="222" width="136" height="40" rx="10"/><text x="258" y="248" text-anchor="middle">免疫加化療</text>
+        </g>
+        <g class="st tx" data-tx="chemo" data-br="neg" role="button" tabindex="0" aria-label="化學治療">
+          <rect class="box" x="190" y="274" width="136" height="40" rx="10"/><text x="258" y="300" text-anchor="middle">化學治療</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="txpanel" id="txpanel">
+      <p class="muted" id="tx-hint">請先點上面的「有突變」或「沒有突變」。</p>
+      <div id="tx-target" hidden>
+        <h3>標靶治療</h3>
+        <p class="ts">若我們有檢查到特定的基因突變則有對應標靶藥物可以選擇</p>
+        <p>多為口服藥，依醫師指示按時服用，並定期回診追蹤。</p>
+      </div>
+      <div id="tx-immune" hidden>
+        <h3>免疫治療</h3>
+        <p class="ts">若基因檢查沒有突變（健保給付），或自費使用。</p>
+        <p>約每 3 週注射一次，一般和化療合併或合併使用。</p>
+      </div>
+      <div id="tx-both" hidden>
+        <h3>免疫加化療</h3>
+        <p class="ts">免疫治療和化學治療一起進行。</p>
+        <p>免疫約每 3 週注射一次；化療依選擇的藥物不同，常見每 3 週為一個療程，第 1、2 週要進行治療。</p>
+      </div>
+      <div id="tx-chemo" hidden>
+        <h3>化學治療</h3>
+        <p>依選擇的藥物不同，常見每 3 週為一個療程，第 1、2 週要進行治療。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 第二步 -->
+  <section class="step" id="s2" hidden>
+    <h2>基因怎麼驗？</h2>
+    <p>標靶藥要先找到對應的基因突變，免疫治療在健保給付上也要先確認沒有突變。所以治療前要先驗基因。驗的方式有幾種，請看看要等多久、大約多少錢。</p>
+
+    <details class="mutd">
+      <summary>想知道常見的突變比例？點開看</summary>
+      <div class="bars" id="mutbars"></div>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--ok)"></span>健保給付檢查有包含（EGFR 加 ALK，合計約 64%）</span>
+        <span><span class="dot" style="background:var(--accent)"></span>其他突變</span>
+      </div>
+    </details>
+
+    <h3 class="sub">不同種的檢查，要多久才會有報告</h3>
+    <p class="muted">下面三條是不同的檢查到報告出來所需的時間。點一條，看它的流程、優點和注意事項。</p>
+    <div class="cmpwrap" id="cmp3"></div>
+
+    <div id="detail" hidden>
+      <details class="dcollapse" open>
+      <summary>流程與時間軸（點一下可以收起來，只看優點和注意事項）</summary>
+      <div class="flow" id="flow"></div>
+      <div id="nchoice" hidden>
+        <div class="muted" style="margin-bottom:4px">這一條要怎麼送？</div>
+        <div class="btns"><button id="nboth">健保也一起送</button><button id="nonly">只送 NGS</button></div>
+      </div>
+      <div class="ask" id="ask"></div>
+      <div class="btns" id="btns"></div>
+      <div id="tierwrap" hidden>
+        <div class="muted" style="margin-bottom:4px">自費 NGS 要選哪一種？</div>
+        <div class="tiers" id="tiers"></div>
+        <div class="tiernote" id="tiernote"></div>
+      </div>
+
+      <div class="chartbox">
+        <div class="chtitle">這一條的時間軸</div>
+        <div class="chartscroll">
+          <div class="chartin">
+            <div class="axis" id="axis"></div>
+            <div class="chart" id="chart"></div>
+          </div>
+        </div>
+        <div class="muted swipehint">手機可以左右滑動圖</div>
+        <div class="chartkey">
+          <span><i style="border-color:var(--accent);background:var(--accent-bg)"></i>健保給付檢查</span>
+          <span><i style="border-color:var(--warn);background:var(--warn-bg)"></i>自費 NGS</span>
+          <span><i style="border-color:var(--ok);background:var(--ok-bg)"></i>NGS（健保補助）</span>
+          <span><i style="border-color:var(--muted);background:var(--line)"></i>申請健保藥物</span>
+          <span><i style="border-color:var(--ok);background:var(--ok)"></i>決定治療的時間</span>
+        </div>
+        <div class="endline">
+          <span id="end"></span>
+          <span><button class="small" id="undo">退回上一個選擇</button></span>
+        </div>
+      </div>
+
+      <div class="metrics" id="metrics"></div>
+      </details>
+
+      <div class="pc">
+        <div class="pros"><div class="t">優點</div><div id="pros"></div></div>
+        <div class="cons"><div class="t">注意事項</div><div id="cons"></div></div>
+      </div>
+    </div>
+
+    <h3 class="sub">您比較在意什麼？</h3>
+    <p class="muted">可以選一個、兩個，或三個都選，看圖上哪裡亮起來。</p>
+    <div class="btns pick" id="vpick">
+      <button data-v="fast">要快</button>
+      <button data-v="cheap">要省錢</button>
+      <button data-v="info">要資訊多</button>
+    </div>
+    <figure class="venn">
+      <svg viewBox="0 0 480 390" role="img" aria-labelledby="vt vd">
+        <title id="vt">基因檢測：快、資訊多、省錢，三選二</title>
+        <desc id="vd">三個圓圈重疊：快、資訊多、省錢。快加資訊多是 NGS 或一起送，要自費；快加省錢是只送健保，只查兩項；資訊多加省錢是先送健保再做 NGS，要等；三者兼得沒有對應的送法。</desc>
+        <defs>
+          <clipPath id="cTop"><circle cx="240" cy="135" r="115"/></clipPath>
+          <clipPath id="cLeft"><circle cx="160" cy="250" r="115"/></clipPath>
+        </defs>
+        <circle class="base vc-fast" cx="240" cy="135" r="115"/>
+        <circle class="base vc-info" cx="160" cy="250" r="115"/>
+        <circle class="base vc-cheap" cx="320" cy="250" r="115"/>
+        <circle class="hl" data-k="fast" cx="240" cy="135" r="115"/>
+        <circle class="hl" data-k="info" cx="160" cy="250" r="115"/>
+        <circle class="hl" data-k="cheap" cx="320" cy="250" r="115"/>
+        <circle class="hl" data-k="fastinfo" cx="160" cy="250" r="115" clip-path="url(#cTop)"/>
+        <circle class="hl" data-k="fastcheap" cx="320" cy="250" r="115" clip-path="url(#cTop)"/>
+        <circle class="hl" data-k="infocheap" cx="320" cy="250" r="115" clip-path="url(#cLeft)"/>
+        <g clip-path="url(#cTop)"><g clip-path="url(#cLeft)"><circle class="hl" data-k="center" cx="320" cy="250" r="115"/></g></g>        <text class="vbig" x="240" y="48" text-anchor="middle">快</text>
+        <text class="vbig" x="82" y="318" text-anchor="middle">資訊多</text>
+        <text class="vbig" x="398" y="318" text-anchor="middle">省錢</text>
+        <text class="vt" data-k="fastinfo" x="188" y="176" text-anchor="middle">NGS／一起送</text>
+        <text class="vs" data-k="fastinfo" x="188" y="195" text-anchor="middle">要自費</text>
+        <text class="vt" data-k="fastcheap" x="294" y="176" text-anchor="middle">只送健保</text>
+        <text class="vs" data-k="fastcheap" x="294" y="195" text-anchor="middle">只查兩項</text>
+        <text class="vt" data-k="infocheap" x="240" y="300" text-anchor="middle">先健保再 NGS</text>
+        <text class="vs" data-k="infocheap" x="240" y="319" text-anchor="middle">要等</text>
+        <text class="vs" data-k="center" x="240" y="236" text-anchor="middle">沒有</text>
+      </svg>
+    </figure>
+    <div class="vres" id="vres"></div>
+  </section>
+
+  <!-- 第三步 -->
+  <section class="step" id="s3" hidden>
+    <h2>結果出來之後</h2>
+    <p>請選您的基因檢測結果，看接下來的路：</p>
+    <div class="btns pick" id="resultpick">
+      <button data-r="pos">有找到突變</button>
+      <button data-r="neg">沒有找到突變</button>
+      <button data-r="wait">還在等結果</button>
+    </div>
+
+    <div class="panel" id="r-pos" hidden>
+      <h3 class="sub">有找到突變</h3>
+      <p>有對應的標靶藥，多為口服。用哪一種，由醫師依您的突變和健保規定說明。</p>
+      <p>使用健保藥物前需要先申請，約 <b>1 到 2 週</b>。</p>
+    </div>
+
+    <div class="panel" id="r-neg" hidden>
+      <h3 class="sub">沒有找到突變</h3>
+      <p>會再驗腫瘤細胞上的 <b>PD-L1</b>（一種蛋白質），依結果分兩種：</p>
+      <div class="btns pick" id="pdl1pick">
+        <button data-p="yes">適合免疫</button>
+        <button data-p="no">不適合免疫</button>
+      </div>
+
+      <div class="panel" id="p-yes" hidden>
+        <p>可以選「<b>免疫加化療</b>」或「<b>單用免疫</b>」，健保大多已有給付。</p>
+        <div class="compare">
+          <div class="cmp">
+            <h4>免疫加化療</h4>
+            <dl>
+              <dt>怎麼打、多久一次</dt><dd>免疫約每 3 週注射一次，一起用化療。化療依藥物不同，常見每 3 週一個療程。</dd>
+              <dt>常見的不舒服</dt><dd>化療常見的（噁心、掉髮、白血球偏低），加免疫常見的（皮膚、腸胃、甲狀腺）。</dd>
+              <dt>治療的特點</dt><dd>兩種治療一起進行，作用方式不同。</dd>
+              <dt>大概適合什麼情況</dt><dd>由醫師依身體狀況和檢查報告評估。</dd>
+              <dt>健保</dt><dd>大多有給付。</dd>
+            </dl>
+          </div>
+          <div class="cmp">
+            <h4>單用免疫</h4>
+            <dl>
+              <dt>怎麼打、多久一次</dt><dd>約每 3 週注射一次。</dd>
+              <dt>常見的不舒服</dt><dd>免疫常見的（皮膚、腸胃、甲狀腺）。</dd>
+              <dt>治療的特點</dt><dd>只用免疫，沒有化療的不舒服。</dd>
+              <dt>大概適合什麼情況</dt><dd>由醫師依身體狀況和檢查報告評估。</dd>
+              <dt>健保</dt><dd>大多有給付。</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="p-no" hidden>
+        <p>會走<b>化學治療</b>。細節請醫師說明。</p>
+      </div>
+      <p class="muted">PD-L1 的數字由醫師說明，這裡不寫門檻。</p>
+    </div>
+
+    <div class="panel" id="r-wait" hidden>
+      <h3 class="sub">還在等結果</h3>
+      <p>等結果的期間，可以先回到第一步，看看三種治療。結果出來後，再回來看這一步。</p>
+      <p>不用擔心，醫師會依您的結果說明。</p>
+      <p><button id="backto1">回到第一步</button></p>
+    </div>
+  </section>
+
+  <div class="stepnav">
+    <button id="prev" hidden>上一步</button>
+    <button id="next" class="primary">下一步</button>
+  </div>
+
+  <div class="foot muted">
+    <p>這是一般衛教資料，不取代醫師針對您個別情況的評估。價格與時間都是大約的數字，實際會依醫院與檢體情況不同。如有疑問，請詢問您的醫師。</p>
+  </div>
+</div>
+<script src="../config.js"></script>
+<script src="logic.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
