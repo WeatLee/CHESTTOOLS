@@ -4,14 +4,9 @@ import { versioned } from './ver.js';
 
 const ids = new Set(['wash']);   // examinations whose text has been published
 export const hasEdu = id => ids.has(id);
-export let eduReady = Promise.resolve();   // resolves when the text of the opened examination is on the page
 const cache = new Map();
 
-export function showEdu(id) {
-  return (eduReady = load(id));
-}
-
-async function load(id) {
+export async function showEdu(id) {
   const box = document.getElementById('edu');
   box.hidden = true;
   box.replaceChildren();
@@ -22,7 +17,7 @@ async function load(id) {
       if (!response.ok) throw new Error(response.status);
       cache.set(id, await response.text());
     }
-    if (location.hash.slice(1).split('/')[0] !== id) return;       // the user already moved on
+    if (location.hash.slice(1) !== id) return;       // the user already moved on
     box.innerHTML = cache.get(id);
     box.hidden = false;
   } catch { /* the demo works without the text */ }

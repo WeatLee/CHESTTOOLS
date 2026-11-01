@@ -1,6 +1,5 @@
 // Start page first; the 3D scene and the demos are only loaded when an examination is opened.
 import { HUB, renderHub } from './hub.js';
-import { eduReady } from './edu.js';
 
 const $ = id => document.getElementById(id);
 renderHub($('hub'));
@@ -36,7 +35,7 @@ function updateBar(id) {
 }
 
 async function route() {
-  const [id, part] = location.hash.slice(1).split('/');
+  const id = location.hash.slice(1);
   const token = ++routeToken;
   if (!id || id === 'home') { showHub(); return; }
   setView('demo');
@@ -45,10 +44,6 @@ async function route() {
   try {
     const instance = await loadShowcase();
     if (token === routeToken) instance.open(id);
-    if (part === '3d') {   // "看 3D 示範" from the start page: go straight to the demo at the end of the page
-      await eduReady;
-      setTimeout(() => { if (token === routeToken) document.getElementById('demo3d')?.scrollIntoView(); }, 500);
-    }
   } catch (error) {
     window.dispatchEvent(new Event('showcase-load-error'));
   }

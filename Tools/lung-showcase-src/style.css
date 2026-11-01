@@ -283,23 +283,4 @@ body[data-view="demo"] .hub{display:none}
 .edu-fig img{max-width:100%;height:auto;border-radius:12px;border:1px solid var(--line)}
 .edu-foot{margin:6px 2px 0;font-size:12.5px;color:var(--soft);line-height:1.6}
 @media print{.edu-consent{display:none}}
-
-/* examinations with text: picture, title, text, then the 3D demo (body[data-layout="text-first"]) */
-.edu-head[hidden],.demo3d-title[hidden]{display:none}
-.edu-head h2{margin:4px 0 2px;font-size:22px}
-.edu-head p{margin:0;color:var(--soft);font-size:15px}
-.demo3d-title{margin:18px 0 0;font-size:18px}
-body[data-layout="text-first"] .stage{display:flex;flex-direction:column;gap:12px}
-body[data-layout="text-first"] .gallery{order:0}
-body[data-layout="text-first"] .edu-head{order:1}
-body[data-layout="text-first"] .edu{order:2;margin-top:0}
-body[data-layout="text-first"] .demo3d-title{order:3}
-body[data-layout="text-first"] .demo-layout{order:4}
-body[data-layout="text-first"] .panel .demo-head{display:none}
-@media (min-width:960px){
-  body[data-layout="text-first"] .stage{max-width:1100px;margin:0 auto;width:100%}
-  body[data-layout="text-first"] .demo-layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(340px,1fr);gap:16px;align-items:start}
-}
 .hub-actions{flex-wrap:wrap}
-.hub-3d{display:flex;align-items:center;justify-content:center;min-height:48px;padding:0 16px;border-radius:12px;border:1px solid var(--accent);background:#fff;color:var(--accent-2);font-weight:600;font-size:15px;text-decoration:none}
-.hub-3d:focus-visible{outline:3px solid #8fc4ba;outline-offset:2px}

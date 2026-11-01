@@ -5,7 +5,7 @@
 import { DEMOS } from './demos.js';
 import { createVoice } from './voice.js';
 import { versioned } from './ver.js';
-import { showEdu, hideEdu, hasEdu } from './edu.js';
+import { showEdu, hideEdu } from './edu.js';
 
 const $ = id => document.getElementById(id);
 const fire = (element, type) => element.dispatchEvent(new Event(type, { bubbles: true }));
@@ -126,11 +126,6 @@ export function startShowcase(api) {
       const demo = DEMOS[index];
       voice.setDemo(demo.id);
       showEdu(demo.id);
-      const textFirst = hasEdu(demo.id);   // examinations with text: picture, text, then the 3D demo
-      document.body.dataset.layout = textFirst ? 'text-first' : 'demo-first';
-      $('eduHead').hidden = $('demo3d').hidden = !textFirst;
-      $('eduTitle').textContent = demo.title;
-      $('eduWhen').textContent = demo.when;
       [...tabs.children].forEach((button, i) => button.classList.toggle('active', i === index));
       // Centre the chosen tab inside the tab strip only (scrollIntoView would scroll the whole page).
       const chosen = tabs.children[index];
@@ -265,7 +260,6 @@ export function startShowcase(api) {
     leave() {
       voice.stop();
       hideEdu();
-      document.body.dataset.layout = 'demo-first';
       DEMOS[current]?.exit?.(ctx);
       current = -1;
       api.pauseRender(true);

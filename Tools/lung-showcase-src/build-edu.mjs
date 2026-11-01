@@ -189,7 +189,7 @@ for (const q of sections(faqText, 3)) {
   const nextGroup = cut >= 0 && lines[cut].startsWith('## ') ? lines[cut].slice(3).trim() : '';
   if (!cfg.skipQuestions.some(re => re.test(q.title))) {
     if (group) { faq += `<h4>${group}</h4>`; group = ''; }
-    faq += details(esc(q.title.replace(/^d+.s*/, '')), render(clean(expand(answer))));
+    faq += details(esc(q.title.replace(/^[0-9]+[.][ ]*/, '')), render(clean(expand(answer))));
   }
   if (nextGroup) group = nextGroup;
 }
@@ -198,11 +198,13 @@ faq = '<h4>檢查前</h4>' + faq;
 const faqNote = '<div class="edu-callout note"><p>與病情、檢查結果和治療有關的問題，請在回診時直接詢問您的醫師。</p></div>';
 
 const consentText = stripFront(read('同意書說明.md'));
-const explain = sectionOf('同意書說明.md', '說明（自己寫的部分，網頁會顯示）');
-const consentBlocks = sections(consentText, 3).filter(s => cfg.consents.some(c => s.title.includes(c)));
+const askDoctor = sectionOf('同意書說明.md', '簽之前，您可以問醫師', 2);
+const formsText = sectionOf('同意書說明.md', '同意書內文（取自高醫同意書）', 2);
+const consentBlocks = sections(formsText, 3).filter(s => cfg.consents.some(c => s.title.includes(c)));
 if (consentBlocks.length !== cfg.consents.length) throw new Error('consent sections not all found');
-const consent = render(clean(explain)) + consentBlocks.map(b =>
-  `<h4>${esc(b.title.split('：').pop())}</h4>${render(clean(b.body), 5)}`).join('');
+const consent = consentBlocks.map(b =>
+  `<h4>${esc(b.title.split('：').pop())}</h4>${render(clean(b.body), 5)}`).join('')
+  + `<h4>簽之前，您可以問醫師</h4>${render(clean(askDoctor))}`;
 
 const html = [
   details('這項檢查是什麼', intro.map(s => `<h4>${s.title}</h4>${render(clean(s.body))}`).join(''), true),

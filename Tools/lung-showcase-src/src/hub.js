@@ -47,7 +47,7 @@ function card(item, index) {
       <p class="hub-text">${item.text}</p>
       <div class="hub-actions">
         ${hasEdu(item.id)
-          ? `<a class="hub-open" href="#${item.id}">了解這項檢查 <span aria-hidden="true">→</span></a><a class="hub-3d" href="#${item.id}/3d">看 3D 示範</a>`
+          ? `<a class="hub-open" href="#${item.id}">了解這項檢查 <span aria-hidden="true">→</span></a>`
           : `<a class="hub-open" href="#${item.id}">看 3D 示範 <span aria-hidden="true">→</span></a>`}
         <button class="hub-qr-btn" type="button" aria-expanded="false">QR Code</button>
       </div>
