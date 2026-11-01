@@ -27,8 +27,8 @@ function enginePlayer(slider, play, reset) {
 
 export const DEMOS = [
   {
-    id: 'bronch', no: 1, tab: '支氣管鏡切片',
-    title: '支氣管鏡切片',
+    id: 'bronch', no: 1, tab: '支氣管鏡檢查併切片',
+    title: '支氣管鏡檢查併切片',
     when: '當肺部有腫瘤或異常陰影，而且位置在鏡子可以到達的支氣管附近時，醫師會用支氣管鏡取一小塊組織做病理檢查。檢查前會先做局部麻醉，必要時搭配鎮靜。',
     camera: HOME,
     pictures: pictures.bronch,

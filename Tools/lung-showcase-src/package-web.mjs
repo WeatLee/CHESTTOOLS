@@ -26,6 +26,11 @@ if (existsSync(join(base, 'qr'))) {
   mkdirSync(join(base, 'web', 'lung-showcase', 'qr'), { recursive: true });
   cpSync(join(base, 'qr'), join(base, 'web', 'lung-showcase', 'qr'), { recursive: true });
 }
+// Patient-education text (edu/<id>.html), built by build-edu.mjs from the Obsidian drafts.
+if (existsSync(join(base, 'edu'))) {
+  mkdirSync(join(base, 'web', 'lung-showcase', 'edu'), { recursive: true });
+  cpSync(join(base, 'edu'), join(base, 'web', 'lung-showcase', 'edu'), { recursive: true });
+}
 // Pre-recorded narration (voice/<lang>/*.mp3), built by build-voice.mjs.
 if (existsSync(join(base, 'voice'))) {
   mkdirSync(join(base, 'web', 'lung-showcase', 'voice'), { recursive: true });

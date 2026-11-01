@@ -5,6 +5,7 @@
 import { DEMOS } from './demos.js';
 import { createVoice } from './voice.js';
 import { versioned } from './ver.js';
+import { showEdu, hideEdu } from './edu.js';
 
 const $ = id => document.getElementById(id);
 const fire = (element, type) => element.dispatchEvent(new Event(type, { bubbles: true }));
@@ -124,6 +125,7 @@ export function startShowcase(api) {
       current = index;
       const demo = DEMOS[index];
       voice.setDemo(demo.id);
+      showEdu(demo.id);
       [...tabs.children].forEach((button, i) => button.classList.toggle('active', i === index));
       // Centre the chosen tab inside the tab strip only (scrollIntoView would scroll the whole page).
       const chosen = tabs.children[index];
@@ -257,6 +259,7 @@ export function startShowcase(api) {
     },
     leave() {
       voice.stop();
+      hideEdu();
       DEMOS[current]?.exit?.(ctx);
       current = -1;
       api.pauseRender(true);

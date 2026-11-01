@@ -7,12 +7,12 @@ export const SITE = 'https://weatlee.github.io/CHESTTOOLS/Tools/lung-showcase.ht
 // Order of the cards (also the order of the previous / next buttons inside an examination).
 export const HUB = [
   {
-    id: 'wash', name: '支氣管鏡沖洗', en: 'Bronchoscopic washing',
+    id: 'wash', name: '支氣管鏡檢查', en: 'Bronchoscopy (washing)',
     text: '肺部有發炎或感染時，醫師用支氣管鏡到發炎的位置，注入少量無菌生理食鹽水再吸回來，收集檢體送去培養或檢驗，找出致病的原因。',
     picture: 'lung-showcase/images/wash-room.webp'
   },
   {
-    id: 'bronch', name: '支氣管鏡切片', en: 'Bronchoscopic biopsy',
+    id: 'bronch', name: '支氣管鏡檢查併切片', en: 'Bronchoscopic biopsy',
     text: '肺部有腫瘤或異常陰影、位置在鏡子可以到達的支氣管附近時，用支氣管鏡夾取一小塊組織做病理檢查。',
     picture: 'lung-showcase/images/bronch-room.webp'
   },
