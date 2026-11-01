@@ -11,14 +11,28 @@ const here = dirname(fileURLToPath(import.meta.url));
 const [vault, id] = process.argv.slice(2);
 if (!vault || !id) throw new Error('usage: node build-edu.mjs <vault folder> <id>');
 
+// mode "shared": the exam page plus the shared pages (prep, day, after, questions) of the bronchoscopies.
+// mode "self": the exam page carries its own before/after text and has its own question page (pleural drainage).
+const PAINLESS = '無痛支氣管鏡檢查', SOFT = '肺部軟式支氣管鏡術';
 const PAGES = {
   wash: {
-    own: '專屬/支氣管鏡沖洗.md',
-    // Sections of the shared pages that do not apply to this examination.
-    skipSections: ['切片與 EBUS-TBNA 另外要注意'],
+    mode: 'shared', own: '專屬/支氣管鏡沖洗.md',
+    skipSections: ['切片與 EBUS-TBNA 另外要注意'],     // sections of the shared pages that do not apply
     skipQuestions: [/^19\./],
-    consents: ['無痛支氣管鏡檢查', '肺部軟式支氣管鏡術'],
-    updated: null
+    consents: [PAINLESS, SOFT]
+  },
+  bronch: {
+    mode: 'shared', own: '專屬/支氣管鏡切片.md', skipSections: [], skipQuestions: [],
+    consents: [PAINLESS, SOFT]
+  },
+  tbna: {
+    mode: 'shared', own: '專屬/EBUS-TBNA.md', skipSections: [], skipQuestions: [],
+    consents: [PAINLESS]                                // decided 2026-11-01: EBUS-TBNA uses the painless form only
+  },
+  drain: {
+    mode: 'self', own: '專屬/胸腔引流.md', faq: '專屬/胸腔引流常見問題.md',
+    skipSections: [], skipQuestions: [],
+    consents: ['胸腔穿刺併胸水引流術', '胸水引流管放置術']
   }
 };
 const cfg = PAGES[id];
@@ -29,7 +43,8 @@ const substitutions = [];
 const SUBS = [
   [/聯絡電話：【待確認[^】]*】\n?/g, ''],                       // line removed until the number is known
   [/【待確認：電話】/g, '檢查室'],                                // "請在檢查前先聯絡檢查室"
-  [/【待確認：用輪椅或病床】/g, '']                              // "病房會有工作人員送您到檢查室"
+  [/【待確認：用輪椅或病床】/g, ''],                             // "病房會有工作人員送您到檢查室"
+  [/【待確認：是否同意這樣寫】/g, '']                           // asks for the user's agreement; the whole text is being published
 ];
 
 const read = rel => readFileSync(join(vault, rel), 'utf8').replace(/\r\n/g, '\n');
@@ -74,7 +89,7 @@ const images = [];
 function embedImage(name) {
   const src = join(vault, '共用', 'attachments', name);
   if (!existsSync(src)) throw new Error(`image not found: ${name}`);
-  const out = `images/edu-${id}-map.png`;
+  const out = "images/edu-map.png";
   images.push([src, out]);
   return `<figure class="edu-fig"><img src="lung-showcase/${out}" alt="高雄醫學大學附設中和紀念醫院院區配置圖" loading="lazy"></figure>`;
 }
@@ -167,25 +182,40 @@ const ownSections = sections(own, 2);
 const intro = ownSections.filter(s => ['這項檢查是什麼', '為什麼要做這項檢查', '檢查怎麼進行', '麻醉與舒眠', '可能的不舒服與風險'].includes(s.title));
 if (intro.length !== 5) throw new Error('exam page needs its five sections');
 
-const prep = sections(stripFront(read('共用/檢查前準備.md')), 2).map(s => `<h4>${s.title}</h4>${render(clean(s.body))}`).join('');
-const flow = sections(stripFront(read('共用/檢查當天流程與位置.md')), 2).map(s => `<h4>${s.title}</h4>${render(clean(s.body))}`).join('');
-const afterAll = sections(stripFront(read('共用/檢查後注意事項.md')), 2);
-const after = afterAll
-  .filter(s => s.title !== '一般注意事項' && !cfg.skipSections.includes(s.title))
-  .map(s => `<h4>${s.title}</h4>${render(clean(s.body))}`).join('');
-// "一般注意事項" holds ### subsections of its own
-const general = afterAll.find(s => s.title === '一般注意事項');
-const generalHtml = sections('\n' + general.body, 3)
-  .filter(s => !cfg.skipSections.includes(s.title))
-  .map(s => `<h4>${s.title}</h4>${render(clean(s.body))}`).join('');
+const block = s => `<h4>${s.title}</h4>${render(clean(s.body))}`;
+const NL = String.fromCharCode(10);
 
-const faqText = stripFront(read('共用/常見問題.md'));
+// ---- the page, mode "shared" -----------------------------------------------------------
+function sharedParts() {
+  const prep = sections(stripFront(read('共用/檢查前準備.md')), 2).map(block).join('');
+  const flow = sections(stripFront(read('共用/檢查當天流程與位置.md')), 2).map(block).join('');
+  const afterAll = sections(stripFront(read('共用/檢查後注意事項.md')), 2);
+  const general = afterAll.find(s => s.title === '一般注意事項');   // holds ### subsections of its own
+  const after = afterAll.filter(s => s.title !== '一般注意事項' && !cfg.skipSections.includes(s.title)).map(block).join('')
+    + sections(NL + general.body, 3).filter(s => !cfg.skipSections.includes(s.title)).map(block).join('');
+  return { prep, flow, after, faqFile: '共用/常見問題.md' };
+}
+
+// ---- the page, mode "self" ---------------------------------------------------------------
+function selfParts() {
+  const mine = Object.fromEntries(ownSections.map(s => [s.title, s.body]));
+  const prep = render(clean(mine['檢查前']));
+  const place = ['在哪裡', '門診病人怎麼走', '住院病人'];
+  const flow = sections(stripFront(read('共用/檢查當天流程與位置.md')), 2).filter(s => place.includes(s.title)).map(block).join('');
+  // the warning goes first, as on the other pages
+  const subs = sections(NL + mine['檢查後注意事項'], 3);
+  subs.sort((x, y) => (y.title.startsWith('什麼情況') ? 1 : 0) - (x.title.startsWith('什麼情況') ? 1 : 0));
+  return { prep, flow, after: subs.map(block).join(''), faqFile: cfg.faq };
+}
+const parts = cfg.mode === 'self' ? selfParts() : sharedParts();
+
+// Questions: "## group" headings sit between the "### n. question" entries.
+const faqText = stripFront(read(parts.faqFile));
 let faq = '', group = '';
 for (const q of sections(faqText, 3)) {
-  // the "## 檢查中" style group headings sit at the end of the previous question's text
-  const lines = q.body.split(String.fromCharCode(10));
+  const lines = q.body.split(NL);
   const cut = lines.findIndex(l => l.startsWith('## ') || l.startsWith('> [!note]'));
-  const answer = (cut < 0 ? lines : lines.slice(0, cut)).join(String.fromCharCode(10));
+  const answer = (cut < 0 ? lines : lines.slice(0, cut)).join(NL);
   const nextGroup = cut >= 0 && lines[cut].startsWith('## ') ? lines[cut].slice(3).trim() : '';
   if (!cfg.skipQuestions.some(re => re.test(q.title))) {
     if (group) { faq += `<h4>${group}</h4>`; group = ''; }
@@ -193,8 +223,7 @@ for (const q of sections(faqText, 3)) {
   }
   if (nextGroup) group = nextGroup;
 }
-// the first group heading ("檢查前") comes before question 1
-faq = '<h4>檢查前</h4>' + faq;
+faq = `<h4>${faqText.match(/^## (.*)$/m)[1]}</h4>` + faq;   // the first group heading comes before question 1
 const faqNote = '<div class="edu-callout note"><p>與病情、檢查結果和治療有關的問題，請在回診時直接詢問您的醫師。</p></div>';
 
 const consentText = stripFront(read('同意書說明.md'));
@@ -212,9 +241,9 @@ const consent = cfg.consents.map(name => {
 
 const html = [
   details('這項檢查是什麼', intro.map(s => `<h4>${s.title}</h4>${render(clean(s.body))}`).join(''), true),
-  details('檢查前準備', prep),
-  details('當天流程與位置', flow),
-  details('檢查後注意事項', after + generalHtml, true),
+  details('檢查前準備', parts.prep),
+  details('當天流程與位置', parts.flow),
+  details('檢查後注意事項', parts.after, true),
   details('常見問題', faq + faqNote),
   details('同意書說明（取自高醫同意書，僅供閱讀）', consent, false, 'edu-consent')
 ].join('\n')

@@ -2,7 +2,7 @@
 // Examinations without a text file simply show nothing here.
 import { versioned } from './ver.js';
 
-const ids = new Set(['wash']);   // examinations whose text has been published
+const ids = new Set(['wash', 'bronch', 'tbna', 'drain']);   // examinations whose text has been published
 export const hasEdu = id => ids.has(id);
 const cache = new Map();
 
