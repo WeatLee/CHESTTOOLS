@@ -205,7 +205,7 @@ const consent = render(clean(explain)) + consentBlocks.map(b =>
   `<h4>${esc(b.title.split('：').pop())}</h4>${render(clean(b.body), 5)}`).join('');
 
 const html = [
-  details('這項檢查是什麼', intro.map(s => `<h4>${s.title}</h4>${render(clean(s.body))}`).join('')),
+  details('這項檢查是什麼', intro.map(s => `<h4>${s.title}</h4>${render(clean(s.body))}`).join(''), true),
   details('檢查前準備', prep),
   details('當天流程與位置', flow),
   details('檢查後注意事項', after + generalHtml, true),
