@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
+<div class="draft" id="draft" hidden>未完成，修正中：內容待醫師校對，數字僅供版面示範</div>
 <div class="wrap">
   <h1>肺癌治療 SDM</h1>
   <p class="muted">醫師診間操作用。病人只會拿到單一項目的 QR code，看不到這一頁。</p>
@@ -21,16 +22,24 @@
         <button data-act="qr">顯示 QR code</button>
       </div>
     </div>
+    <div class="card item" data-path="gene-basics/">
+      <h3>2 基因突變是什麼</h3>
+      <p class="muted">EGFR、ALK 這些名詞的白話說明。</p>
+      <div class="actions">
+        <button class="primary" data-act="open">開啟</button>
+        <button data-act="qr">顯示 QR code</button>
+      </div>
+    </div>
     <div class="card item soon">
-      <h3>2 化學治療介紹<span class="tag">準備中</span></h3>
+      <h3>3 化學治療介紹<span class="tag">準備中</span></h3>
       <p class="muted">從第一步的方塊連過去。</p>
     </div>
     <div class="card item soon">
-      <h3>3 免疫治療介紹<span class="tag">準備中</span></h3>
+      <h3>4 免疫治療介紹<span class="tag">準備中</span></h3>
       <p class="muted">從第一步的方塊連過去。</p>
     </div>
     <div class="card item soon">
-      <h3>4 抗藥後怎麼辦<span class="tag">準備中</span></h3>
+      <h3>5 抗藥後怎麼辦<span class="tag">準備中</span></h3>
       <p class="muted">標靶藥產生抗藥性之後的選擇。</p>
     </div>
   </div>
@@ -78,5 +87,6 @@
   document.getElementById('qrprint').onclick = function () { window.print(); };
 })();
 </script>
+<script>if (window.SDM_CONFIG && window.SDM_CONFIG.draft) document.getElementById('draft').hidden = false;</script>
 </body>
 </html>

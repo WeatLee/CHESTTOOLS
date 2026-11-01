@@ -477,3 +477,34 @@ details.dcollapse > summary { cursor: pointer; min-height: 44px; display: flex; 
 .cgrp .btns button.on { border: 2px solid var(--accent); background: var(--accent-bg); font-weight: 600; }
 .cstat { font-weight: 600; margin: 6px 0 10px; }
 .metro .st.tx[data-tx=both] .box { fill: #00838f; }
+
+/* ===== 名詞小頁（基因突變是什麼／檢測方法的差別）2026-11-01 ===== */
+.card.big { font-size: 1.1rem; margin-top: 12px; }
+.card.big p { margin: 0.2em 0; }
+ul.plain { margin: 0.4em 0; padding-left: 1.3em; }
+ul.plain li { margin: 0.3em 0; }
+.btn { display: inline-block; padding: 10px 16px; border: 2px solid var(--accent); border-radius: 10px; color: var(--ink); background: var(--accent-bg); text-decoration: none; font-weight: 600; min-height: 48px; line-height: 1.7; }
+.card.next { margin-top: 1.6em; }
+.manual { margin: 10px 0; display: grid; gap: 8px; }
+.mrow { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+.mlabel { flex: 0 0 3em; font-size: 0.85rem; color: var(--muted); }
+.mcell { flex: 1 1 0; min-width: 0; text-align: center; padding: 10px 4px; border-radius: 10px; background: var(--accent-bg); border: 1px solid var(--line); }
+.mcell.err { background: var(--warn-bg); color: var(--warn); border: 2px solid var(--warn); font-weight: 600; }
+.terms { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); margin-top: 10px; }
+.term h3 { margin: 0 0 4px; font-size: 1.15rem; }
+.term p { margin: 0.3em 0; }
+.two { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.method h3 { margin: 0 0 6px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.mtag { display: inline-block; font-size: 0.8rem; font-weight: 600; padding: 1px 10px; border-radius: 8px; border: 1px solid var(--line); white-space: nowrap; }
+.mtag.pcr { background: var(--ok-bg); color: var(--ok); }
+.mtag.ngs { background: var(--accent-bg); color: var(--accent); }
+.tests { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-top: 10px; }
+.test .thead { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.test h3 { margin: 0; font-size: 1.15rem; }
+.gcount { display: flex; align-items: baseline; gap: 10px; margin: 8px 0; }
+.gcount b { font-size: 1.7rem; line-height: 1.2; }
+.gcount span { font-size: 0.85rem; color: var(--muted); line-height: 1.4; }
+.test dl { display: grid; grid-template-columns: 5em 1fr; gap: 2px 8px; margin: 6px 0 0; }
+.test dt { color: var(--muted); font-size: 0.85rem; }
+.test dd { margin: 0; }
+.term h3 small { display: block; font-size: 0.8rem; font-weight: 400; color: var(--muted); line-height: 1.4; margin-top: 2px; }
