@@ -202,8 +202,12 @@ const askDoctor = sectionOf('同意書說明.md', '簽之前，您可以問醫�
 const formsText = sectionOf('同意書說明.md', '同意書內文（取自高醫同意書）', 2);
 const consentBlocks = sections(formsText, 3).filter(s => cfg.consents.some(c => s.title.includes(c)));
 if (consentBlocks.length !== cfg.consents.length) throw new Error('consent sections not all found');
-const consent = consentBlocks.map(b =>
-  `<h4>${esc(b.title.split('：').pop())}</h4>${render(clean(b.body), 5)}`).join('')
+// One collapsed block per form, in the order of cfg.consents (the painless form first); opened one at a time by the reader.
+const consent = cfg.consents.map(name => {
+  const form = consentBlocks.find(f => f.title.includes(name));
+  const body = form.body.split('\n').filter(l => !(l.startsWith('**') && l.endsWith('說明暨同意書**'))).join('\n');   // the heading is already the summary line
+  return details(esc(form.title.split('：').pop()), render(clean(body), 5));
+}).join('')
   + `<h4>簽之前，您可以問醫師</h4>${render(clean(askDoctor))}`;
 
 const html = [
