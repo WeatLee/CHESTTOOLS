@@ -5,6 +5,7 @@
   --warn: #854f0b; --warn-bg: #faeeda;
   --bad: #a32d2d; --bad-bg: #fcebeb;
   --radius: 12px;
+  color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
   :root {
