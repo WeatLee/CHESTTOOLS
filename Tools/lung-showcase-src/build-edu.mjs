@@ -240,10 +240,10 @@ const consent = cfg.consents.map(name => {
   + `<h4>簽之前，您可以問醫師</h4>${render(clean(askDoctor))}`;
 
 const html = [
-  details('這項檢查是什麼', intro.map(s => `<h4>${s.title}</h4>${render(clean(s.body))}`).join(''), true),
+  details('這項檢查是什麼', intro.map(s => `<h4>${s.title}</h4>${render(clean(s.body))}`).join('')),
   details('檢查前準備', parts.prep),
   details('當天流程與位置', parts.flow),
-  details('檢查後注意事項', parts.after, true),
+  details('檢查後注意事項', parts.after),
   details('常見問題', faq + faqNote),
   details('同意書說明（取自高醫同意書，僅供閱讀）', consent, false, 'edu-consent')
 ].join('\n')
